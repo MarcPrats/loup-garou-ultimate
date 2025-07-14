@@ -1,0 +1,14 @@
+{
+    "liveServer.settings.port": 5501,
+    "liveServer.settings.CustomBrowser": "firefox",
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.donotVerifyTags": true,
+    "liveServer.settings.host": "127.0.0.1",
+    "html.format.wrapLineLength": 100,
+    "html.format.indentInnerHtml": true,
+    "css.format.spaceAroundSelectorSeparator": true,
+    "emmet.triggerExpansionOnTab": true,
+    "files.associations": {
+        "*.html": "html"
+    }
+}

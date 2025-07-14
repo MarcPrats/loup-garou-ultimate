@@ -1,0 +1,45 @@
+{
+    "app": {
+        "name": "Loup Garou Ultime",
+        "version": "2.0.0",
+        "description": "Corporate Edition - Werewolf Ultimate Game Rules",
+        "author": "Marc Prats",
+        "theme": "corporate"
+    },
+    "ui": {
+        "colors": {
+            "primary": "#1a1a1a",
+            "secondary": "#2d2d2d",
+            "accent": "#e67e22",
+            "accentBlue": "#3498db",
+            "text": "#f8f9fa",
+            "border": "#495057"
+        },
+        "fonts": {
+            "primary": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+            "heading": "Roboto Slab, serif",
+            "accent": "Source Sans Pro, sans-serif"
+        },
+        "animations": {
+            "duration": "0.3s",
+            "easing": "ease",
+            "glowDuration": "6s"
+        }
+    },
+    "features": {
+        "animations": true,
+        "interactiveEffects": true,
+        "responsiveDesign": true,
+        "debugging": true
+    },
+    "development": {
+        "server": {
+            "port": 5500,
+            "host": "localhost"
+        },
+        "debugging": {
+            "firefox": true,
+            "console": true
+        }
+    }
+}

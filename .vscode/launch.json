@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Firefox",
+            "type": "firefox",
+            "request": "launch",
+            "file": "${workspaceFolder}/index.html",
+            "reAttach": true,
+            "reloadOnAttach": true
+        },
+        {
+            "name": "Launch Firefox with Live Server",
+            "type": "firefox",
+            "request": "launch",
+            "url": "http://127.0.0.1:5500/index.html",
+            "webRoot": "${workspaceFolder}",
+            "reAttach": true,
+            "reloadOnAttach": true,
+            "pathMappings": [
+                {
+                    "url": "http://127.0.0.1:5500",
+                    "path": "${workspaceFolder}"
+                }
+            ]
+        },
+        {
+            "name": "Attach to Firefox",
+            "type": "firefox",
+            "request": "attach",
+            "url": "http://127.0.0.1:5500/index.html",
+            "webRoot": "${workspaceFolder}"
+        }
+    ]
+}
