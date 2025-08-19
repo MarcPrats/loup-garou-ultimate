@@ -7,19 +7,23 @@ A modern, professional web application for displaying Werewolf Ultimate game rul
 The application has been refactored with a clean separation of concerns:
 
 ```
+```
 loup-garou-ultimate/
 ├── index.html              # Main HTML file (refactored)
 ├── css/
-│   └── styles.css          # All styling and CSS variables
+│   ├── styles.css          # Main styling and CSS variables
+│   └── gameRoom.css        # Game room specific styles
 ├── js/
-│   └── app.js              # Interactive features and logic
+│   ├── app.js              # Interactive features and logic
+│   └── gameRoomManager.js  # Multiplayer room management
+├── images/                 # Character images (*.webp)
 ├── config/
 │   └── app.json            # Application configuration
 ├── .vscode/
 │   ├── launch.json         # Firefox debugging config
 │   └── settings.json       # VS Code settings
-├── images/                 # Character images (*.webp)
 └── README.md               # This file
+```
 ```
 
 ## 🎨 Features
