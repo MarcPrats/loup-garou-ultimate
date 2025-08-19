@@ -72,6 +72,10 @@ class MobileCharacterViewer {
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', cardHTML);
+            
+            // Set the blurred background image for this character card
+            const card = container.lastElementChild;
+            card.style.setProperty('--bg-image', `url(${character.image})`);
         });
     }
 
@@ -127,10 +131,14 @@ class MobileCharacterViewer {
             }
         });
 
-        // Prevent scroll on mobile viewer
+        // Prevent scroll on mobile viewer, except inside description
         document.getElementById('mobileViewer').addEventListener('touchmove', (e) => {
             if (this.isViewerActive) {
-                e.preventDefault();
+                // Allow scrolling inside description boxes
+                const target = e.target.closest('.character-description-mobile');
+                if (!target) {
+                    e.preventDefault();
+                }
             }
         }, { passive: false });
     }

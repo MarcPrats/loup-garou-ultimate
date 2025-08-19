@@ -1,5 +1,15 @@
 /* Mobile-First Design for Character Cards */
 
+/* Global tap highlight removal for mobile */
+* {
+    -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+    border: none !important;
+}
+
 /* Mobile Character Viewer */
 .mobile-character-viewer {
     display: none;
@@ -8,15 +18,31 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+    background: #000;
     z-index: 1000;
     overflow: hidden;
     touch-action: pan-x;
+    /* Remove tap borders and highlights */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    outline: none;
 }
 
 .mobile-character-viewer.active {
     display: flex;
     flex-direction: column;
+}
+
+/* Remove tap highlights from all elements inside mobile viewer */
+.mobile-character-viewer * {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    outline: none !important;
+    border: none !important;
 }
 
 /* Character Card Container */
@@ -41,6 +67,29 @@
     cursor: pointer;
     user-select: none;
     overflow: hidden;
+    /* Remove tap borders and highlights */
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    border: none;
+}
+
+/* Character background - blurred version of the character image */
+.character-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: var(--bg-image);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(8px) brightness(0.5);
+    z-index: -1;
+    transform: scale(1.1);
 }
 
 .character-card.description-visible {
@@ -140,6 +189,8 @@
     opacity: 1;
     transform: translateY(0);
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 }
 
 .character-description-mobile .title {
@@ -191,6 +242,11 @@
     background: rgba(255, 255, 255, 0.4);
     transition: all 0.3s ease;
     cursor: pointer;
+    /* Remove tap borders and highlights */
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    border: none;
 }
 
 .nav-dot.active {
@@ -268,6 +324,8 @@
         padding: 1.5rem;
         margin: 0.5rem;
         max-height: 35vh;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
     
     .navigation-indicators {
