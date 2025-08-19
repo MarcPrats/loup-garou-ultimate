@@ -1,0 +1,327 @@
+/* Mobile-First Design for Character Cards */
+
+/* Mobile Character Viewer */
+.mobile-character-viewer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--secondary-dark) 100%);
+    z-index: 1000;
+    overflow: hidden;
+    touch-action: pan-x;
+}
+
+.mobile-character-viewer.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Character Card Container */
+.character-cards-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.character-card {
+    min-width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+}
+
+.character-card.description-visible {
+    justify-content: flex-start;
+    overflow-y: auto;
+    padding: 1rem;
+    padding-top: 0;
+}
+
+/* Character Image */
+.character-image {
+    width: 100vw;
+    height: calc(100vh - 2.5rem);
+    object-fit: contain;
+    object-position: center;
+    border: none;
+    box-shadow: none;
+    margin-bottom: 0;
+    margin-top: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    display: block;
+}
+
+.character-card.description-visible .character-image {
+    width: 100vw;
+    height: 50vh;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Character Name */
+.character-name-mobile {
+    font-family: 'Roboto Slab', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 0;
+    text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.9);
+    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    backdrop-filter: blur(15px);
+    position: absolute;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    max-width: 80vw;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.character-card.description-visible .character-name-mobile {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    backdrop-filter: none;
+    max-width: none;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+/* Character Description */
+.character-description-mobile {
+    background: linear-gradient(145deg, #2c3e50 0%, #34495e 100%);
+    border: 1px solid rgba(52, 152, 219, 0.3);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 1rem;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transform: translateY(20px);
+    font-family: 'Inter', sans-serif;
+    color: #ecf0f1;
+    line-height: 1.6;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 
+                0 5px 15px rgba(52, 152, 219, 0.2);
+    backdrop-filter: blur(10px);
+}
+
+.character-card.description-visible .character-description-mobile {
+    max-height: 60vh;
+    opacity: 1;
+    transform: translateY(0);
+    overflow-y: auto;
+}
+
+.character-description-mobile .title {
+    font-family: 'Roboto Slab', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #3498db;
+    margin-bottom: 0.8rem;
+    margin-top: 1.5rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.character-description-mobile .title:first-child {
+    margin-top: 0;
+}
+
+/* Modern dark theme text colors */
+.character-description-mobile,
+.character-description-mobile p,
+.character-description-mobile div:not(.title) {
+    color: #bdc3c7 !important;
+}
+
+.character-description-mobile b,
+.character-description-mobile strong {
+    color: #e74c3c !important;
+    font-weight: 600;
+}
+
+/* Navigation Indicators */
+.navigation-indicators {
+    position: absolute;
+    top: 1.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.3rem;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+}
+
+.nav-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.nav-dot.active {
+    background: var(--accent-orange);
+    transform: scale(1.3);
+}
+
+
+
+
+/* Media Queries */
+@media (max-width: 768px) {
+    /* Hide desktop table on mobile */
+    .container table {
+        display: none;
+    }
+    
+    /* Hide game room section on mobile if present */
+    .game-room-section {
+        display: none;
+    }
+    
+    /* Adjust container padding */
+    .container {
+        padding: 1rem;
+    }
+    
+    /* Make title responsive */
+    .container h1 {
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    /* Auto-show mobile viewer */
+    .mobile-character-viewer {
+        display: flex !important;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 480px) {
+    .character-card {
+        padding: 0;
+    }
+    
+    .character-card.description-visible {
+        padding: 1rem;
+        padding-top: 0;
+    }
+    
+    .character-image {
+        width: 100vw;
+        height: calc(100vh - 2rem);
+        margin-top: 1rem;
+    }
+    
+    .character-card.description-visible .character-image {
+        width: 100vw;
+        height: 45vh;
+        margin-top: 1rem;
+    }
+    
+    .character-name-mobile {
+        font-size: 1.2rem;
+        padding: 0.5rem 1rem;
+        bottom: 2.5rem;
+    }
+    
+    .character-card.description-visible .character-name-mobile {
+        font-size: 1.1rem;
+    }
+    
+    .character-description-mobile {
+        padding: 1.5rem;
+        margin: 0.5rem;
+        max-height: 35vh;
+    }
+    
+    .navigation-indicators {
+        top: 1rem;
+        padding: 0.25rem 0.5rem;
+    }
+    
+    .nav-dot {
+        width: 5px;
+        height: 5px;
+    }
+}
+
+/* Animation for initial load */
+.character-card {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Touch feedback */
+.character-card:active {
+    transform: scale(0.98);
+}
+
+/* Smooth scrolling for description */
+.character-description-mobile {
+    scroll-behavior: smooth;
+}
+
+.character-description-mobile::-webkit-scrollbar {
+    width: 6px;
+}
+
+.character-description-mobile::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.character-description-mobile::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #3498db, #2980b9);
+    border-radius: 3px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.character-description-mobile::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #5dade2, #3498db);
+}
