@@ -11,7 +11,12 @@ const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIO(server);
+const io = socketIO(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 // Serve static files
 app.use(express.static(__dirname));
@@ -756,9 +761,9 @@ app.get('/api/status', (req, res) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`🚀 Loup Garou Ultimate server running on http://localhost:${PORT}`);
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Loup Garou Ultimate server running on http://0.0.0.0:${PORT}`);
     console.log(`📡 Socket.IO ready for connections`);
 });
 
