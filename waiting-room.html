@@ -87,6 +87,13 @@
                     </div>
                 </div>
 
+                <div class="game-master-section">
+                    <h3>Maître du Jeu</h3>
+                    <div id="game-master-list" class="players-list">
+                        <!-- Game master will be added dynamically -->
+                    </div>
+                </div>
+
                 <div class="players-section">
                     <h3>Joueurs (<span id="player-count">0</span>)</h3>
                     <div id="players-list" class="players-list">
@@ -119,22 +126,31 @@
                             <span id="role-team" class="role-team-badge">---</span>
                         </div>
                     </div>
+
                     <div class="role-description-container">
-                        <div class="description-header">
-                            <span class="description-icon">⚡</span>
-                            <h4>Votre Pouvoir</h4>
+                        <div class="description-section power-section">
+                            <div class="section-header">
+                                <span class="section-icon">⚡</span>
+                                <h4>Votre Pouvoir</h4>
+                            </div>
+                            <p id="role-power" class="section-text">---</p>
                         </div>
-                        <div id="role-description" class="role-description">---</div>
+
+                        <div class="description-section info-section">
+                            <div class="section-header">
+                                <span class="section-icon">💡</span>
+                                <h4>Autres Infos</h4>
+                            </div>
+                            <p id="role-info" class="section-text">---</p>
+                        </div>
                     </div>
-                    <div class="role-secret-message">
-                        🤫 Gardez votre rôle secret !
-                    </div>
-                    <div class="button-group">
+
+                    <div class="role-actions">
                         <button id="view-rules-btn" class="btn btn-secondary">
-                            📖 Voir les Règles Complètes
+                            📖 Consulter les Règles
                         </button>
                         <button id="ready-btn" class="btn btn-primary">
-                            ✅ Je suis Prêt
+                            ✓ Prêt à Jouer
                         </button>
                     </div>
                 </div>
@@ -153,6 +169,7 @@
                                     <th>Joueur</th>
                                     <th>Rôle</th>
                                     <th>Équipe</th>
+                                    <th>Détails</th>
                                 </tr>
                             </thead>
                             <tbody id="gm-players-table">

@@ -7,6 +7,7 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const server = http.createServer(app);
@@ -15,8 +16,23 @@ const io = socketIO(server);
 // Serve static files
 app.use(express.static(__dirname));
 
+// API endpoint to get role data by token
+app.get('/api/role/:token', (req, res) => {
+    const token = req.params.token;
+    const roleData = roleTokens.get(token);
+
+    if (!roleData) {
+        return res.status(404).json({ error: 'Role not found' });
+    }
+
+    res.json(roleData);
+});
+
 // Game rooms storage
 const gameRooms = new Map();
+
+// Role tokens storage: token -> { roomCode, playerName, role, isGameMaster }
+const roleTokens = new Map();
 
 // Available game roles
 const GAME_ROLES = [
@@ -25,105 +41,120 @@ const GAME_ROLES = [
         name: 'Loup Garou Ultime',
         team: 'werewolves',
         image: 'loupgarou.webp',
-        description: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note: Vous pouvez choisir de vous tuer vous même et l'infect loup garou ou le grand loup jouera votre rôle. Le loup garou ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Conseil: ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien."
+        power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note: Vous pouvez choisir de vous tuer vous même et l'infect loup garou ou le grand loup jouera votre rôle.",
+        info: "Le loup garou ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien."
     },
     {
         id: 'infect-loup',
         name: 'Infect Loup Garou',
         team: 'werewolves',
         image: 'infectloup.webp',
-        description: "Chaque nuit, choisissez un joueur. Ce joueur est empoisonné et ne bénéficie plus de son pouvoir jusqu'au début de la prochaine nuit. Le loup garou infect prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie. Le poison annule ou altère les pouvoirs des villageois. Conseil: de bonnes cibles pour l'empoisonnement sont Cupidon, la voyante, l'ancien ou le chevalier dont les pouvoirs vous gêneront amplement."
+        power: "Chaque nuit, choisissez un joueur. Ce joueur est empoisonné et ne bénéficie plus de son pouvoir jusqu'au début de la prochaine nuit.",
+        info: "Le loup garou infect prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie. Le poison annule ou altère les pouvoirs des villageois. De bonnes cibles pour l'empoisonnement sont Cupidon, la voyante, l'ancien ou le chevalier dont les pouvoirs vous gêneront amplement."
     },
     {
         id: 'grand-loup',
         name: 'Grand Loup Garou',
         team: 'werewolves',
         image: 'grandloup.webp',
-        description: "S'il y a toujours plus de 5 joueurs en vie et que le loup garou ultime meurt, vous devenez le loup garou ultime. Le grand loup garou prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci."
+        power: "S'il y a toujours plus de 5 joueurs en vie et que le loup garou ultime meurt, vous devenez le loup garou ultime.",
+        info: "Le grand loup garou prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci."
     },
     {
         id: 'petite-fille',
         name: 'Petite Fille',
         team: 'villagers',
         image: 'petite-fille.webp',
-        description: "Lors de la première nuit, le maître du jeu vous montrera un rôle de villageois puis pointera deux joueurs. L'un de ces deux joueurs est le villageois précédemment montré. Conseil: votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
+        power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de villageois puis pointera deux joueurs. L'un de ces deux joueurs est le villageois précédemment montré.",
+        info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
     {
         id: 'renard',
         name: 'Renard',
         team: 'villagers',
         image: 'renard.webp',
-        description: "Lors de la première nuit, le maître du jeu vous montrera un rôle de loup garou (sauf celui du loup garou ultime) puis pointera deux joueurs. L'un de ces deux joueurs est le loup garou précédemment montré. Conseil: votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
+        power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de loup garou (sauf celui du loup garou ultime) puis pointera deux joueurs. L'un de ces deux joueurs est le loup garou précédemment montré.",
+        info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
     {
         id: 'loup-blanc',
         name: 'Loup Blanc',
         team: 'villagers',
         image: 'loup_blanc.webp',
-        description: "Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte. Conseil: votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
+        power: "Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.",
+        info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
     {
         id: 'cupidon',
         name: 'Cupidon',
         team: 'villagers',
         image: 'cupidon.webp',
-        description: "Chaque nuit, parmi les deux joueurs vivants qui vos entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2). Conseil: votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
+        power: "Chaque nuit, parmi les deux joueurs vivants qui vos entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2).",
+        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
         id: 'voyante',
         name: 'Voyante',
         team: 'villagers',
         image: 'voyante.webp',
-        description: "Chaque nuit, choisissez deux joueurs. Si au moins l'un deux est le loup garou ultime, vous aurez l'information. ATTENTION: l'un des villageois est un leurre et vous apparaîtra comme le loup garou ultime ! Conseil: votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
+        power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un deux est le loup garou ultime, vous aurez l'information. ATTENTION: l'un des villageois est un leurre et vous apparaîtra comme le loup garou ultime !",
+        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
         id: 'chevalier',
         name: 'Chevalier',
         team: 'villagers',
         image: 'chevalier.webp',
-        description: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du loup garou ultime le temps d'une nuit. Conseil: votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayer vite de les identifier afin de les protéger."
+        power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du loup garou ultime le temps d'une nuit.",
+        info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayer vite de les identifier afin de les protéger."
     },
     {
         id: 'chasseur',
         name: 'Chasseur',
         team: 'villagers',
         image: 'chasseur.webp',
-        description: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le loup garou ultime, il meurt. Conseil: votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le loup garou ultime."
+        power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le loup garou ultime, il meurt.",
+        info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le loup garou ultime."
     },
     {
         id: 'flutiste',
         name: 'Joueur de flûte',
         team: 'villagers',
         image: 'flute.webp',
-        description: "Pendant la journée, si un joueur vous désigne pour une exécution et, que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utlisé qu'une seule fois. ATTENTION: ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis. Conseil: ce pouvoir vous permet de vous protéger des mauvaises accusations donc n'hésitez pas à l'énoncer si on vous accuse à tort."
+        power: "Pendant la journée, si un joueur vous désigne pour une exécution et, que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utlisé qu'une seule fois. ATTENTION: ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
+        info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations donc n'hésitez pas à l'énoncer si on vous accuse à tort."
     },
     {
         id: 'sorciere',
         name: 'Sorcière',
         team: 'villagers',
         image: 'sorciere.webp',
-        description: "Si vous mourrez la nuit, vous choisissez un personnage et découvrez son identité. Conseil: votre pouvoir se déclenche à votre mort. Donc n'hésitez pas à vous faire passer pour un personnage en possession d'informations afin d'attirer la morsure du loup garou. Si vous vous faites éliminer par le village, votre pouvoir ne se déclenchera pas."
+        power: "Si vous mourrez la nuit, vous choisissez un personnage et découvrez son identité.",
+        info: "Votre pouvoir se déclenche à votre mort. Donc n'hésitez pas à vous faire passer pour un personnage en possession d'informations afin d'attirer la morsure du loup garou. Si vous vous faites éliminer par le village, votre pouvoir ne se déclenchera pas."
     },
     {
         id: 'ancien',
         name: 'Ancien',
         team: 'villagers',
         image: 'ancien.webp',
-        description: "Le loup garou ultime ne peut pas vous tuer. Conseil: votre pouvoir vous permet d'annuler la morsure du loup garou ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du loup garou ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit."
+        power: "Le loup garou ultime ne peut pas vous tuer.",
+        info: "Votre pouvoir vous permet d'annuler la morsure du loup garou ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du loup garou ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit."
     },
     {
         id: 'enfant-sauvage',
         name: 'Enfant Sauvage',
         team: 'villagers',
         image: 'enfant.webp',
-        description: "Si un joueur est executé par le village durant la journée, vous découvrez son identité la nuit. Conseil: votre pouvoir se déclenche uniquement après l'exécution du jour donc n'hésitez pas à déclencher des nominations/exécutions pour innocenter/accuser quelqu'un."
+        power: "Si un joueur est executé par le village durant la journée, vous découvrez son identité la nuit.",
+        info: "Votre pouvoir se déclenche uniquement après l'exécution du jour donc n'hésitez pas à déclencher des nominations/exécutions pour innocenter/accuser quelqu'un."
     },
     {
         id: 'ange',
         name: 'Ange',
         team: 'villagers',
         image: 'ange.webp',
-        description: "Si le village vous élimine, le village perd la partie. Conseil: votre personnage peut vous protéger de fausses accusations en révélant votre rôle. Donc n'hésitez à l'énoncer pour vous protéger."
+        power: "Si le village vous élimine, le village perd la partie.",
+        info: "Votre personnage peut vous protéger de fausses accusations en révélant votre rôle. Donc n'hésitez à l'énoncer pour vous protéger."
     }
 ];
 
@@ -142,15 +173,83 @@ function assignRoles(players, hostSocketId) {
     // Filter out the host - they are the game master
     const playersToAssignRoles = players.filter(p => p.socketId !== hostSocketId);
     const playerCount = playersToAssignRoles.length;
-    const shuffledRoles = shuffleArray(GAME_ROLES);
-    const selectedRoles = shuffledRoles.slice(0, playerCount);
 
+    // Validate player count
+    if (playerCount < 5 || playerCount > 15) {
+        throw new Error(`Invalid player count: ${playerCount}. Must be between 5 and 15 players.`);
+    }
+
+    // Determine number of werewolves based on player count
+    let werewolfCount;
+    if (playerCount >= 5 && playerCount <= 9) {
+        werewolfCount = 2;
+    } else if (playerCount >= 10 && playerCount <= 12) {
+        werewolfCount = 3;
+    } else if (playerCount >= 13 && playerCount <= 15) {
+        werewolfCount = 4;
+    }
+
+    // Check if Ange can be included
+    const angeAllowed = [6, 8, 9, 11, 12, 14, 15].includes(playerCount);
+
+    // Separate roles by type
+    const loupGarouUltime = GAME_ROLES.find(r => r.id === 'loup-garou-ultime');
+    const otherWerewolves = GAME_ROLES.filter(r => r.team === 'werewolves' && r.id !== 'loup-garou-ultime');
+    const villagers = GAME_ROLES.filter(r => r.team === 'villagers' && r.id !== 'ange');
+    const ange = GAME_ROLES.find(r => r.id === 'ange');
+
+    // Build the role pool
+    const rolePool = [];
+
+    // Always add Loup Garou Ultime
+    rolePool.push(loupGarouUltime);
+
+    // Add additional werewolves (werewolfCount - 1 since we already added Loup Garou Ultime)
+    const shuffledWerewolves = shuffleArray(otherWerewolves);
+    for (let i = 0; i < werewolfCount - 1; i++) {
+        if (shuffledWerewolves[i]) {
+            rolePool.push(shuffledWerewolves[i]);
+        }
+    }
+
+    // Add Ange if required for this player count
+    if (angeAllowed && ange) {
+        rolePool.push(ange);
+    }
+
+    // Calculate remaining slots for villagers
+    const villagersNeeded = playerCount - rolePool.length;
+
+    // Shuffle and select remaining villagers
+    const shuffledVillagers = shuffleArray(villagers);
+    for (let i = 0; i < villagersNeeded; i++) {
+        if (shuffledVillagers[i]) {
+            rolePool.push(shuffledVillagers[i]);
+        }
+    }
+
+    // Shuffle the final role pool and assign to players
+    const finalRoles = shuffleArray(rolePool);
     const assignments = new Map();
     playersToAssignRoles.forEach((player, index) => {
-        assignments.set(player.socketId, selectedRoles[index]);
+        assignments.set(player.socketId, finalRoles[index]);
     });
 
-    return assignments;
+    // Randomly select one villager (not werewolf) to be drunk (only for 9, 12, or 15 players)
+    let drunkPlayerSocketId = null;
+    if ([9, 12, 15].includes(playerCount)) {
+        const villagerPlayers = playersToAssignRoles.filter(player => {
+            const role = assignments.get(player.socketId);
+            return role && role.team === 'villagers';
+        });
+
+        if (villagerPlayers.length > 0) {
+            const randomIndex = Math.floor(Math.random() * villagerPlayers.length);
+            drunkPlayerSocketId = villagerPlayers[randomIndex].socketId;
+        }
+    }
+
+    return { assignments, drunkPlayerSocketId };
 }
 
 // Generate random 4-character room code
@@ -176,6 +275,7 @@ class GameRoom {
         this.gameStarted = false;
         this.createdAt = Date.now();
         this.roleAssignments = new Map();
+        this.roleTokens = new Map(); // socketId -> token
     }
 
     addPlayer(socketId, playerName) {
@@ -275,8 +375,13 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (room.players.size < 4) {
-            callback({ success: false, error: 'Need at least 4 players (including game master)' });
+        if (room.players.size < 6) {
+            callback({ success: false, error: 'Need at least 6 players (5 players + 1 game master)' });
+            return;
+        }
+
+        if (room.players.size > 16) {
+            callback({ success: false, error: 'Maximum 16 players (15 players + 1 game master)' });
             return;
         }
 
@@ -284,30 +389,69 @@ io.on('connection', (socket) => {
 
         // Assign roles to all players except the host (game master)
         const playersList = room.getPlayers();
-        room.roleAssignments = assignRoles(playersList, room.hostSocketId);
+        const { assignments, drunkPlayerSocketId } = assignRoles(playersList, room.hostSocketId);
+        room.roleAssignments = assignments;
+        room.drunkPlayerSocketId = drunkPlayerSocketId;
 
-        // Prepare role map for game master
-        const roleMap = playersList.map(player => {
-            const role = room.roleAssignments.get(player.socketId);
-            return {
-                playerName: player.name,
-                socketId: player.socketId,
-                isHost: player.isHost,
-                role: role || { id: 'game-master', name: 'Maître du Jeu', team: 'neutral' }
-            };
+        // Generate unique tokens for each player (including game master)
+        playersList.forEach(player => {
+            const token = crypto.randomBytes(32).toString('hex');
+            room.roleTokens.set(player.socketId, token);
+
+            if (player.socketId === room.hostSocketId) {
+                // Store game master data (will be updated with players after roleMap is created)
+                roleTokens.set(token, {
+                    roomCode: roomCode,
+                    playerName: player.name,
+                    isGameMaster: true,
+                    role: null,
+                    players: [] // Will be populated below
+                });
+            } else {
+                // Store player role data
+                const role = room.roleAssignments.get(player.socketId);
+                roleTokens.set(token, {
+                    roomCode: roomCode,
+                    playerName: player.name,
+                    isGameMaster: false,
+                    role: role
+                });
+            }
         });
 
-        // Send full role map to the host (game master)
+        // Prepare role map for game master (excluding the game master themselves)
+        const roleMap = playersList
+            .filter(player => player.socketId !== room.hostSocketId)
+            .map(player => {
+                const role = room.roleAssignments.get(player.socketId);
+                return {
+                    playerName: player.name,
+                    socketId: player.socketId,
+                    isHost: player.isHost,
+                    role: role,
+                    isDrunk: player.socketId === room.drunkPlayerSocketId
+                };
+            });
+
+        // Update game master token data with players list
+        const gmToken = room.roleTokens.get(room.hostSocketId);
+        const gmData = roleTokens.get(gmToken);
+        if (gmData) {
+            gmData.players = roleMap;
+        }
+
+        // Send game master view with token
         io.to(room.hostSocketId).emit('game-master-view', {
-            players: roleMap
+            players: roleMap,
+            token: gmToken
         });
 
-        // Send individual roles to each player (except host)
+        // Send role tokens to each player (except host)
         playersList.forEach(player => {
             if (player.socketId !== room.hostSocketId) {
-                const role = room.roleAssignments.get(player.socketId);
+                const token = room.roleTokens.get(player.socketId);
                 io.to(player.socketId).emit('role-assigned', {
-                    role: role
+                    token: token
                 });
             }
         });

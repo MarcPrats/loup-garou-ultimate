@@ -17,11 +17,15 @@ class WaitingRoomApp {
         this.connectToServer();
         this.setupEventListeners();
 
-        // Check if there's a room code in URL parameters
+        // Check if there's a role token in URL parameters
         const urlParams = new URLSearchParams(window.location.search);
+        const roleToken = urlParams.get('token');
         const roomCode = urlParams.get('room');
 
-        if (roomCode) {
+        if (roleToken) {
+            // Load role from token
+            this.loadRoleFromToken(roleToken);
+        } else if (roomCode) {
             // Auto-join mode - show name input then join
             this.actionType = 'join-from-link';
             this.pendingRoomCode = roomCode.toUpperCase();
@@ -61,14 +65,47 @@ class WaitingRoomApp {
         });
 
         this.socket.on('role-assigned', (data) => {
-            console.log('Role assigned:', data.role);
-            this.showRoleScreen(data.role);
+            console.log('Role token received:', data.token);
+            // Update URL with token for persistence
+            const newUrl = `${window.location.pathname}?token=${data.token}`;
+            window.history.pushState({ token: data.token }, '', newUrl);
+            // Fetch and display role
+            this.loadRoleFromToken(data.token);
         });
 
         this.socket.on('game-master-view', (data) => {
             console.log('Game master view:', data.players);
+            // Update URL with token for persistence
+            const newUrl = `${window.location.pathname}?token=${data.token}`;
+            window.history.pushState({ token: data.token }, '', newUrl);
             this.showGameMasterScreen(data.players);
         });
+    }
+
+    async loadRoleFromToken(token) {
+        try {
+            const response = await fetch(`/api/role/${token}`);
+            if (!response.ok) {
+                throw new Error('Failed to load role');
+            }
+            const roleData = await response.json();
+
+            if (roleData.isGameMaster) {
+                // Show game master view with stored players data
+                if (roleData.players && roleData.players.length > 0) {
+                    this.showGameMasterScreen(roleData.players);
+                } else {
+                    this.showScreen('home-screen');
+                    this.showNotification('Aucune donnée de partie trouvée', 'info');
+                }
+            } else {
+                this.showRoleScreen(roleData.role);
+            }
+        } catch (error) {
+            console.error('Error loading role:', error);
+            this.showScreen('home-screen');
+            this.showError('home-screen', 'Impossible de charger votre rôle');
+        }
     }
 
     setupEventListeners() {
@@ -76,7 +113,9 @@ class WaitingRoomApp {
         document.getElementById('create-room-btn').addEventListener('click', () => {
             this.actionType = 'create';
             this.showScreen('name-input-screen');
-            document.getElementById('player-name-input').focus();
+            const nameInput = document.getElementById('player-name-input');
+            nameInput.value = 'Le Narrateur';
+            nameInput.focus();
         });
 
         document.getElementById('join-room-btn').addEventListener('click', () => {
@@ -292,26 +331,53 @@ class WaitingRoomApp {
 
             teamCell.appendChild(teamBadge);
 
+            // Details cell (drunk status)
+            const detailsCell = document.createElement('td');
+            if (player.isDrunk) {
+                const drunkBadge = document.createElement('span');
+                drunkBadge.className = 'drunk-badge';
+                drunkBadge.textContent = '🍺 Bourré';
+                detailsCell.appendChild(drunkBadge);
+            }
+
             row.appendChild(nameCell);
             row.appendChild(roleCell);
             row.appendChild(teamCell);
+            row.appendChild(detailsCell);
             tableBody.appendChild(row);
         });
     }
 
     updatePlayersList(players) {
         const playersList = document.getElementById('players-list');
+        const gameMasterList = document.getElementById('game-master-list');
         const playerCount = document.getElementById('player-count');
 
-        playerCount.textContent = players.length;
-        playersList.innerHTML = '';
+        // Separate game master from regular players
+        const gameMaster = players.find(p => p.isHost);
+        const regularPlayers = players.filter(p => !p.isHost);
 
-        players.forEach(player => {
+        playerCount.textContent = regularPlayers.length;
+        playersList.innerHTML = '';
+        gameMasterList.innerHTML = '';
+
+        // Add game master
+        if (gameMaster) {
+            const gmCard = document.createElement('div');
+            gmCard.className = 'player-card';
+            gmCard.innerHTML = `
+                <span class="player-name">${this.escapeHtml(gameMaster.name)}</span>
+                <span class="host-badge">👑 Narrateur</span>
+            `;
+            gameMasterList.appendChild(gmCard);
+        }
+
+        // Add regular players
+        regularPlayers.forEach(player => {
             const playerCard = document.createElement('div');
             playerCard.className = 'player-card';
             playerCard.innerHTML = `
                 <span class="player-name">${this.escapeHtml(player.name)}</span>
-                ${player.isHost ? '<span class="host-badge">👑 Hôte</span>' : ''}
             `;
             playersList.appendChild(playerCard);
         });
@@ -352,8 +418,9 @@ class WaitingRoomApp {
         teamBadge.textContent = role.team === 'werewolves' ? '🐺 Loup-Garou' : '👥 Villageois';
         teamBadge.className = `role-team-badge team-${role.team}`;
 
-        // Set role description
-        document.getElementById('role-description').textContent = role.description;
+        // Set role power and info
+        document.getElementById('role-power').textContent = role.power;
+        document.getElementById('role-info').textContent = role.info;
     }
 
     copyInvitationLink() {
