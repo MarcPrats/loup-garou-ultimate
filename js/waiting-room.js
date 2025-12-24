@@ -9,18 +9,18 @@ class WaitingRoomApp {
         this.currentRoomCode = null;
         this.isHost = false;
         this.actionType = null; // 'create' or 'join'
-        
+
         this.init();
     }
 
     init() {
         this.connectToServer();
         this.setupEventListeners();
-        
+
         // Check if there's a room code in URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const roomCode = urlParams.get('room');
-        
+
         if (roomCode) {
             // Auto-join mode - show name input then join
             this.actionType = 'join-from-link';
@@ -226,11 +226,11 @@ class WaitingRoomApp {
     showWaitingRoom(roomCode, players) {
         this.showScreen('waiting-room-screen');
         document.getElementById('room-code').textContent = roomCode;
-        
+
         // Generate and display invitation link
         const invitationLink = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
         document.getElementById('invitation-link').value = invitationLink;
-        
+
         this.updatePlayersList(players);
 
         // Show start button only for host
@@ -245,25 +245,25 @@ class WaitingRoomApp {
 
     showGameMasterScreen(players) {
         this.showScreen('game-master-screen');
-        
+
         const tableBody = document.getElementById('gm-players-table');
         tableBody.innerHTML = '';
-        
+
         players.forEach(player => {
             const row = document.createElement('tr');
-            
+
             // Player name cell
             const nameCell = document.createElement('td');
             const namePara = document.createElement('div');
             namePara.className = `gm-player-name${player.isHost ? ' host' : ''}`;
             namePara.textContent = player.playerName;
             nameCell.appendChild(namePara);
-            
+
             // Role cell
             const roleCell = document.createElement('td');
             const roleDiv = document.createElement('div');
             roleDiv.className = 'gm-role-name';
-            
+
             if (!player.isHost && player.role.image) {
                 const roleImg = document.createElement('img');
                 roleImg.className = 'gm-role-image';
@@ -271,17 +271,17 @@ class WaitingRoomApp {
                 roleImg.alt = player.role.name;
                 roleDiv.appendChild(roleImg);
             }
-            
+
             const roleText = document.createElement('span');
             roleText.textContent = player.role.name;
             roleDiv.appendChild(roleText);
             roleCell.appendChild(roleDiv);
-            
+
             // Team cell
             const teamCell = document.createElement('td');
             const teamBadge = document.createElement('span');
             teamBadge.className = `gm-team-badge team-${player.role.team}`;
-            
+
             if (player.role.team === 'werewolves') {
                 teamBadge.textContent = '🐺 Loup-Garou';
             } else if (player.role.team === 'villagers') {
@@ -289,9 +289,9 @@ class WaitingRoomApp {
             } else {
                 teamBadge.textContent = '👑 Maître';
             }
-            
+
             teamCell.appendChild(teamBadge);
-            
+
             row.appendChild(nameCell);
             row.appendChild(roleCell);
             row.appendChild(teamCell);
@@ -302,7 +302,7 @@ class WaitingRoomApp {
     updatePlayersList(players) {
         const playersList = document.getElementById('players-list');
         const playerCount = document.getElementById('player-count');
-        
+
         playerCount.textContent = players.length;
         playersList.innerHTML = '';
 
@@ -338,20 +338,20 @@ class WaitingRoomApp {
 
     showRoleScreen(role) {
         this.showScreen('role-screen');
-        
+
         // Set role image
         const roleImage = document.getElementById('role-image');
         roleImage.src = `images/${role.image}`;
         roleImage.alt = role.name;
-        
+
         // Set role name
         document.getElementById('role-name').textContent = role.name;
-        
+
         // Set team badge
         const teamBadge = document.getElementById('role-team');
         teamBadge.textContent = role.team === 'werewolves' ? '🐺 Loup-Garou' : '👥 Villageois';
         teamBadge.className = `role-team-badge team-${role.team}`;
-        
+
         // Set role description
         document.getElementById('role-description').textContent = role.description;
     }
@@ -359,10 +359,10 @@ class WaitingRoomApp {
     copyInvitationLink() {
         const linkInput = document.getElementById('invitation-link');
         const link = linkInput.value;
-        
+
         navigator.clipboard.writeText(link).then(() => {
             this.showNotification('Lien copié ! Partagez-le avec vos amis 🎉', 'success');
-            
+
             // Visual feedback
             linkInput.select();
             setTimeout(() => {
@@ -385,8 +385,8 @@ class WaitingRoomApp {
     }
 
     showError(screenId, message) {
-        const errorDiv = document.querySelector(`#${screenId} .error-message`) || 
-                        document.getElementById(`${screenId.replace('-screen', '')}-error`);
+        const errorDiv = document.querySelector(`#${screenId} .error-message`) ||
+            document.getElementById(`${screenId.replace('-screen', '')}-error`);
         if (errorDiv) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
@@ -419,7 +419,7 @@ class WaitingRoomApp {
     updateConnectionStatus(connected) {
         const statusEl = document.getElementById('connection-status');
         const statusText = statusEl.querySelector('.status-text');
-        
+
         if (connected) {
             statusEl.classList.add('connected');
             statusText.textContent = 'Connecté';
