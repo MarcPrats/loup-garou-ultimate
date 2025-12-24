@@ -1,0 +1,792 @@
+/**
+ * Waiting Room Styles - Loup Garou Ultimate
+ */
+
+:root {
+    --color-primary: #1a1a1a;
+    --color-secondary: #2d2d2d;
+    --color-accent: #e67e22;
+    --color-accent-blue: #3498db;
+    --color-success: #27ae60;
+    --color-danger: #e74c3c;
+    --color-text: #f8f9fa;
+    --color-text-secondary: #adb5bd;
+    --color-border: #495057;
+    --border-radius: 12px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: var(--color-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    max-width: 500px;
+    width: 100%;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 40px;
+    animation: fadeIn 0.4s ease;
+}
+
+.screen.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Typography */
+h1 {
+    font-family: 'Roboto Slab', serif;
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h2 {
+    font-size: 1.8rem;
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--color-text);
+}
+
+h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--color-text);
+}
+
+.subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    margin-bottom: 40px;
+    font-size: 1.1rem;
+}
+
+/* Buttons */
+.btn {
+    width: 100%;
+    padding: 16px 24px;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-blue) 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(230, 126, 34, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--color-accent);
+}
+
+.btn-back {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.btn-back:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: var(--transition);
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.icon {
+    font-size: 1.3rem;
+}
+
+/* Inputs */
+input[type="text"] {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text);
+    font-size: 1.1rem;
+    font-family: inherit;
+    margin-bottom: 20px;
+    transition: var(--transition);
+    text-align: center;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+input[type="text"]::placeholder {
+    color: var(--color-text-secondary);
+}
+
+.hint {
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    margin-top: -10px;
+}
+
+/* Waiting Room */
+.room-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.room-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.room-code-display .label {
+    color: var(--color-text-secondary);
+    font-size: 1rem;
+}
+
+.room-code-display .code {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    letter-spacing: 0.3em;
+    color: var(--color-accent);
+    background: rgba(230, 126, 34, 0.1);
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: 2px solid var(--color-accent);
+}
+
+/* Invitation Link */
+.invitation-link-container {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+}
+
+.invitation-label {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.invitation-input-group {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+}
+
+.invitation-link {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-accent-blue);
+    font-size: 0.9rem;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.invitation-link:focus {
+    outline: none;
+    border-color: var(--color-accent-blue);
+    background: rgba(52, 152, 219, 0.1);
+}
+
+.invitation-link:hover {
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.btn-copy {
+    padding: 12px 20px;
+    background: linear-gradient(135deg, var(--color-accent-blue) 0%, #2980b9 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.btn-copy:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+}
+
+/* Players List */
+.players-section {
+    margin-bottom: 30px;
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.players-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.players-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.players-list::-webkit-scrollbar-thumb {
+    background: var(--color-accent);
+    border-radius: 3px;
+}
+
+.player-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: var(--transition);
+}
+
+.player-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.player-name {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.host-badge {
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-blue) 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+/* Waiting Actions */
+.waiting-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.waiting-text {
+    color: var(--color-text-secondary);
+    text-align: center;
+    font-style: italic;
+}
+
+/* Error Messages */
+.error-message {
+    display: none;
+    background: rgba(231, 76, 60, 0.2);
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 15px;
+}
+
+/* Notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--color-primary);
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+    font-weight: 500;
+}
+
+.notification.show {
+    transform: translateX(0);
+}
+
+.notification-success {
+    background: var(--color-success);
+    color: white;
+}
+
+.notification-info {
+    background: var(--color-accent-blue);
+    color: white;
+}
+
+/* Connection Status */
+.connection-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px 15px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    z-index: 1000;
+}
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-danger);
+    animation: pulse 2s infinite;
+}
+
+.connection-status.connected .status-dot {
+    background: var(--color-success);
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Rules Link */
+.rules-link {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.rules-link a {
+    color: var(--color-accent-blue);
+    text-decoration: none;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+
+.rules-link a:hover {
+    color: var(--color-accent);
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .screen {
+        padding: 25px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .room-code-display .code {
+        font-size: 1.5rem;
+        padding: 8px 15px;
+    }
+}
+
+/* Role Reveal Screen */
+.role-reveal {
+    text-align: center;
+}
+
+.role-card {
+    background: rgba(255, 255, 255, 0.08);
+    border: 2px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    margin: 30px 0;
+    animation: roleReveal 0.6s ease;
+}
+
+@keyframes roleReveal {
+    0% {
+        opacity: 0;
+        transform: scale(0.8) rotateY(90deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) rotateY(0);
+    }
+}
+
+.role-image-container {
+    margin-bottom: 20px;
+}
+
+.role-image-container img {
+    width: 200px;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid var(--color-accent);
+    box-shadow: 0 8px 30px rgba(230, 126, 34, 0.4);
+    animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 8px 30px rgba(230, 126, 34, 0.4);
+    }
+    100% {
+        box-shadow: 0 8px 40px rgba(230, 126, 34, 0.7);
+    }
+}
+
+.role-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+.role-title {
+    font-size: 2rem;
+    margin: 0;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-blue) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.role-team-badge {
+    display: inline-block;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-team-badge.team-villagers {
+    background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+    color: white;
+}
+
+.role-team-badge.team-werewolves {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+}
+
+.role-secret-message {
+    background: rgba(230, 126, 34, 0.1);
+    border: 2px solid var(--color-accent);
+    border-radius: var(--border-radius);
+    padding: 15px;
+    margin: 20px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+/* Role Description */
+.role-description-container {
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.05) 0%, rgba(52, 152, 219, 0.05) 100%);
+    border: 2px solid rgba(230, 126, 34, 0.3);
+    border-radius: var(--border-radius);
+    padding: 25px;
+    margin: 25px 0;
+    text-align: left;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.description-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(230, 126, 34, 0.3);
+}
+
+.description-icon {
+    font-size: 1.5rem;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+.description-header h4 {
+    color: var(--color-accent);
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.role-description {
+    color: var(--color-text);
+    line-height: 1.8;
+    font-size: 1.05rem;
+    margin: 0;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid var(--color-accent);
+}
+
+/* Role reveal responsive */
+@media (max-width: 600px) {
+    .role-image-container img {
+        width: 150px;
+        height: 150px;
+    }
+
+    .role-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Game Master Screen */
+.game-master-view {
+    animation: fadeIn 0.5s ease;
+}
+
+.gm-subtitle {
+    text-align: center;
+    color: var(--color-text-secondary);
+    margin-bottom: 30px;
+    font-size: 1rem;
+}
+
+.gm-table-container {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-bottom: 30px;
+    overflow-x: auto;
+}
+
+.gm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+
+.gm-table thead {
+    background: rgba(230, 126, 34, 0.2);
+    border-bottom: 2px solid var(--color-accent);
+}
+
+.gm-table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+}
+
+.gm-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+    transition: var(--transition);
+}
+
+.gm-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.gm-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.gm-table td {
+    padding: 15px;
+    color: var(--color-text);
+}
+
+.gm-player-name {
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.gm-player-name.host {
+    color: var(--color-accent);
+}
+
+.gm-player-name.host::after {
+    content: " 👑";
+}
+
+.gm-role-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gm-role-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--color-accent);
+}
+
+.gm-team-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.gm-team-badge.team-villagers {
+    background: rgba(39, 174, 96, 0.2);
+    color: #2ecc71;
+    border: 1px solid #27ae60;
+}
+
+.gm-team-badge.team-werewolves {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #c0392b;
+}
+
+.gm-team-badge.team-neutral {
+    background: rgba(230, 126, 34, 0.2);
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+}
+
+.gm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Game Master responsive */
+@media (max-width: 600px) {
+    .gm-table-container {
+        padding: 10px;
+    }
+
+    .gm-table th,
+    .gm-table td {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+    }
+
+    .gm-role-image {
+        width: 30px;
+        height: 30px;
+    }
+
+    .gm-role-name {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+
+

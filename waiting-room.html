@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salle d'Attente - Loup Garou Ultimate</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- Waiting Room Stylesheet -->
+    <link rel="stylesheet" href="css/waiting-room.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Home Screen -->
+        <div id="home-screen" class="screen active">
+            <h1>🐺 Loup Garou Ultimate</h1>
+            <p class="subtitle">Rejoignez une partie multijoueur</p>
+
+            <div class="button-group">
+                <button id="create-room-btn" class="btn btn-primary">
+                    <span class="icon">➕</span>
+                    Créer une Partie
+                </button>
+                <button id="join-room-btn" class="btn btn-secondary">
+                    <span class="icon">🚪</span>
+                    Rejoindre une Partie
+                </button>
+            </div>
+
+            <div class="rules-link">
+                <a href="index.html">📖 Consulter les règles</a>
+            </div>
+        </div>
+
+        <!-- Name Input Screen -->
+        <div id="name-input-screen" class="screen">
+            <h2>Entrez votre nom</h2>
+            <input type="text" id="player-name-input" placeholder="Votre nom..." maxlength="20" autocomplete="off">
+            
+            <div class="button-group">
+                <button id="name-continue-btn" class="btn btn-primary">Continuer</button>
+                <button id="name-back-btn" class="btn btn-back">Retour</button>
+            </div>
+        </div>
+
+        <!-- Join Room Screen -->
+        <div id="join-screen" class="screen">
+            <h2>Rejoindre une Partie</h2>
+            <input type="text" id="room-code-input" placeholder="Code de la partie..." maxlength="4" autocomplete="off">
+            <p class="hint">Entrez le code à 4 caractères</p>
+
+            <div class="button-group">
+                <button id="join-confirm-btn" class="btn btn-primary">Rejoindre</button>
+                <button id="join-back-btn" class="btn btn-back">Retour</button>
+            </div>
+
+            <div id="join-error" class="error-message"></div>
+        </div>
+
+        <!-- Waiting Room Screen -->
+        <div id="waiting-room-screen" class="screen">
+            <div class="room-header">
+                <h2>Salle d'Attente</h2>
+                <div class="room-code-display">
+                    <span class="label">Code:</span>
+                    <span id="room-code" class="code">----</span>
+                </div>
+                <div class="invitation-link-container">
+                    <p class="invitation-label">🔗 Lien d'invitation</p>
+                    <div class="invitation-input-group">
+                        <input type="text" id="invitation-link" class="invitation-link" readonly>
+                        <button id="copy-link-btn" class="btn-copy" title="Copier le lien">📋 Copier</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="players-section">
+                <h3>Joueurs (<span id="player-count">0</span>)</h3>
+                <div id="players-list" class="players-list">
+                    <!-- Players will be added dynamically -->
+                </div>
+            </div>
+
+            <div class="waiting-actions">
+                <button id="start-game-btn" class="btn btn-primary" style="display: none;">
+                    🎮 Démarrer la Partie
+                </button>
+                <p id="waiting-message" class="waiting-text">En attente du lancement par l'hôte...</p>
+                <button id="leave-room-btn" class="btn btn-back">Quitter</button>
+            </div>
+
+            <div id="waiting-error" class="error-message"></div>
+        </div>
+
+        <!-- Role Reveal Screen -->
+        <div id="role-screen" class="screen">
+            <div class="role-reveal">
+                <h2>Votre Rôle</h2>
+                <div class="role-card">
+                    <div class="role-image-container">
+                        <img id="role-image" src="" alt="Votre rôle">
+                    </div>
+                    <div class="role-info">
+                        <h3 id="role-name" class="role-title">---</h3>
+                        <span id="role-team" class="role-team-badge">---</span>
+                    </div>
+                </div>
+                <div class="role-description-container">
+                    <div class="description-header">
+                        <span class="description-icon">⚡</span>
+                        <h4>Votre Pouvoir</h4>
+                    </div>
+                    <div id="role-description" class="role-description">---</div>
+                </div>
+                <div class="role-secret-message">
+                    🤫 Gardez votre rôle secret !
+                </div>
+                <div class="button-group">
+                    <button id="view-rules-btn" class="btn btn-secondary">
+                        📖 Voir les Règles Complètes
+                    </button>
+                    <button id="ready-btn" class="btn btn-primary">
+                        ✅ Je suis Prêt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Master Screen -->
+        <div id="game-master-screen" class="screen">
+            <div class="game-master-view">
+                <h2>👑 Maître du Jeu</h2>
+                <p class="gm-subtitle">Vue d'ensemble de tous les rôles</p>
+                
+                <div class="gm-table-container">
+                    <table class="gm-table">
+                        <thead>
+                            <tr>
+                                <th>Joueur</th>
+                                <th>Rôle</th>
+                                <th>Équipe</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gm-players-table">
+                            <!-- Players and roles will be added dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="gm-actions">
+                    <button id="gm-view-rules-btn" class="btn btn-secondary">
+                        📖 Consulter les Règles
+                    </button>
+                    <button id="gm-start-night-btn" class="btn btn-primary">
+                        🌙 Commencer la Première Nuit
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Connection Status -->
+        <div id="connection-status" class="connection-status">
+            <span class="status-dot"></span>
+            <span class="status-text">Connexion...</span>
+        </div>
+    </div>
+
+    <!-- Socket.IO Client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Waiting Room Script -->
+    <script src="js/waiting-room.js"></script>
+</body>
+
+</html>
