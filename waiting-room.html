@@ -145,12 +145,65 @@
                         </div>
                     </div>
 
+                    <!-- Bluff Role Section (only for werewolves) -->
+                    <div id="bluff-role-section" class="role-description-container"
+                        style="display: none; margin-top: 20px;">
+                        <h3
+                            style="text-align: center; margin-bottom: 15px; color: #ff6f00; font-weight: bold;">
+                            🎭
+                            Votre Rôle de Couverture</h3>
+
+                        <div style="text-align: center; margin-bottom: 15px;">
+                            <div class="role-image-container" style="margin-bottom: 10px;">
+                                <img id="bluff-role-image" src="" alt="Rôle bluff"
+                                    style="max-width: 150px; border-radius: 8px;">
+                            </div>
+                            <div
+                                style="padding: 10px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                                <h4 id="bluff-role-name"
+                                    style="color: #ff6f00; margin: 0; font-weight: bold;">---</h4>
+                            </div>
+                        </div>
+
+                        <div class="description-section power-section">
+                            <div class="section-header">
+                                <span class="section-icon">⚡</span>
+                                <h4>Pouvoir (Bluff)</h4>
+                            </div>
+                            <p id="bluff-role-power" class="section-text">---</p>
+                        </div>
+
+                        <div class="description-section info-section">
+                            <div class="section-header">
+                                <span class="section-icon">💡</span>
+                                <h4>Infos (Bluff)</h4>
+                            </div>
+                            <p id="bluff-role-info" class="section-text">---</p>
+                        </div>
+                    </div>
+
+                    <!-- Fake Special Info Section (for werewolves with renard/petite-fille bluff) -->
+                    <div id="bluff-special-info-section" class="role-description-container"
+                        style="display: none; margin-top: 20px;">
+                        <h3
+                            style="text-align: center; margin-bottom: 15px; color: #ff6f00; font-weight: bold;">
+                            🔍
+                            Informations du rôle de couverture (Bluff)</h3>
+
+                        <div class="description-section info-section">
+                            <div class="section-header">
+                                <span class="section-icon">🎭</span>
+                                <h4>Ce que vous devriez savoir</h4>
+                            </div>
+                            <div id="bluff-special-info-content" class="section-text"
+                                style="padding: 15px; background: #fff3cd; border-radius: 8px; border: 1px solid #ffc107;">
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="role-actions">
                         <button id="view-rules-btn" class="btn btn-secondary">
                             📖 Consulter les Règles
-                        </button>
-                        <button id="ready-btn" class="btn btn-primary">
-                            ✓ Prêt à Jouer
                         </button>
                     </div>
                 </div>
@@ -161,6 +214,18 @@
                 <div class="game-master-view">
                     <h2>👑 Maître du Jeu</h2>
                     <p class="gm-subtitle">Vue d'ensemble de tous les rôles</p>
+
+                    <div
+                        style="text-align: center; margin-bottom: 20px; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; color: white;">
+                        <div style="font-size: 1.2em; font-weight: bold; margin-bottom: 5px;">
+                            🎮 <span id="gm-total-players">0</span> Joueurs
+                        </div>
+                        <div
+                            style="display: flex; justify-content: center; gap: 30px; font-size: 0.95em;">
+                            <span>🐺 <span id="gm-werewolf-count">0</span> Loups-Garous</span>
+                            <span>👥 <span id="gm-villager-count">0</span> Villageois</span>
+                        </div>
+                    </div>
 
                     <div class="gm-table-container">
                         <table class="gm-table">
@@ -181,9 +246,6 @@
                     <div class="gm-actions">
                         <button id="gm-view-rules-btn" class="btn btn-secondary">
                             📖 Consulter les Règles
-                        </button>
-                        <button id="gm-start-night-btn" class="btn btn-primary">
-                            🌙 Commencer la Première Nuit
                         </button>
                     </div>
                 </div>

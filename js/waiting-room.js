@@ -99,7 +99,7 @@ class WaitingRoomApp {
                     this.showNotification('Aucune donnée de partie trouvée', 'info');
                 }
             } else {
-                this.showRoleScreen(roleData.role);
+                this.showRoleScreen(roleData.role, roleData.bluffRole, roleData.bluffSpecialInfo);
             }
         } catch (error) {
             console.error('Error loading role:', error);
@@ -172,26 +172,9 @@ class WaitingRoomApp {
             window.open('index.html', '_blank');
         });
 
-        document.getElementById('ready-btn').addEventListener('click', () => {
-            this.showNotification('Bonne chance ! 🐺', 'success');
-            // Here you would transition to the actual game screen
-            // For now, we'll show the rules
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
-        });
-
         // Game master screen
         document.getElementById('gm-view-rules-btn').addEventListener('click', () => {
             window.open('index.html', '_blank');
-        });
-
-        document.getElementById('gm-start-night-btn').addEventListener('click', () => {
-            this.showNotification('La nuit commence... 🌙', 'success');
-            // Here you would start the night phase
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1500);
         });
     }
 
@@ -288,6 +271,23 @@ class WaitingRoomApp {
         const tableBody = document.getElementById('gm-players-table');
         tableBody.innerHTML = '';
 
+        // Calculate team counts
+        let werewolfCount = 0;
+        let villagerCount = 0;
+
+        players.forEach(player => {
+            if (player.role.team === 'werewolves') {
+                werewolfCount++;
+            } else if (player.role.team === 'villagers') {
+                villagerCount++;
+            }
+        });
+
+        // Update player count displays
+        document.getElementById('gm-total-players').textContent = players.length;
+        document.getElementById('gm-werewolf-count').textContent = werewolfCount;
+        document.getElementById('gm-villager-count').textContent = villagerCount;
+
         players.forEach(player => {
             const row = document.createElement('tr');
 
@@ -295,7 +295,27 @@ class WaitingRoomApp {
             const nameCell = document.createElement('td');
             const namePara = document.createElement('div');
             namePara.className = `gm-player-name${player.isHost ? ' host' : ''}`;
-            namePara.textContent = player.playerName;
+
+            if (player.token) {
+                // Make player name a clickable link
+                const nameLink = document.createElement('a');
+                nameLink.href = `${window.location.pathname}?token=${player.token}`;
+                nameLink.textContent = player.playerName;
+                nameLink.target = '_blank';
+                nameLink.style.color = 'inherit';
+                nameLink.style.textDecoration = 'none';
+                nameLink.style.cursor = 'pointer';
+                nameLink.addEventListener('mouseover', () => {
+                    nameLink.style.textDecoration = 'underline';
+                });
+                nameLink.addEventListener('mouseout', () => {
+                    nameLink.style.textDecoration = 'none';
+                });
+                namePara.appendChild(nameLink);
+            } else {
+                namePara.textContent = player.playerName;
+            }
+
             nameCell.appendChild(namePara);
 
             // Role cell
@@ -331,14 +351,89 @@ class WaitingRoomApp {
 
             teamCell.appendChild(teamBadge);
 
-            // Details cell (drunk status)
+            // Details cell (drunk status, renard info, petite fille info)
             const detailsCell = document.createElement('td');
+            const detailsContainer = document.createElement('div');
+            detailsContainer.style.display = 'flex';
+            detailsContainer.style.flexDirection = 'column';
+            detailsContainer.style.gap = '8px';
+
             if (player.isDrunk) {
                 const drunkBadge = document.createElement('span');
                 drunkBadge.className = 'drunk-badge';
+                drunkBadge.style.padding = '4px 8px';
+                drunkBadge.style.backgroundColor = '#ff9800';
+                drunkBadge.style.color = 'white';
+                drunkBadge.style.borderRadius = '4px';
+                drunkBadge.style.fontSize = '0.85em';
+                drunkBadge.style.display = 'inline-block';
                 drunkBadge.textContent = '🍺 Bourré';
-                detailsCell.appendChild(drunkBadge);
+                detailsContainer.appendChild(drunkBadge);
             }
+
+            if (player.renardDetails) {
+                const renardInfo = document.createElement('div');
+                renardInfo.className = 'special-info-box';
+                renardInfo.style.padding = '8px';
+                renardInfo.style.backgroundColor = '#e3f2fd';
+                renardInfo.style.border = '1px solid #2196f3';
+                renardInfo.style.borderRadius = '4px';
+                renardInfo.style.fontSize = '0.85em';
+                renardInfo.innerHTML = `
+                    <div style="font-weight: bold; color: #1976d2; margin-bottom: 4px;">🦊 Info Renard</div>
+                    <div style="color: #424242;"><strong>Loup:</strong> ${this.escapeHtml(player.renardDetails.werewolfRole.name)}</div>
+                    <div style="color: #424242;"><strong>Joueurs:</strong> ${player.renardDetails.twoPlayerNames.map(n => this.escapeHtml(n)).join(', ')}</div>
+                `;
+                detailsContainer.appendChild(renardInfo);
+            }
+
+            if (player.petiteFilleDetails) {
+                const petiteFilleInfo = document.createElement('div');
+                petiteFilleInfo.className = 'special-info-box';
+                petiteFilleInfo.style.padding = '8px';
+                petiteFilleInfo.style.backgroundColor = '#fce4ec';
+                petiteFilleInfo.style.border = '1px solid #e91e63';
+                petiteFilleInfo.style.borderRadius = '4px';
+                petiteFilleInfo.style.fontSize = '0.85em';
+                petiteFilleInfo.innerHTML = `
+                    <div style="font-weight: bold; color: #c2185b; margin-bottom: 4px;">👧 Info Petite Fille</div>
+                    <div style="color: #424242;"><strong>Villageois:</strong> ${this.escapeHtml(player.petiteFilleDetails.villagerRole.name)}</div>
+                    <div style="color: #424242;"><strong>Joueurs:</strong> ${player.petiteFilleDetails.twoPlayerNames.map(n => this.escapeHtml(n)).join(', ')}</div>
+                `;
+                detailsContainer.appendChild(petiteFilleInfo);
+            }
+
+            if (player.bluffRole) {
+                const bluffInfo = document.createElement('div');
+                bluffInfo.className = 'special-info-box';
+                bluffInfo.style.padding = '8px';
+                bluffInfo.style.backgroundColor = '#f3e5f5';
+                bluffInfo.style.border = '1px solid #9c27b0';
+                bluffInfo.style.borderRadius = '4px';
+                bluffInfo.style.fontSize = '0.85em';
+                bluffInfo.innerHTML = `
+                    <div style="font-weight: bold; color: #7b1fa2; margin-bottom: 4px;">🎭 Rôle Bluff</div>
+                    <div style="color: #424242;">${this.escapeHtml(player.bluffRole.name)}</div>
+                `;
+                detailsContainer.appendChild(bluffInfo);
+            }
+
+            if (player.voyanteDecoy) {
+                const decoyInfo = document.createElement('div');
+                decoyInfo.className = 'special-info-box';
+                decoyInfo.style.padding = '8px';
+                decoyInfo.style.backgroundColor = '#fff3cd';
+                decoyInfo.style.border = '1px solid #ffc107';
+                decoyInfo.style.borderRadius = '4px';
+                decoyInfo.style.fontSize = '0.85em';
+                decoyInfo.innerHTML = `
+                    <div style="font-weight: bold; color: #856404; margin-bottom: 4px;">🔮 Leurre Voyante</div>
+                    <div style="color: #424242;">${this.escapeHtml(player.voyanteDecoy)}</div>
+                `;
+                detailsContainer.appendChild(decoyInfo);
+            }
+
+            detailsCell.appendChild(detailsContainer);
 
             row.appendChild(nameCell);
             row.appendChild(roleCell);
@@ -402,7 +497,7 @@ class WaitingRoomApp {
         }
     }
 
-    showRoleScreen(role) {
+    showRoleScreen(role, bluffRole = null, bluffSpecialInfo = null) {
         this.showScreen('role-screen');
 
         // Set role image
@@ -421,6 +516,46 @@ class WaitingRoomApp {
         // Set role power and info
         document.getElementById('role-power').textContent = role.power;
         document.getElementById('role-info').textContent = role.info;
+
+        // If this is a werewolf with a bluff role, display it
+        const bluffSection = document.getElementById('bluff-role-section');
+        if (bluffRole && role.team === 'werewolves') {
+            bluffSection.style.display = 'block';
+
+            // Set bluff role image
+            const bluffRoleImage = document.getElementById('bluff-role-image');
+            bluffRoleImage.src = `images/${bluffRole.image}`;
+            bluffRoleImage.alt = bluffRole.name;
+
+            document.getElementById('bluff-role-name').textContent = bluffRole.name;
+            document.getElementById('bluff-role-power').textContent = bluffRole.power;
+            document.getElementById('bluff-role-info').textContent = bluffRole.info;
+        } else {
+            bluffSection.style.display = 'none';
+        }
+
+        // If this werewolf has special bluff info (renard/petite-fille), display it
+        const bluffSpecialSection = document.getElementById('bluff-special-info-section');
+        if (bluffSpecialInfo && role.team === 'werewolves') {
+            bluffSpecialSection.style.display = 'block';
+            const contentDiv = document.getElementById('bluff-special-info-content');
+
+            if (bluffSpecialInfo.type === 'renard') {
+                contentDiv.innerHTML = `
+                    <strong style="color: #1976d2;">🦊 Info Renard (Bluff)</strong><br>
+                    <div style="margin-top: 8px; color: #424242;"><strong>Loup:</strong> ${this.escapeHtml(bluffSpecialInfo.role.name)}</div>
+                    <div style="color: #424242;"><strong>Joueurs:</strong> ${bluffSpecialInfo.twoPlayerNames.map(n => this.escapeHtml(n)).join(', ')}</div>
+                `;
+            } else if (bluffSpecialInfo.type === 'petite-fille') {
+                contentDiv.innerHTML = `
+                    <strong style="color: #c2185b;">👧 Info Petite Fille (Bluff)</strong><br>
+                    <div style="margin-top: 8px; color: #424242;"><strong>Villageois:</strong> ${this.escapeHtml(bluffSpecialInfo.role.name)}</div>
+                    <div style="color: #424242;"><strong>Joueurs:</strong> ${bluffSpecialInfo.twoPlayerNames.map(n => this.escapeHtml(n)).join(', ')}</div>
+                `;
+            }
+        } else {
+            bluffSpecialSection.style.display = 'none';
+        }
     }
 
     copyInvitationLink() {

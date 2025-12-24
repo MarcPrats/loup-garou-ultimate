@@ -175,8 +175,8 @@ function assignRoles(players, hostSocketId) {
     const playerCount = playersToAssignRoles.length;
 
     // Validate player count
-    if (playerCount < 5 || playerCount > 15) {
-        throw new Error(`Invalid player count: ${playerCount}. Must be between 5 and 15 players.`);
+    if (playerCount < 5 || playerCount > 12) {
+        throw new Error(`Invalid player count: ${playerCount}. Must be between 5 and 12 players.`);
     }
 
     // Determine number of werewolves based on player count
@@ -185,12 +185,10 @@ function assignRoles(players, hostSocketId) {
         werewolfCount = 2;
     } else if (playerCount >= 10 && playerCount <= 12) {
         werewolfCount = 3;
-    } else if (playerCount >= 13 && playerCount <= 15) {
-        werewolfCount = 4;
     }
 
     // Check if Ange can be included
-    const angeAllowed = [6, 8, 9, 11, 12, 14, 15].includes(playerCount);
+    const angeAllowed = [6, 8, 9, 11, 12].includes(playerCount);
 
     // Separate roles by type
     const loupGarouUltime = GAME_ROLES.find(r => r.id === 'loup-garou-ultime');
@@ -249,7 +247,188 @@ function assignRoles(players, hostSocketId) {
         }
     }
 
-    return { assignments, drunkPlayerSocketId };
+    // If renard is in game, select werewolf info for them
+    let renardInfo = null;
+    const renardPlayer = playersToAssignRoles.find(player => {
+        const role = assignments.get(player.socketId);
+        return role && role.id === 'renard';
+    });
+
+    if (renardPlayer) {
+        // Find all werewolf players (excluding Loup Garou Ultime)
+        const werewolfPlayers = playersToAssignRoles.filter(player => {
+            const role = assignments.get(player.socketId);
+            return role && role.team === 'werewolves' && role.id !== 'loup-garou-ultime';
+        });
+
+        if (werewolfPlayers.length > 0) {
+            // Randomly select one werewolf
+            const selectedWerewolf = werewolfPlayers[Math.floor(Math.random() * werewolfPlayers.length)];
+            const werewolfRole = assignments.get(selectedWerewolf.socketId);
+
+            // Select two random players: one is the werewolf, one is not
+            // Neither can be the renard player
+            const eligiblePlayers = playersToAssignRoles.filter(p => p.socketId !== renardPlayer.socketId);
+
+            // Start with the werewolf player
+            const twoPlayers = [selectedWerewolf];
+
+            // Select one more random player (not the werewolf, not the renard)
+            const otherPlayers = eligiblePlayers.filter(p => p.socketId !== selectedWerewolf.socketId);
+            if (otherPlayers.length > 0) {
+                const secondPlayer = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+                twoPlayers.push(secondPlayer);
+            }
+
+            // Shuffle the two players so we don't always know which is the werewolf
+            const shuffledPlayers = shuffleArray(twoPlayers);
+
+            renardInfo = {
+                renardSocketId: renardPlayer.socketId,
+                werewolfRole: werewolfRole,
+                twoPlayerNames: shuffledPlayers.map(p => p.name)
+            };
+        }
+    }
+
+    // If petite fille is in game, select villager info for them
+    let petiteFilleInfo = null;
+    const petiteFillePlayer = playersToAssignRoles.find(player => {
+        const role = assignments.get(player.socketId);
+        return role && role.id === 'petite-fille';
+    });
+
+    if (petiteFillePlayer) {
+        // Find all villager players (excluding petite-fille herself)
+        const villagerPlayers = playersToAssignRoles.filter(player => {
+            const role = assignments.get(player.socketId);
+            return role && role.team === 'villagers' && player.socketId !== petiteFillePlayer.socketId;
+        });
+
+        if (villagerPlayers.length > 0) {
+            // Randomly select one villager
+            const selectedVillager = villagerPlayers[Math.floor(Math.random() * villagerPlayers.length)];
+            const villagerRole = assignments.get(selectedVillager.socketId);
+
+            // Select two random players: one is the villager, one is not
+            // Neither can be the petite fille player
+            const eligiblePlayers = playersToAssignRoles.filter(p => p.socketId !== petiteFillePlayer.socketId);
+
+            // Start with the villager player
+            const twoPlayers = [selectedVillager];
+
+            // Select one more random player (not the villager, not the petite fille)
+            const otherPlayers = eligiblePlayers.filter(p => p.socketId !== selectedVillager.socketId);
+            if (otherPlayers.length > 0) {
+                const secondPlayer = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+                twoPlayers.push(secondPlayer);
+            }
+
+            // Shuffle the two players so we don't always know which is the villager
+            const shuffledPlayers = shuffleArray(twoPlayers);
+
+            petiteFilleInfo = {
+                petiteFilleSocketId: petiteFillePlayer.socketId,
+                villagerRole: villagerRole,
+                twoPlayerNames: shuffledPlayers.map(p => p.name)
+            };
+        }
+    }
+
+    // Assign bluff roles to werewolves (villager roles NOT in play)
+    const werewolfBluffRoles = new Map();
+
+    // Get all villager roles that are NOT in play
+    const rolesInPlay = Array.from(assignments.values());
+    const allVillagerRoles = GAME_ROLES.filter(r => r.team === 'villagers');
+    const unusedVillagerRoles = allVillagerRoles.filter(vRole =>
+        !rolesInPlay.some(inPlayRole => inPlayRole.id === vRole.id)
+    );
+
+    // Shuffle unused villager roles
+    const shuffledUnusedVillagers = shuffleArray(unusedVillagerRoles);
+
+    // Assign a bluff role to each werewolf
+    const werewolfPlayers = playersToAssignRoles.filter(player => {
+        const role = assignments.get(player.socketId);
+        return role && role.team === 'werewolves';
+    });
+
+    werewolfPlayers.forEach((werewolf, index) => {
+        if (shuffledUnusedVillagers[index]) {
+            werewolfBluffRoles.set(werewolf.socketId, shuffledUnusedVillagers[index]);
+        }
+    });
+
+    // If voyante is in play, assign one villager (except ange) as decoy
+    let voyanteDecoySocketId = null;
+    const voyantePlayer = playersToAssignRoles.find(player => {
+        const role = assignments.get(player.socketId);
+        return role && role.id === 'voyante';
+    });
+
+    if (voyantePlayer) {
+        // Find all villager players (except ange and voyante herself)
+        const eligibleForDecoy = playersToAssignRoles.filter(player => {
+            const role = assignments.get(player.socketId);
+            return role && role.team === 'villagers' && role.id !== 'ange' && player.socketId !== voyantePlayer.socketId;
+        });
+
+        if (eligibleForDecoy.length > 0) {
+            const randomDecoy = eligibleForDecoy[Math.floor(Math.random() * eligibleForDecoy.length)];
+            voyanteDecoySocketId = randomDecoy.socketId;
+        }
+    }
+
+    // Generate fake special info for werewolves with renard or petite-fille bluff roles
+    const werewolfBluffSpecialInfo = new Map();
+    werewolfPlayers.forEach(werewolf => {
+        const bluffRole = werewolfBluffRoles.get(werewolf.socketId);
+        if (bluffRole && (bluffRole.id === 'renard' || bluffRole.id === 'petite-fille')) {
+            // Generate fake info similar to real renard/petite-fille
+            const otherPlayers = playersToAssignRoles.filter(p => p.socketId !== werewolf.socketId);
+
+            if (otherPlayers.length >= 2) {
+                // Select two random players (excluding the werewolf)
+                const shuffledOthers = shuffleArray(otherPlayers);
+                const twoPlayers = shuffledOthers.slice(0, 2);
+
+                if (bluffRole.id === 'renard') {
+                    // For renard bluff, show a fake werewolf role (not in use would be confusing)
+                    // So we show a random werewolf role from all possibilities
+                    const fakeWerewolfRoles = GAME_ROLES.filter(r => r.team === 'werewolves' && r.id !== 'loup-garou-ultime');
+                    if (fakeWerewolfRoles.length > 0) {
+                        const fakeRole = fakeWerewolfRoles[Math.floor(Math.random() * fakeWerewolfRoles.length)];
+                        werewolfBluffSpecialInfo.set(werewolf.socketId, {
+                            type: 'renard',
+                            role: fakeRole,
+                            twoPlayerNames: twoPlayers.map(p => p.name)
+                        });
+                    }
+                } else if (bluffRole.id === 'petite-fille') {
+                    // For petite-fille bluff, show a villager role that IS actually in play
+                    const villagersInPlay = playersToAssignRoles.filter(player => {
+                        const role = assignments.get(player.socketId);
+                        return role && role.team === 'villagers';
+                    });
+
+                    if (villagersInPlay.length > 0) {
+                        // Pick a random villager player and use their role
+                        const randomVillager = villagersInPlay[Math.floor(Math.random() * villagersInPlay.length)];
+                        const villagerRole = assignments.get(randomVillager.socketId);
+
+                        werewolfBluffSpecialInfo.set(werewolf.socketId, {
+                            type: 'petite-fille',
+                            role: villagerRole,
+                            twoPlayerNames: twoPlayers.map(p => p.name)
+                        });
+                    }
+                }
+            }
+        }
+    });
+
+    return { assignments, drunkPlayerSocketId, renardInfo, petiteFilleInfo, werewolfBluffRoles, voyanteDecoySocketId, werewolfBluffSpecialInfo };
 }
 
 // Generate random 4-character room code
@@ -380,8 +559,8 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (room.players.size > 16) {
-            callback({ success: false, error: 'Maximum 16 players (15 players + 1 game master)' });
+        if (room.players.size > 13) {
+            callback({ success: false, error: 'Maximum 13 players (12 players + 1 game master)' });
             return;
         }
 
@@ -389,9 +568,14 @@ io.on('connection', (socket) => {
 
         // Assign roles to all players except the host (game master)
         const playersList = room.getPlayers();
-        const { assignments, drunkPlayerSocketId } = assignRoles(playersList, room.hostSocketId);
+        const { assignments, drunkPlayerSocketId, renardInfo, petiteFilleInfo, werewolfBluffRoles, voyanteDecoySocketId, werewolfBluffSpecialInfo } = assignRoles(playersList, room.hostSocketId);
         room.roleAssignments = assignments;
         room.drunkPlayerSocketId = drunkPlayerSocketId;
+        room.renardInfo = renardInfo;
+        room.petiteFilleInfo = petiteFilleInfo;
+        room.werewolfBluffRoles = werewolfBluffRoles;
+        room.voyanteDecoySocketId = voyanteDecoySocketId;
+        room.werewolfBluffSpecialInfo = werewolfBluffSpecialInfo;
 
         // Generate unique tokens for each player (including game master)
         playersList.forEach(player => {
@@ -410,12 +594,28 @@ io.on('connection', (socket) => {
             } else {
                 // Store player role data
                 const role = room.roleAssignments.get(player.socketId);
-                roleTokens.set(token, {
+                const tokenData = {
                     roomCode: roomCode,
                     playerName: player.name,
                     isGameMaster: false,
                     role: role
-                });
+                };
+
+                // Add bluff role if this player is a werewolf
+                if (role && role.team === 'werewolves') {
+                    const bluffRole = room.werewolfBluffRoles.get(player.socketId);
+                    if (bluffRole) {
+                        tokenData.bluffRole = bluffRole;
+                    }
+
+                    // Add bluff special info if this werewolf has renard/petite-fille bluff
+                    const bluffSpecialInfo = room.werewolfBluffSpecialInfo.get(player.socketId);
+                    if (bluffSpecialInfo) {
+                        tokenData.bluffSpecialInfo = bluffSpecialInfo;
+                    }
+                }
+
+                roleTokens.set(token, tokenData);
             }
         });
 
@@ -424,13 +624,49 @@ io.on('connection', (socket) => {
             .filter(player => player.socketId !== room.hostSocketId)
             .map(player => {
                 const role = room.roleAssignments.get(player.socketId);
-                return {
+                const playerToken = room.roleTokens.get(player.socketId);
+                const playerData = {
                     playerName: player.name,
                     socketId: player.socketId,
                     isHost: player.isHost,
                     role: role,
-                    isDrunk: player.socketId === room.drunkPlayerSocketId
+                    isDrunk: player.socketId === room.drunkPlayerSocketId,
+                    token: playerToken
                 };
+
+                // Add renard details if this player is the renard
+                if (room.renardInfo && player.socketId === room.renardInfo.renardSocketId) {
+                    playerData.renardDetails = {
+                        werewolfRole: room.renardInfo.werewolfRole,
+                        twoPlayerNames: room.renardInfo.twoPlayerNames
+                    };
+                }
+
+                // Add petite fille details if this player is the petite fille
+                if (room.petiteFilleInfo && player.socketId === room.petiteFilleInfo.petiteFilleSocketId) {
+                    playerData.petiteFilleDetails = {
+                        villagerRole: room.petiteFilleInfo.villagerRole,
+                        twoPlayerNames: room.petiteFilleInfo.twoPlayerNames
+                    };
+                }
+
+                // Add bluff role if this player is a werewolf
+                if (role && role.team === 'werewolves') {
+                    const bluffRole = room.werewolfBluffRoles.get(player.socketId);
+                    if (bluffRole) {
+                        playerData.bluffRole = bluffRole;
+                    }
+                }
+
+                // Add decoy info if this player is the voyante
+                if (role && role.id === 'voyante' && room.voyanteDecoySocketId) {
+                    const decoyPlayer = playersList.find(p => p.socketId === room.voyanteDecoySocketId);
+                    if (decoyPlayer) {
+                        playerData.voyanteDecoy = decoyPlayer.name;
+                    }
+                }
+
+                return playerData;
             });
 
         // Update game master token data with players list
