@@ -749,6 +749,12 @@ io.on('connection', (socket) => {
             callback({ success: false, error: 'Room not found' });
         }
     });
+
+    // Keep-alive ping to prevent disconnections (for Replit free tier)
+    socket.on('keep-alive', () => {
+        // Just acknowledge - this keeps the connection active
+        socket.emit('keep-alive-ack');
+    });
 });
 
 // API endpoint to check server status

@@ -37,16 +37,53 @@ class WaitingRoomApp {
     }
 
     connectToServer() {
-        this.socket = io();
+        // Configure Socket.IO with reconnection options
+        this.socket = io({
+            reconnection: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
+            reconnectionAttempts: Infinity,
+            timeout: 20000,
+            transports: ['websocket', 'polling'] // Try websocket first, fallback to polling
+        });
+
+        // Keep-alive ping to prevent Replit from sleeping
+        this.startKeepAlive();
 
         this.socket.on('connect', () => {
             console.log('✅ Connected to server');
             this.updateConnectionStatus(true);
+
+            // Try to recover state after reconnection
+            this.handleReconnection();
         });
 
-        this.socket.on('disconnect', () => {
-            console.log('❌ Disconnected from server');
+        this.socket.on('disconnect', (reason) => {
+            console.log('❌ Disconnected from server:', reason);
             this.updateConnectionStatus(false);
+
+            // Show reconnection message if not intentional disconnect
+            if (reason !== 'io client disconnect') {
+                this.showNotification('Connexion perdue... Reconnexion en cours...', 'info');
+            }
+        });
+
+        this.socket.on('reconnect', (attemptNumber) => {
+            console.log('✅ Reconnected after', attemptNumber, 'attempts');
+            this.showNotification('Reconnecté !', 'success');
+        });
+
+        this.socket.on('reconnect_attempt', () => {
+            console.log('🔄 Attempting to reconnect...');
+        });
+
+        this.socket.on('reconnect_error', (error) => {
+            console.log('❌ Reconnection error:', error);
+        });
+
+        this.socket.on('reconnect_failed', () => {
+            console.log('❌ Reconnection failed');
+            this.showNotification('Impossible de se reconnecter. Rechargez la page.', 'info');
         });
 
         this.socket.on('player-joined', (data) => {
@@ -188,6 +225,8 @@ class WaitingRoomApp {
         }
 
         this.playerName = name;
+        // Store for reconnection recovery
+        localStorage.setItem('playerName', name);
         nameInput.value = '';
 
         if (this.actionType === 'create') {
@@ -206,6 +245,8 @@ class WaitingRoomApp {
             if (response.success) {
                 this.currentRoomCode = response.roomCode;
                 this.isHost = true;
+                // Store for reconnection recovery
+                localStorage.setItem('isHost', 'true');
                 this.showWaitingRoom(response.roomCode, response.players);
             } else {
                 this.showError('name-input-screen', 'Erreur lors de la création de la partie');
@@ -227,6 +268,9 @@ class WaitingRoomApp {
     }
 
     joinRoomWithCode(code) {
+        // Clear host status for regular players
+        localStorage.setItem('isHost', 'false');
+
         this.socket.emit('join-room', { roomCode: code, playerName: this.playerName }, (response) => {
             if (response.success) {
                 this.currentRoomCode = response.roomCode;
@@ -618,6 +662,106 @@ class WaitingRoomApp {
         }, 3000);
     }
 
+    startKeepAlive() {
+        // Ping server every 25 seconds to keep connection alive
+        // This prevents Replit from sleeping due to inactivity
+        this.keepAliveInterval = setInterval(() => {
+            if (this.socket && this.socket.connected) {
+                this.socket.emit('keep-alive');
+            }
+        }, 25000);
+    }
+
+    handleReconnection() {
+        // Try to recover state from URL token after reconnection
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const roomCode = urlParams.get('room');
+
+        if (token) {
+            console.log('🔄 Recovering state with token after reconnection');
+            // Reload role data from token
+            this.loadRoleFromToken(token);
+        } else if (roomCode && this.currentRoom === roomCode) {
+            console.log('🔄 Rejoining room after reconnection');
+            // Try to rejoin the room if we were in the waiting room
+            const playerName = localStorage.getItem('playerName');
+            const isHost = localStorage.getItem('isHost') === 'true';
+
+            if (playerName) {
+                if (isHost) {
+                    this.socket.emit('create-room', playerName, (response) => {
+                        if (response.success) {
+                            this.currentRoom = response.roomCode;
+                            this.socket.emit('get-room-info', this.currentRoom, (info) => {
+                                if (info.success && !info.gameStarted) {
+                                    this.updatePlayersList(info.players);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // Regular player rejoin
+                    this.socket.emit('join-room', { name: playerName, roomCode: roomCode }, (response) => {
+                        if (response.success && !response.gameStarted) {
+                            this.currentRoom = roomCode;
+                            this.updatePlayersList(response.players);
+                        }
+                    });
+                }
+            }
+        }
+    }
+    startKeepAlive() {
+        // Ping server every 25 seconds to keep connection alive
+        // This prevents Replit from sleeping due to inactivity
+        this.keepAliveInterval = setInterval(() => {
+            if (this.socket && this.socket.connected) {
+                this.socket.emit('keep-alive');
+            }
+        }, 25000);
+    }
+
+    handleReconnection() {
+        // Try to recover state from URL token after reconnection
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        const roomCode = urlParams.get('room');
+
+        if (token) {
+            console.log('🔄 Recovering state with token after reconnection');
+            // Reload role data from token
+            this.loadRoleFromToken(token);
+        } else if (roomCode && this.currentRoomCode === roomCode) {
+            console.log('🔄 Rejoining room after reconnection');
+            // Try to rejoin the room if we were in the waiting room
+            const playerName = localStorage.getItem('playerName');
+            const isHost = localStorage.getItem('isHost') === 'true';
+
+            if (playerName) {
+                if (isHost) {
+                    this.socket.emit('create-room', playerName, (response) => {
+                        if (response.success) {
+                            this.currentRoomCode = response.roomCode;
+                            this.socket.emit('get-room-info', this.currentRoomCode, (info) => {
+                                if (info.success && !info.gameStarted) {
+                                    this.updatePlayersList(info.players);
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // Regular player rejoin
+                    this.socket.emit('join-room', { roomCode: roomCode, playerName: playerName }, (response) => {
+                        if (response.success && !response.gameStarted) {
+                            this.currentRoomCode = roomCode;
+                            this.updatePlayersList(response.players);
+                        }
+                    });
+                }
+            }
+        }
+    }
     updateConnectionStatus(connected) {
         const statusEl = document.getElementById('connection-status');
         const statusText = statusEl.querySelector('.status-text');
