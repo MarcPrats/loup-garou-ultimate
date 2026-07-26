@@ -46,7 +46,7 @@ const GAME_ROLES = [
         name: 'Loup Garou Ultime',
         team: 'werewolves',
         image: 'loupgarou.webp',
-        power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note: Vous pouvez choisir de vous tuer vous même et l'infect loup garou ou le grand loup jouera votre rôle.",
+        power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note : Vous pouvez choisir de vous tuer vous-même et l'infect loup-garou ou le grand loup jouera votre rôle.",
         info: "Le loup garou ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien."
     },
     {
@@ -94,7 +94,7 @@ const GAME_ROLES = [
         name: 'Cupidon',
         team: 'villagers',
         image: 'cupidon.webp',
-        power: "Chaque nuit, parmi les deux joueurs vivants qui vos entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2).",
+        power: "Chaque nuit, parmi les deux joueurs vivants qui vous entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2).",
         info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
@@ -102,7 +102,7 @@ const GAME_ROLES = [
         name: 'Voyante',
         team: 'villagers',
         image: 'voyante.webp',
-        power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un deux est le loup garou ultime, vous aurez l'information. ATTENTION: l'un des villageois est un leurre et vous apparaîtra comme le loup garou ultime !",
+        power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un d'eux est le loup garou ultime, vous aurez l'information. ATTENTION : l'un des villageois est un leurre et vous apparaîtra comme le loup garou ultime !",
         info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
@@ -111,7 +111,7 @@ const GAME_ROLES = [
         team: 'villagers',
         image: 'chevalier.webp',
         power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du loup garou ultime le temps d'une nuit.",
-        info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayer vite de les identifier afin de les protéger."
+        info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayez vite de les identifier afin de les protéger."
     },
     {
         id: 'chasseur',
@@ -126,8 +126,8 @@ const GAME_ROLES = [
         name: 'Joueur de flûte',
         team: 'villagers',
         image: 'flute.webp',
-        power: "Pendant la journée, si un joueur vous désigne pour une exécution et, que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utlisé qu'une seule fois. ATTENTION: ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
-        info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations donc n'hésitez pas à l'énoncer si on vous accuse à tort."
+        power: "Pendant la journée, si un joueur vous désigne pour une exécution et que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utilisé qu'une seule fois. ATTENTION : ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
+        info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations, donc n'hésitez pas à l'énoncer si on vous accuse à tort."
     },
     {
         id: 'sorciere',
@@ -150,7 +150,7 @@ const GAME_ROLES = [
         name: 'Enfant Sauvage',
         team: 'villagers',
         image: 'enfant.webp',
-        power: "Si un joueur est executé par le village durant la journée, vous découvrez son identité la nuit.",
+        power: "Si un joueur est exécuté par le village durant la journée, vous découvrez son identité la nuit.",
         info: "Votre pouvoir se déclenche uniquement après l'exécution du jour donc n'hésitez pas à déclencher des nominations/exécutions pour innocenter/accuser quelqu'un."
     },
     {
