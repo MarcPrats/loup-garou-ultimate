@@ -6,6 +6,7 @@ class WaitingRoomApp {
     constructor() {
         this.socket = null;
         this.playerName = '';
+        this.playerId = null;
         this.currentRoomCode = null;
         this.isHost = false;
         this.actionType = null; // 'create' or 'join'
@@ -21,10 +22,19 @@ class WaitingRoomApp {
         const urlParams = new URLSearchParams(window.location.search);
         const roleToken = urlParams.get('token');
         const roomCode = urlParams.get('room');
+        const storedState = this.getStoredWaitingRoomState();
 
         if (roleToken) {
             // Load role from token
             this.loadRoleFromToken(roleToken);
+        } else if (storedState && storedState.roomCode && storedState.playerName) {
+            this.playerName = storedState.playerName;
+            this.playerId = storedState.playerId || this.getOrCreatePlayerId();
+            this.currentRoomCode = storedState.roomCode;
+            this.isHost = Boolean(storedState.isHost);
+            localStorage.setItem('playerName', storedState.playerName);
+            localStorage.setItem('isHost', storedState.isHost ? 'true' : 'false');
+            this.showScreen('home-screen');
         } else if (roomCode) {
             // Auto-join mode - show name input then join
             this.actionType = 'join-from-link';
@@ -225,7 +235,7 @@ class WaitingRoomApp {
         }
 
         this.playerName = name;
-        // Store for reconnection recovery
+        this.playerId = this.getOrCreatePlayerId();
         localStorage.setItem('playerName', name);
         nameInput.value = '';
 
@@ -241,12 +251,15 @@ class WaitingRoomApp {
     }
 
     createRoom() {
-        this.socket.emit('create-room', this.playerName, (response) => {
+        this.socket.emit('create-room', {
+            playerName: this.playerName,
+            playerId: this.playerId || this.getOrCreatePlayerId()
+        }, (response) => {
             if (response.success) {
                 this.currentRoomCode = response.roomCode;
                 this.isHost = true;
-                // Store for reconnection recovery
                 localStorage.setItem('isHost', 'true');
+                this.persistWaitingRoomState(response.roomCode, this.playerName, true);
                 this.showWaitingRoom(response.roomCode, response.players);
             } else {
                 this.showError('name-input-screen', 'Erreur lors de la création de la partie');
@@ -268,13 +281,18 @@ class WaitingRoomApp {
     }
 
     joinRoomWithCode(code) {
-        // Clear host status for regular players
         localStorage.setItem('isHost', 'false');
 
-        this.socket.emit('join-room', { roomCode: code, playerName: this.playerName }, (response) => {
+        this.socket.emit('join-room', {
+            roomCode: code,
+            playerName: this.playerName,
+            playerId: this.playerId || this.getOrCreatePlayerId(),
+            isHost: false
+        }, (response) => {
             if (response.success) {
                 this.currentRoomCode = response.roomCode;
                 this.isHost = false;
+                this.persistWaitingRoomState(response.roomCode, this.playerName, false);
                 this.showWaitingRoom(response.roomCode, response.players);
             } else {
                 if (this.actionType === 'join-from-link') {
@@ -298,6 +316,8 @@ class WaitingRoomApp {
         document.getElementById('invitation-link').value = invitationLink;
 
         this.updatePlayersList(players);
+        this.persistWaitingRoomState(roomCode, this.playerName || localStorage.getItem('playerName') || '', this.isHost);
+        this.updateRoomUrl(roomCode);
 
         // Show start button only for host
         if (this.isHost) {
@@ -536,6 +556,7 @@ class WaitingRoomApp {
 
     leaveRoom() {
         if (confirm('Voulez-vous vraiment quitter la partie ?')) {
+            this.clearWaitingRoomState();
             this.socket.disconnect();
             window.location.reload();
         }
@@ -672,95 +693,90 @@ class WaitingRoomApp {
         }, 25000);
     }
 
-    handleReconnection() {
-        // Try to recover state from URL token after reconnection
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        const roomCode = urlParams.get('room');
+    getOrCreatePlayerId() {
+        if (this.playerId) {
+            return this.playerId;
+        }
 
-        if (token) {
-            console.log('🔄 Recovering state with token after reconnection');
-            // Reload role data from token
-            this.loadRoleFromToken(token);
-        } else if (roomCode && this.currentRoom === roomCode) {
-            console.log('🔄 Rejoining room after reconnection');
-            // Try to rejoin the room if we were in the waiting room
-            const playerName = localStorage.getItem('playerName');
-            const isHost = localStorage.getItem('isHost') === 'true';
+        let storedPlayerId = localStorage.getItem('loupGarouPlayerId');
+        if (!storedPlayerId) {
+            storedPlayerId = `player-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            localStorage.setItem('loupGarouPlayerId', storedPlayerId);
+        }
 
-            if (playerName) {
-                if (isHost) {
-                    this.socket.emit('create-room', playerName, (response) => {
-                        if (response.success) {
-                            this.currentRoom = response.roomCode;
-                            this.socket.emit('get-room-info', this.currentRoom, (info) => {
-                                if (info.success && !info.gameStarted) {
-                                    this.updatePlayersList(info.players);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    // Regular player rejoin
-                    this.socket.emit('join-room', { name: playerName, roomCode: roomCode }, (response) => {
-                        if (response.success && !response.gameStarted) {
-                            this.currentRoom = roomCode;
-                            this.updatePlayersList(response.players);
-                        }
-                    });
-                }
-            }
+        this.playerId = storedPlayerId;
+        return storedPlayerId;
+    }
+
+    persistWaitingRoomState(roomCode, playerName, isHost) {
+        const state = {
+            roomCode,
+            playerName,
+            playerId: this.getOrCreatePlayerId(),
+            isHost
+        };
+        localStorage.setItem('loupGarouWaitingRoomState', JSON.stringify(state));
+    }
+
+    clearWaitingRoomState() {
+        localStorage.removeItem('loupGarouWaitingRoomState');
+        localStorage.removeItem('isHost');
+    }
+
+    getStoredWaitingRoomState() {
+        try {
+            const storedValue = localStorage.getItem('loupGarouWaitingRoomState');
+            return storedValue ? JSON.parse(storedValue) : null;
+        } catch (error) {
+            console.warn('Unable to parse saved waiting room state', error);
+            return null;
         }
     }
-    startKeepAlive() {
-        // Ping server every 25 seconds to keep connection alive
-        // This prevents Replit from sleeping due to inactivity
-        this.keepAliveInterval = setInterval(() => {
-            if (this.socket && this.socket.connected) {
-                this.socket.emit('keep-alive');
-            }
-        }, 25000);
+
+    updateRoomUrl(roomCode) {
+        const newUrl = `${window.location.pathname}?room=${roomCode}`;
+        window.history.replaceState({ roomCode }, '', newUrl);
     }
 
     handleReconnection() {
-        // Try to recover state from URL token after reconnection
         const urlParams = new URLSearchParams(window.location.search);
         const token = urlParams.get('token');
-        const roomCode = urlParams.get('room');
+        const roomCodeFromUrl = urlParams.get('room');
 
         if (token) {
             console.log('🔄 Recovering state with token after reconnection');
-            // Reload role data from token
             this.loadRoleFromToken(token);
-        } else if (roomCode && this.currentRoomCode === roomCode) {
-            console.log('🔄 Rejoining room after reconnection');
-            // Try to rejoin the room if we were in the waiting room
-            const playerName = localStorage.getItem('playerName');
-            const isHost = localStorage.getItem('isHost') === 'true';
-
-            if (playerName) {
-                if (isHost) {
-                    this.socket.emit('create-room', playerName, (response) => {
-                        if (response.success) {
-                            this.currentRoomCode = response.roomCode;
-                            this.socket.emit('get-room-info', this.currentRoomCode, (info) => {
-                                if (info.success && !info.gameStarted) {
-                                    this.updatePlayersList(info.players);
-                                }
-                            });
-                        }
-                    });
-                } else {
-                    // Regular player rejoin
-                    this.socket.emit('join-room', { roomCode: roomCode, playerName: playerName }, (response) => {
-                        if (response.success && !response.gameStarted) {
-                            this.currentRoomCode = roomCode;
-                            this.updatePlayersList(response.players);
-                        }
-                    });
-                }
-            }
+            return;
         }
+
+        const storedState = this.getStoredWaitingRoomState();
+        const roomCode = roomCodeFromUrl || (storedState && storedState.roomCode);
+        const playerName = this.playerName || localStorage.getItem('playerName') || (storedState && storedState.playerName);
+        const isHost = this.isHost || (storedState && storedState.isHost) || localStorage.getItem('isHost') === 'true';
+
+        if (!roomCode || !playerName) {
+            return;
+        }
+
+        this.currentRoomCode = roomCode;
+        this.playerName = playerName;
+        this.isHost = Boolean(isHost);
+
+        console.log(`🔄 Rejoining room ${roomCode} as ${this.isHost ? 'host' : 'player'}`);
+        this.socket.emit('join-room', {
+            roomCode,
+            playerName,
+            playerId: this.getOrCreatePlayerId(),
+            isHost: this.isHost
+        }, (response) => {
+            if (response.success && !response.gameStarted) {
+                this.showWaitingRoom(response.roomCode, response.players);
+            } else if (response.error) {
+                console.warn('Unable to recover waiting room state:', response.error);
+                this.clearWaitingRoomState();
+                this.showScreen('home-screen');
+            }
+        });
     }
     updateConnectionStatus(connected) {
         const statusEl = document.getElementById('connection-status');

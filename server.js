@@ -462,27 +462,94 @@ class GameRoom {
         this.roleTokens = new Map(); // socketId -> token
     }
 
-    addPlayer(socketId, playerName) {
-        this.players.set(socketId, {
+    addPlayer(playerId, socketId, playerName, isHost = false) {
+        const existingPlayer = this.players.get(playerId);
+        const playerData = existingPlayer || {
+            playerId,
             name: playerName,
-            socketId: socketId,
-            isHost: socketId === this.hostSocketId,
-            joinedAt: Date.now()
-        });
+            socketId,
+            isHost: false,
+            connected: true,
+            joinedAt: Date.now(),
+            lastSeen: Date.now()
+        };
+
+        playerData.name = playerName;
+        playerData.socketId = socketId;
+        playerData.connected = true;
+        playerData.lastSeen = Date.now();
+        playerData.isHost = isHost || existingPlayer?.isHost || socketId === this.hostSocketId;
+
+        if (playerData.isHost) {
+            this.hostSocketId = socketId;
+        }
+
+        this.players.set(playerId, playerData);
+        return playerData;
     }
 
-    removePlayer(socketId) {
-        this.players.delete(socketId);
-        // If host leaves, assign new host
-        if (socketId === this.hostSocketId && this.players.size > 0) {
-            const firstPlayer = this.players.values().next().value;
-            this.hostSocketId = firstPlayer.socketId;
-            firstPlayer.isHost = true;
+    markPlayerDisconnected(socketId) {
+        for (const player of this.players.values()) {
+            if (player.socketId === socketId) {
+                player.connected = false;
+                player.lastSeen = Date.now();
+
+                if (player.isHost && this.hostSocketId === socketId) {
+                    const connectedPlayers = this.getPlayers();
+                    if (connectedPlayers.length > 0) {
+                        const newHost = connectedPlayers[0];
+                        newHost.isHost = true;
+                        this.hostSocketId = newHost.socketId;
+                    }
+                }
+
+                return player;
+            }
+        }
+        return null;
+    }
+
+    removePlayer(playerId) {
+        const player = this.players.get(playerId);
+        if (!player) {
+            return;
+        }
+
+        this.players.delete(playerId);
+
+        if (player.isHost && this.players.size > 0) {
+            const firstPlayer = this.getPlayers()[0];
+            if (firstPlayer) {
+                firstPlayer.isHost = true;
+                this.hostSocketId = firstPlayer.socketId;
+            }
         }
     }
 
     getPlayers() {
-        return Array.from(this.players.values());
+        return Array.from(this.players.values()).filter(player => player.connected);
+    }
+
+    cleanupDisconnectedPlayers() {
+        const now = Date.now();
+        const stalePlayerIds = [];
+
+        this.players.forEach((player, playerId) => {
+            if (!player.connected && now - player.lastSeen > 10000) {
+                stalePlayerIds.push(playerId);
+            }
+        });
+
+        stalePlayerIds.forEach(playerId => this.players.delete(playerId));
+
+        const connectedPlayers = this.getPlayers();
+        if (connectedPlayers.length > 0 && !connectedPlayers.some(player => player.socketId === this.hostSocketId)) {
+            const newHost = connectedPlayers[0];
+            newHost.isHost = true;
+            this.hostSocketId = newHost.socketId;
+        }
+
+        return this.players.size === 0;
     }
 
     isEmpty() {
@@ -495,10 +562,12 @@ io.on('connection', (socket) => {
     console.log(`🎮 Player connected: ${socket.id}`);
 
     // Create a new game room
-    socket.on('create-room', (playerName, callback) => {
+    socket.on('create-room', (data, callback) => {
+        const playerName = typeof data === 'string' ? data : data.playerName;
+        const playerId = typeof data === 'string' ? `${socket.id}-host` : (data.playerId || `${socket.id}-host`);
         const roomCode = generateRoomCode();
         const room = new GameRoom(roomCode, socket.id);
-        room.addPlayer(socket.id, playerName);
+        room.addPlayer(playerId, socket.id, playerName, true);
         gameRooms.set(roomCode, room);
 
         socket.join(roomCode);
@@ -514,8 +583,10 @@ io.on('connection', (socket) => {
 
     // Join an existing room
     socket.on('join-room', (data, callback) => {
-        const { roomCode, playerName } = data;
-        const room = gameRooms.get(roomCode.toUpperCase());
+        const playerName = typeof data === 'string' ? data : data.playerName;
+        const { roomCode, isHost = false, playerId } = data;
+        const normalizedRoomCode = roomCode.toUpperCase();
+        const room = gameRooms.get(normalizedRoomCode);
 
         if (!room) {
             callback({ success: false, error: 'Room not found' });
@@ -527,20 +598,21 @@ io.on('connection', (socket) => {
             return;
         }
 
-        room.addPlayer(socket.id, playerName);
-        socket.join(roomCode);
+        const resolvedPlayerId = playerId || `${socket.id}-${Date.now()}`;
+        room.addPlayer(resolvedPlayerId, socket.id, playerName, isHost);
+        socket.join(normalizedRoomCode);
 
-        console.log(`👋 ${playerName} joined room ${roomCode}`);
+        console.log(`👋 ${playerName} joined room ${normalizedRoomCode}`);
 
         // Notify all players in the room
-        io.to(roomCode).emit('player-joined', {
+        io.to(normalizedRoomCode).emit('player-joined', {
             players: room.getPlayers(),
             newPlayer: playerName
         });
 
         callback({
             success: true,
-            roomCode: roomCode,
+            roomCode: normalizedRoomCode,
             players: room.getPlayers()
         });
     });
@@ -713,23 +785,22 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log(`👋 Player disconnected: ${socket.id}`);
 
-        // Find and remove player from any room
+        // Mark player as temporarily disconnected so refreshes can reconnect
         for (const [roomCode, room] of gameRooms.entries()) {
-            if (room.players.has(socket.id)) {
-                const player = room.players.get(socket.id);
-                room.removePlayer(socket.id);
+            const disconnectedPlayer = room.markPlayerDisconnected(socket.id);
+            if (disconnectedPlayer) {
+                setTimeout(() => {
+                    const currentRoom = gameRooms.get(roomCode);
+                    if (!currentRoom) {
+                        return;
+                    }
 
-                // Notify other players
-                io.to(roomCode).emit('player-left', {
-                    players: room.getPlayers(),
-                    leftPlayer: player.name
-                });
-
-                // Clean up empty rooms
-                if (room.isEmpty()) {
-                    gameRooms.delete(roomCode);
-                    console.log(`🗑️  Room ${roomCode} deleted (empty)`);
-                }
+                    const isEmpty = currentRoom.cleanupDisconnectedPlayers();
+                    if (isEmpty) {
+                        gameRooms.delete(roomCode);
+                        console.log(`🗑️  Room ${roomCode} deleted (empty)`);
+                    }
+                }, 10000);
 
                 break;
             }
