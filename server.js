@@ -82,10 +82,10 @@ const GAME_ROLES = [
         info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
     {
-        id: 'loup-blanc',
-        name: 'Loup Blanc',
+        id: 'montreur-dours',
+        name: 'Montreur d’ours',
         team: 'villagers',
-        image: 'loup_blanc.webp',
+        image: 'montreur-dours.webp',
         power: "Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.",
         info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
