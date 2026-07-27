@@ -19,17 +19,14 @@
         <!-- Home Screen -->
         <div id="home-screen" class="screen active">
             <h1>🐺 Loup Garou Ultimate</h1>
-            <p class="subtitle">Rejoignez une partie multijoueur</p>
+            <p class="subtitle" id="home-status">⏳ Connexion au serveur...</p>
 
             <div class="button-group">
-                <button id="enter-room-btn" class="btn btn-primary" disabled>
-                    <span class="icon">⏳</span>
-                    Connexion...
-                </button>
+                <a href="/" class="btn btn-back">← Retour à l'accueil</a>
             </div>
 
             <div class="rules-link">
-                <a href="index.html">📖 Consulter les règles</a>
+                <a href="reference.html">📖 Consulter les règles</a>
             </div>
         </div>
 
@@ -81,6 +78,9 @@
                 </button>
                 <p id="waiting-message" class="waiting-text">En attente du lancement par
                     l'hôte...</p>
+                <button id="waiting-view-rules-btn" class="btn btn-secondary">
+                    📖 Consulter les règles
+                </button>
                 <button id="leave-room-btn" class="btn btn-back">Quitter</button>
             </div>
 

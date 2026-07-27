@@ -9,6 +9,7 @@ class WaitingRoomApp {
         this.playerId = null;
         this.currentRoomCode = null;
         this.isHost = false;
+        this.actionType = null;
 
         this.init();
     }
@@ -53,7 +54,7 @@ class WaitingRoomApp {
             console.log('✅ Connected to server');
             this.updateConnectionStatus(true);
             this.handleReconnection();
-            this.updateEntryButton();
+            this.handleAutoEntry();
         });
 
         this.socket.on('disconnect', (reason) => {
@@ -94,14 +95,14 @@ class WaitingRoomApp {
 
         this.socket.on('room-left', (data) => {
             this.clearWaitingRoomState();
-            this.showScreen('home-screen');
             this.showNotification('Vous avez quitté la salle', 'info');
+            setTimeout(() => { window.location.href = '/'; }, 800);
         });
 
         this.socket.on('kicked-from-room', (data) => {
             this.clearWaitingRoomState();
-            this.showScreen('home-screen');
             this.showNotification(data.message || 'Vous avez été expulsé de la salle', 'info');
+            setTimeout(() => { window.location.href = '/'; }, 1500);
         });
 
         this.socket.on('game-starting', (data) => {
@@ -149,14 +150,6 @@ class WaitingRoomApp {
     }
 
     setupEventListeners() {
-        // Home screen — single entry point
-        document.getElementById('enter-room-btn').addEventListener('click', () => {
-            this.showScreen('name-input-screen');
-            const nameInput = document.getElementById('player-name-input');
-            nameInput.value = '';
-            nameInput.focus();
-        });
-
         // Name input
         document.getElementById('name-continue-btn').addEventListener('click', () => {
             this.handleNameSubmit();
@@ -167,7 +160,7 @@ class WaitingRoomApp {
         });
 
         document.getElementById('name-back-btn').addEventListener('click', () => {
-            this.showScreen('home-screen');
+            window.location.href = '/';
         });
 
         // Waiting room
@@ -183,14 +176,19 @@ class WaitingRoomApp {
             this.copyInvitationLink();
         });
 
+        // Waiting room → rules
+        document.getElementById('waiting-view-rules-btn').addEventListener('click', () => {
+            window.open('reference.html', '_blank');
+        });
+
         // Role screen
         document.getElementById('view-rules-btn').addEventListener('click', () => {
-            window.open('index.html', '_blank');
+            window.open('reference.html', '_blank');
         });
 
         // Game master screen
         document.getElementById('gm-view-rules-btn').addEventListener('click', () => {
-            window.open('index.html', '_blank');
+            window.open('reference.html', '_blank');
         });
     }
 
@@ -208,16 +206,8 @@ class WaitingRoomApp {
         localStorage.setItem('playerName', name);
         nameInput.value = '';
 
-        // Ask server if a room already exists:
-        // - no room → create it and become Game Master
-        // - room exists → join as a regular player
-        this.socket.emit('get-room-list', {}, (response) => {
-            if (response.available) {
-                this.joinRoomWithCode(response.roomCode);
-            } else {
-                this.createRoom();
-            }
-        });
+        // Name screen is only reached when joining as a player
+        this.joinRoomWithCode(null);
     }
 
     createRoom() {
@@ -655,15 +645,42 @@ class WaitingRoomApp {
         });
     }
 
-    updateEntryButton() {
+    /**
+     * The create/join decision now lives on the main page (index.html).
+     * When arriving here we simply execute it:
+     *   - no room yet  -> create the room, game master is named 'Le MJ'
+     *   - room exists  -> ask for a player name, then join
+     * Nothing to do if we already recovered a session or are showing a role.
+     */
+    handleAutoEntry() {
+        if (this.autoEntryDone) return;
+
+        const activeScreen = document.querySelector('.screen.active');
+        if (activeScreen && activeScreen.id !== 'home-screen') return;
+        if (new URLSearchParams(window.location.search).get('token')) return;
+
+        // A previous session is being recovered by handleReconnection()
+        const storedState = this.getStoredWaitingRoomState();
+        if (storedState && storedState.roomCode && storedState.playerName) return;
+
+        this.autoEntryDone = true;
+
         this.socket.emit('get-room-list', {}, (response) => {
-            const btn = document.getElementById('enter-room-btn');
             if (response.available) {
-                btn.innerHTML = '<span class="icon">🚪</span> Rejoindre la Partie';
+                // A game already exists -> join it as a player
+                this.actionType = 'join';
+                this.showScreen('name-input-screen');
+                const nameInput = document.getElementById('player-name-input');
+                nameInput.value = '';
+                nameInput.focus();
             } else {
-                btn.innerHTML = '<span class="icon">👑</span> Créer la Partie';
+                // No game yet -> create it, game master keeps the default name
+                this.actionType = 'create';
+                this.playerName = 'Le MJ';
+                this.playerId = this.getOrCreatePlayerId();
+                localStorage.setItem('playerName', 'Le MJ');
+                this.createRoom();
             }
-            btn.disabled = false;
         });
     }
 

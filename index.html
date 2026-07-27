@@ -23,9 +23,9 @@
             <h1>Loup Garou Ultime</h1>
 
             <div style="text-align: center; margin-bottom: 30px;">
-                <a href="/waiting_room"
+                <a href="/waiting_room" id="entry-btn"
                     style="display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #e67e22 0%, #3498db 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 1.1rem; box-shadow: 0 4px 15px rgba(230, 126, 34, 0.3); transition: transform 0.3s ease;">
-                    🎮 Lancer une partie
+                    🐺 Créer/Rejoindre la partie
                 </a>
             </div>
 
@@ -278,7 +278,7 @@
             <div class="links-section">
                 <h2>Liens Utiles</h2>
                 <div>
-                    <a href="http://bignose.whitetree.org/projects/botc/diy/reference/trouble-brewing.pdf"
+                    <a href="reference.html"
                         target="_blank">📜 Rappel des règles</a>
                 </div>
                 <div>
@@ -290,6 +290,9 @@
 
         <!-- JavaScript -->
         <script src="js/app.js"></script>
+        <!-- Single entry button: creates the game or joins the existing one -->
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="js/entry-button.js"></script>
     </body>
 
 </html>

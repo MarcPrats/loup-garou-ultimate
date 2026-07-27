@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Référence — Loup Garou Ultimate</title>
+    <link rel="icon" type="image/svg+xml" href="images/favicon.svg">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Slab:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #1a1a1a;
+            --bg2: #2d2d2d;
+            --accent: #e67e22;
+            --blue: #3498db;
+            --green: #27ae60;
+            --red: #c0392b;
+            --purple: #8e44ad;
+            --text: #f8f9fa;
+            --muted: #adb5bd;
+            --border: #495057;
+            --radius: 10px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--bg) 0%, var(--bg2) 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .page { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; }
+        /* Roles are always rendered last, whatever their position in the markup */
+        .roles-section { order: 5; display: block; }
+        footer { order: 9; }
+        .role-orig { display: block; font-size: 0.7rem; color: var(--muted); font-style: italic; margin-top: 4px; }
+        .bottom-back { order: 8; margin-top: 30px; }
+        .back-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 28px; }
+        .back-bar .back-btn { margin-bottom: 0; }
+
+        /* Back button */
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(255,255,255,0.07); border: 1px solid var(--border);
+            color: var(--text); padding: 10px 18px; border-radius: var(--radius);
+            text-decoration: none; font-size: 0.9rem; font-weight: 500;
+            margin-bottom: 28px; transition: background 0.2s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.13); }
+
+        /* Header */
+        header { text-align: center; padding: 10px 0 36px; margin-bottom: 36px; border-bottom: 1px solid var(--border); }
+        header h1 {
+            font-family: 'Roboto Slab', serif; font-size: 2.2rem; margin-bottom: 8px;
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        header p { color: var(--muted); font-size: 0.95rem; }
+
+        /* Section heading */
+        .section-title {
+            font-family: 'Roboto Slab', serif; font-size: 1.4rem;
+            margin: 40px 0 18px; padding-bottom: 10px;
+            border-bottom: 2px solid var(--border);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .section-title.townsfolk { border-color: var(--green); }
+        .section-title.outsiders { border-color: var(--blue); }
+        .section-title.minions   { border-color: var(--purple); }
+        .section-title.demons    { border-color: var(--red); }
+
+        /* Role grid */
+        .roles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px; margin-bottom: 10px;
+        }
+        .role-card {
+            background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 14px;
+            display: flex; gap: 14px; align-items: flex-start;
+            transition: transform 0.18s, box-shadow 0.18s;
+        }
+        .role-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.3); }
+        .role-card.townsfolk { border-left: 3px solid var(--green); }
+        .role-card.outsiders  { border-left: 3px solid var(--blue); }
+        .role-card.minions    { border-left: 3px solid var(--purple); }
+        .role-card.demons     { border-left: 3px solid var(--red); }
+
+        .role-icon {
+            width: 58px; height: 58px; border-radius: 8px;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .role-icon-placeholder {
+            width: 58px; height: 58px; border-radius: 8px; flex-shrink: 0;
+            background: rgba(255,255,255,0.08); display: flex; align-items: center;
+            justify-content: center; font-size: 1.6rem;
+        }
+        .role-body {}
+        .role-badge {
+            display: inline-block; font-size: 0.65rem; font-weight: 700;
+            padding: 2px 8px; border-radius: 20px; margin-bottom: 5px;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .role-badge.townsfolk { background: rgba(39,174,96,0.25); color: #2ecc71; }
+        .role-badge.outsiders  { background: rgba(52,152,219,0.25); color: #5dade2; }
+        .role-badge.minions    { background: rgba(142,68,173,0.25); color: #bb8fce; }
+        .role-badge.demons     { background: rgba(192,57,43,0.25); color: #e74c3c; }
+
+        .role-body h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 5px; }
+        .role-body p  { font-size: 0.78rem; color: var(--muted); line-height: 1.55; }
+        .role-body small { font-size: 0.7rem; color: var(--accent); font-style: italic; }
+
+        /* Count table */
+        .count-table {
+            width: 100%; border-collapse: collapse;
+            background: rgba(255,255,255,0.03);
+            border-radius: var(--radius); overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .count-table th, .count-table td {
+            padding: 11px 14px; text-align: center;
+            border: 1px solid var(--border); font-size: 0.88rem;
+        }
+        .count-table thead th {
+            background: rgba(230,126,34,0.18); color: var(--accent);
+            font-weight: 700; font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+        .count-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .count-table tbody tr:hover { background: rgba(255,255,255,0.06); }
+        .count-table td:first-child { font-weight: 700; color: var(--text); }
+
+        /* Night sections */
+        .night-block {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border); border-radius: var(--radius);
+            overflow: hidden; margin-bottom: 30px;
+        }
+        .night-block-header {
+            background: rgba(52,73,94,0.55); padding: 14px 20px;
+            font-family: 'Roboto Slab', serif; font-size: 1.1rem;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .night-separator {
+            background: rgba(230,126,34,0.1); padding: 7px 20px;
+            font-size: 0.72rem; color: var(--accent); font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .night-step {
+            display: flex; align-items: flex-start; gap: 14px;
+            padding: 12px 20px; border-top: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.15s;
+        }
+        .night-step:hover { background: rgba(255,255,255,0.04); }
+        .night-step-icon {
+            width: 42px; height: 42px; border-radius: 7px;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .night-step-emoji {
+            width: 42px; height: 42px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.4rem; background: rgba(255,255,255,0.06);
+            border-radius: 7px;
+        }
+        .night-step-body { flex: 1; }
+        .night-step-body strong { display: block; font-size: 0.88rem; margin-bottom: 3px; }
+        .night-step-body span { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+        .night-step-body .eye { font-size: 0.78rem; color: var(--blue); }
+        .night-cond { font-size: 0.73rem; color: var(--accent); font-weight: 600; margin-bottom: 2px; display: block; }
+
+        /* footnote */
+        .footnote { font-size: 0.75rem; color: var(--muted); margin: 6px 0 30px; font-style: italic; }
+
+        footer {
+            text-align: center; padding: 28px 20px;
+            color: var(--muted); font-size: 0.78rem;
+            border-top: 1px solid var(--border); margin-top: 40px;
+        }
+
+        @media (max-width: 600px) {
+            .roles-grid { grid-template-columns: 1fr; }
+            header h1 { font-size: 1.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+
+    <div class="back-bar">
+        <a href="/" class="back-btn">🏠 Retour à l'écran principal</a>
+        <a href="/waiting_room" class="back-btn">🚪 Retour à la salle d'attente</a>
+    </div>
+
+    <header>
+        <h1>🐺 Loup Garou Ultimate</h1>
+        <p>Fiche de référence — Personnages, répartition &amp; ordre des nuits</p>
+    </header>
+
+    <!-- ══════════════════════════════════════════
+         RÔLES DES JOUEURS (dernière section)
+    ══════════════════════════════════════════ -->
+    <div class="roles-section">
+
+    <h2 class="section-title townsfolk">👥 Citoyens</h2>
+    <div class="roles-grid">
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/petite-fille.webp" alt="Lavandière">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Petite Fille</h3>
+                <p>Dès le début, vous savez que l'un de ces 2 joueurs est un Citoyen particulier.</p>
+                <span class="role-orig">Lavandière — Washerwoman</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <div class="role-icon-placeholder">📚</div>
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Bibliothécaire</h3>
+                <p>Dès le début, vous savez que l'un de ces 2 joueurs est un Étranger particulier. (Ou qu'il n'y en a aucun en jeu.)</p>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/renard.webp" alt="Renard">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Renard</h3>
+                <p>Dès le début, vous savez que l'un de ces 2 joueurs est un Sbire particulier.</p>
+                <span class="role-orig">Enquêteur — Investigator</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/montreur-dours.webp" alt="Cuisinier">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Montreur d'ours</h3>
+                <p>Dès le début, vous savez combien de paires de joueurs maléfiques sont voisins l'un de l'autre.</p>
+                <span class="role-orig">Cuisinier — Chef</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/cupidon.webp" alt="Empathique">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Cupidon</h3>
+                <p>Chaque nuit, vous apprenez combien de vos 2 voisins vivants sont maléfiques.</p>
+                <span class="role-orig">Empathique — Empath</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/voyante.webp" alt="Voyante">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Voyante</h3>
+                <p>Chaque nuit, choisissez 2 joueurs : vous apprenez si l'un d'eux est le Démon. Un joueur Gentil vous apparaît comme Démon.</p>
+                <span class="role-orig">Voyante — Fortune Teller</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/enfant.webp" alt="Croque-mort">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Enfant Sauvage</h3>
+                <p>Chaque nuit*, vous apprenez quel personnage a été exécuté aujourd'hui.</p>
+                <small>* Pas la première nuit.</small>
+                <span class="role-orig">Croque-mort — Undertaker</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/chevalier.webp" alt="Moine">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Chevalier</h3>
+                <p>Chaque nuit*, choisissez un joueur (pas vous-même) : il est protégé du Démon cette nuit.</p>
+                <small>* Pas la première nuit.</small>
+                <span class="role-orig">Moine — Monk</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/sorciere.webp" alt="Corbeau">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Sorcière</h3>
+                <p>Si vous mourez la nuit, vous êtes réveillé(e) pour choisir un joueur : vous apprenez son personnage.</p>
+                <span class="role-orig">Corbeau — Ravenkeeper</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/flute.webp" alt="Vierge">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Joueur de flûte</h3>
+                <p>La première fois que vous êtes nominé(e), si le nominateur est un Citoyen, il est immédiatement exécuté.</p>
+                <span class="role-orig">Vierge — Virgin</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/chasseur.webp" alt="Tueur à gages">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Chasseur</h3>
+                <p>Une fois par partie, pendant le jour, désignez publiquement un joueur : s'il est le Démon, il meurt.</p>
+                <span class="role-orig">Tueur à gages — Slayer</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <img class="role-icon" src="images/ancien.webp" alt="Soldat">
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Ancien</h3>
+                <p>Vous êtes protégé(e) du Démon.</p>
+                <span class="role-orig">Soldat — Soldier</span>
+            </div>
+        </div>
+
+        <div class="role-card townsfolk">
+            <div class="role-icon-placeholder">👑</div>
+            <div class="role-body">
+                <span class="role-badge townsfolk">Citoyen</span>
+                <h3>Maire</h3>
+                <p>Si seulement 3 joueurs restent en vie et qu'aucune exécution n'a lieu, votre équipe gagne. Si vous mourez la nuit, un autre joueur pourrait mourir à votre place.</p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         ÉTRANGERS
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title outsiders">🌀 Étrangers</h2>
+    <div class="roles-grid">
+
+        <div class="role-card outsiders">
+            <div class="role-icon-placeholder">🙏</div>
+            <div class="role-body">
+                <span class="role-badge outsiders">Étranger</span>
+                <h3>Majordome</h3>
+                <p>Chaque nuit, choisissez un joueur (pas vous-même) : demain, vous ne pouvez voter que si ce joueur vote aussi.</p>
+            </div>
+        </div>
+
+        <div class="role-card outsiders">
+            <div class="role-icon-placeholder">🍺</div>
+            <div class="role-body">
+                <span class="role-badge outsiders">Étranger</span>
+                <h3>Ivrogne</h3>
+                <p>Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un personnage Citoyen, mais ce n'est pas le cas.</p>
+            </div>
+        </div>
+
+        <div class="role-card outsiders">
+            <div class="role-icon-placeholder">🧍</div>
+            <div class="role-body">
+                <span class="role-badge outsiders">Étranger</span>
+                <h3>Reclus</h3>
+                <p>Vous pouvez être perçu comme Maléfique et comme Sbire ou Démon, même mort(e).</p>
+            </div>
+        </div>
+
+        <div class="role-card outsiders">
+            <img class="role-icon" src="images/ange.webp" alt="Saint">
+            <div class="role-body">
+                <span class="role-badge outsiders">Étranger</span>
+                <h3>Ange</h3>
+                <p>Si vous mourez par exécution, votre équipe perd.</p>
+                <span class="role-orig">Saint — Saint</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SBIRES
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title minions">😈 Sbires</h2>
+    <div class="roles-grid">
+
+        <div class="role-card minions">
+            <img class="role-icon" src="images/infectloup.webp" alt="Empoisonneur">
+            <div class="role-body">
+                <span class="role-badge minions">Sbire</span>
+                <h3>Infect Loup Garou</h3>
+                <p>Chaque nuit, choisissez un joueur : il est empoisonné cette nuit et le jour suivant.</p>
+                <span class="role-orig">Empoisonneur — Poisoner</span>
+            </div>
+        </div>
+
+        <div class="role-card minions">
+            <div class="role-icon-placeholder">🕵️</div>
+            <div class="role-body">
+                <span class="role-badge minions">Sbire</span>
+                <h3>Espion</h3>
+                <p>Chaque nuit, vous voyez le Grimoire. Vous pouvez être perçu comme Gentil et comme Citoyen ou Étranger, même mort(e).</p>
+            </div>
+        </div>
+
+        <div class="role-card minions">
+            <img class="role-icon" src="images/grandloup.webp" alt="Femme écarlate">
+            <div class="role-body">
+                <span class="role-badge minions">Sbire</span>
+                <h3>Grand Loup Garou</h3>
+                <p>Si 5 joueurs ou plus sont en vie et que le Démon meurt, vous devenez le Démon.</p>
+                <span class="role-orig">Femme écarlate — Scarlet Woman</span>
+            </div>
+        </div>
+
+        <div class="role-card minions">
+            <div class="role-icon-placeholder">⚖️</div>
+            <div class="role-body">
+                <span class="role-badge minions">Sbire</span>
+                <h3>Baron</h3>
+                <p>Il y a des Étrangers supplémentaires en jeu. <strong>[+2 Étrangers]</strong></p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         DÉMONS
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title demons">🐺 Démons</h2>
+    <div class="roles-grid">
+
+        <div class="role-card demons">
+            <img class="role-icon" src="images/loupgarou.webp" alt="Imp">
+            <div class="role-body">
+                <span class="role-badge demons">Démon</span>
+                <h3>Loup Garou Ultime</h3>
+                <p>Chaque nuit*, choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Sbire devient le Loup Garou Ultime.</p>
+                <small>* Pas la première nuit.</small>
+                <span class="role-orig">Imp — Imp</span>
+            </div>
+        </div>
+
+    </div>
+
+    </div><!-- /.roles-section -->
+
+    <!-- ══════════════════════════════════════════
+         RÉPARTITION DES PERSONNAGES
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title">📊 Répartition des personnages</h2>
+    <table class="count-table">
+        <thead>
+            <tr>
+                <th>Joueurs</th>
+                <th>Total</th>
+                <th>👥 Villageois</th>
+                <th>🌀 Marginaux</th>
+                <th>😈 Loups</th>
+                <th>🐺 Loup Ultime</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td>5</td><td>5</td><td>3</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>6</td><td>6</td><td>3</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>7</td><td>7</td><td>5</td><td>0</td><td>1</td><td>1</td></tr>
+            <tr><td>8</td><td>8</td><td>5</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>9</td><td>9</td><td>5</td><td>2</td><td>1</td><td>1</td></tr>
+            <tr><td>10</td><td>10</td><td>7</td><td>0</td><td>2</td><td>1</td></tr>
+            <tr><td>11</td><td>11</td><td>7</td><td>1</td><td>2</td><td>1</td></tr>
+            <tr><td>12</td><td>12</td><td>7</td><td>2</td><td>2</td><td>1</td></tr>
+            <tr><td>13</td><td>13</td><td>9</td><td>0</td><td>3</td><td>1</td></tr>
+            <tr><td>14</td><td>14</td><td>9</td><td>1</td><td>3</td><td>1</td></tr>
+            <tr><td>15</td><td>15</td><td>9</td><td>2</td><td>3</td><td>1</td></tr>
+        </tbody>
+    </table>
+    <p class="footnote">Note : avec le Baron en jeu, ajoutez 2 Étrangers au compte (retirez 2 Citoyens en conséquence).</p>
+
+    <!-- ══════════════════════════════════════════
+         PREMIÈRE NUIT
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title">🌑 Ordre de la première nuit</h2>
+
+    <div class="night-block">
+        <div class="night-block-header">🌑 Première Nuit</div>
+
+        <div class="night-separator">Mise en place</div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">😴</div>
+            <div class="night-step-body">
+                <strong>Tout le monde ferme les yeux</strong>
+                <span>Attendre environ 10 secondes.</span>
+            </div>
+        </div>
+
+        <div class="night-separator">Info des Sbires (7 joueurs ou plus)</div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">😈</div>
+            <div class="night-step-body">
+                <strong>Info Sbires</strong>
+                <span class="eye">👁</span>
+                <span>Si plusieurs Sbires, ils établissent un contact visuel. Montrez la carte « Voici le Démon » et désignez le Démon.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">🐺</div>
+            <div class="night-step-body">
+                <strong>Info Démon</strong>
+                <span class="eye">👁</span>
+                <span>Montrez la carte « Voici vos Sbires » et désignez chaque Sbire. Montrez la carte « Ces personnages ne sont pas en jeu » avec 3 jetons de Citoyens absents.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-separator">Actions des rôles</div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/infectloup.webp" alt="Empoisonneur">
+            <div class="night-step-body">
+                <strong>Infect Loup Garou</strong>
+                <span class="eye">👁</span>
+                <span>L'Infect Loup Garou désigne un joueur — ce joueur est empoisonné.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">🕵️</div>
+            <div class="night-step-body">
+                <strong>Espion</strong>
+                <span class="eye">👁</span>
+                <span>Montrez le Grimoire à l'Espion aussi longtemps que nécessaire.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/petite-fille.webp" alt="Petite Fille">
+            <div class="night-step-body">
+                <strong>Petite Fille</strong>
+                <span class="eye">👁</span>
+                <span>Montrez le jeton d'un Citoyen en jeu. Désignez 2 joueurs dont l'un est ce Citoyen.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">📚</div>
+            <div class="night-step-body">
+                <strong>Bibliothécaire</strong>
+                <span class="eye">👁</span>
+                <span>Si des Étrangers sont en jeu : montrez le jeton d'un Étranger et désignez 2 joueurs dont l'un est cet Étranger. Sinon : signalez le chiffre « 0 ».</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/renard.webp" alt="Renard">
+            <div class="night-step-body">
+                <strong>Renard</strong>
+                <span class="eye">👁</span>
+                <span>Montrez le jeton d'un Sbire en jeu. Désignez 2 joueurs dont l'un est ce Sbire.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/montreur-dours.webp" alt="Montreur d'ours">
+            <div class="night-step-body">
+                <strong>Montreur d'ours</strong>
+                <span class="eye">👁</span>
+                <span>Signalez avec les doigts le nombre de paires de joueurs maléfiques voisins l'un de l'autre (0, 1, 2…).</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/cupidon.webp" alt="Cupidon">
+            <div class="night-step-body">
+                <strong>Cupidon</strong>
+                <span class="eye">👁</span>
+                <span>Signalez le nombre de voisins vivants maléfiques de Cupidon (0, 1 ou 2).</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/voyante.webp" alt="Voyante">
+            <div class="night-step-body">
+                <strong>Voyante</strong>
+                <span class="eye">👁</span>
+                <span>La Voyante désigne 2 joueurs. Acquiescez (oui) si l'un est le Démon ou marqué « Leurre », secouez la tête (non) sinon.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">🙏</div>
+            <div class="night-step-body">
+                <strong>Majordome</strong>
+                <span class="eye">👁</span>
+                <span>Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-separator">Lever du soleil</div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">☀️</div>
+            <div class="night-step-body">
+                <strong>Lever du soleil</strong>
+                <span>Attendre environ 10 secondes. Demandez à tout le monde d'ouvrir les yeux. Annoncez immédiatement les morts (s'il y en a).</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         NUITS SUIVANTES
+    ══════════════════════════════════════════ -->
+    <h2 class="section-title">🌒 Ordre des nuits suivantes</h2>
+
+    <div class="night-block">
+        <div class="night-block-header">🌒 Nuits Suivantes</div>
+
+        <div class="night-separator">Mise en place</div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">😴</div>
+            <div class="night-step-body">
+                <strong>Tout le monde ferme les yeux</strong>
+                <span>Attendre environ 10 secondes. Chaque Voyageur ayant un pouvoir de nuit agit.</span>
+            </div>
+        </div>
+
+        <div class="night-separator">Actions des rôles</div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/infectloup.webp" alt="Empoisonneur">
+            <div class="night-step-body">
+                <strong>Infect Loup Garou</strong>
+                <span>Retirez le marqueur Empoisonné du joueur précédent. </span>
+                <span class="eye">👁</span>
+                <span> L'Infect Loup Garou désigne un nouveau joueur — ce joueur est empoisonné.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/chevalier.webp" alt="Chevalier">
+            <div class="night-step-body">
+                <strong>Chevalier</strong>
+                <span>Retirez le marqueur Protégé du joueur précédent. </span>
+                <span class="eye">👁</span>
+                <span> Le Chevalier désigne un joueur (pas lui-même) — marquez ce joueur comme « Protégé ».</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">🕵️</div>
+            <div class="night-step-body">
+                <strong>Espion</strong>
+                <span class="eye">👁</span>
+                <span>Montrez le Grimoire à l'Espion aussi longtemps que nécessaire.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/grandloup.webp" alt="Grand Loup Garou">
+            <div class="night-step-body">
+                <strong>Grand Loup Garou</strong>
+                <span class="night-cond">Uniquement si le Grand Loup Garou devient le Démon cette nuit :</span>
+                <span class="eye">👁</span>
+                <span> Montrez la carte « Vous êtes » puis le jeton Démon.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/loupgarou.webp" alt="Loup Garou Ultime">
+            <div class="night-step-body">
+                <strong>Loup Garou Ultime</strong>
+                <span class="eye">👁</span>
+                <span>Le Loup Garou Ultime désigne un joueur — ce joueur meurt.</span>
+                <span> 😴</span>
+                <br>
+                <span class="night-cond" style="margin-top:4px;">Si le Loup Garou Ultime s'est désigné lui-même :</span>
+                <span>Remplacez le jeton d'un Sbire par le jeton Loup Garou Ultime. Réveillez ce nouveau Loup Garou Ultime, montrez-lui la carte « Vous êtes » puis le jeton.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/sorciere.webp" alt="Sorcière">
+            <div class="night-step-body">
+                <strong>Sorcière</strong>
+                <span class="night-cond">Uniquement si la Sorcière est morte cette nuit :</span>
+                <span class="eye">👁</span>
+                <span> La Sorcière désigne un joueur — montrez-lui le jeton de ce joueur.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/enfant.webp" alt="Enfant Sauvage">
+            <div class="night-step-body">
+                <strong>Enfant Sauvage</strong>
+                <span class="night-cond">Uniquement si un joueur a été exécuté aujourd'hui :</span>
+                <span class="eye">👁</span>
+                <span> Montrez à l'Enfant Sauvage le jeton de ce joueur.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/cupidon.webp" alt="Cupidon">
+            <div class="night-step-body">
+                <strong>Cupidon</strong>
+                <span class="eye">👁</span>
+                <span>Signalez le nombre de voisins vivants maléfiques de Cupidon (0, 1 ou 2).</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <img class="night-step-icon" src="images/voyante.webp" alt="Voyante">
+            <div class="night-step-body">
+                <strong>Voyante</strong>
+                <span class="eye">👁</span>
+                <span>La Voyante désigne 2 joueurs. Acquiescez (oui) si l'un est le Démon ou marqué « Leurre », secouez la tête (non) sinon.</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">🙏</div>
+            <div class="night-step-body">
+                <strong>Majordome</strong>
+                <span class="eye">👁</span>
+                <span>Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».</span>
+                <span> 😴</span>
+            </div>
+        </div>
+
+        <div class="night-separator">Lever du soleil</div>
+
+        <div class="night-step">
+            <div class="night-step-emoji">☀️</div>
+            <div class="night-step-body">
+                <strong>Lever du soleil</strong>
+                <span>Attendre environ 10 secondes. Demandez à tout le monde d'ouvrir les yeux. Annoncez les morts.</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-back back-bar">
+        <a href="/" class="back-btn">🏠 Retour à l'écran principal</a>
+        <a href="/waiting_room" class="back-btn">🚪 Retour à la salle d'attente</a>
+    </div>
+
+</div>
+</body>
+</html>
