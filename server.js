@@ -18,6 +18,19 @@ const io = socketIO(server, {
     }
 });
 
+const MAX_NON_HOST_PLAYERS = 15;
+const MIN_PLAYERS_TO_START = 6;
+const DEFAULT_ROOM_CODE = 'WOLF';
+
+// Serve the shared waiting-room entry point
+app.get(['/waiting_room', '/waiting_room/'], (req, res) => {
+    res.sendFile(path.join(__dirname, 'waiting-room.html'));
+});
+
+app.get(['/waiting-room', '/waiting-room/'], (req, res) => {
+    res.redirect('/waiting_room');
+});
+
 // Serve static files
 app.use(express.static(__dirname));
 
@@ -450,6 +463,15 @@ function generateRoomCode() {
     return code;
 }
 
+function getAvailableRoom() {
+    for (const room of gameRooms.values()) {
+        if (!room.gameStarted) {
+            return room;
+        }
+    }
+    return null;
+}
+
 // Room class to manage game state
 class GameRoom {
     constructor(code, hostSocketId) {
@@ -512,18 +534,31 @@ class GameRoom {
     removePlayer(playerId) {
         const player = this.players.get(playerId);
         if (!player) {
-            return;
+            return null;
         }
 
         this.players.delete(playerId);
 
-        if (player.isHost && this.players.size > 0) {
-            const firstPlayer = this.getPlayers()[0];
-            if (firstPlayer) {
-                firstPlayer.isHost = true;
-                this.hostSocketId = firstPlayer.socketId;
+        if (this.players.size > 0) {
+            const connectedPlayers = this.getPlayers();
+            if (connectedPlayers.length > 0) {
+                connectedPlayers.forEach(candidate => {
+                    candidate.isHost = false;
+                });
+
+                const newHost = connectedPlayers[0];
+                newHost.isHost = true;
+                this.hostSocketId = newHost.socketId;
             }
+        } else {
+            this.hostSocketId = null;
         }
+
+        return player;
+    }
+
+    getPlayerBySocketId(socketId) {
+        return Array.from(this.players.values()).find(player => player.socketId === socketId) || null;
     }
 
     getPlayers() {
@@ -561,18 +596,33 @@ class GameRoom {
 io.on('connection', (socket) => {
     console.log(`🎮 Player connected: ${socket.id}`);
 
-    // Create a new game room
+    // Create or reuse the single shared waiting room
     socket.on('create-room', (data, callback) => {
         const playerName = typeof data === 'string' ? data : data.playerName;
         const playerId = typeof data === 'string' ? `${socket.id}-host` : (data.playerId || `${socket.id}-host`);
-        const roomCode = generateRoomCode();
-        const room = new GameRoom(roomCode, socket.id);
-        room.addPlayer(playerId, socket.id, playerName, true);
-        gameRooms.set(roomCode, room);
+        let room = getAvailableRoom();
 
+        if (!room) {
+            room = new GameRoom(DEFAULT_ROOM_CODE, socket.id);
+            gameRooms.set(DEFAULT_ROOM_CODE, room);
+        }
+
+        room.hostSocketId = socket.id;
+        room.players.forEach(player => {
+            player.isHost = player.socketId === socket.id;
+        });
+
+        room.addPlayer(playerId, socket.id, playerName, true);
+        room.players.forEach(player => {
+            if (player.socketId !== socket.id) {
+                player.isHost = false;
+            }
+        });
+
+        const roomCode = room.code;
         socket.join(roomCode);
 
-        console.log(`🏠 Room created: ${roomCode} by ${playerName}`);
+        console.log(`🏠 Room ready: ${roomCode} by ${playerName}`);
 
         callback({
             success: true,
@@ -581,11 +631,11 @@ io.on('connection', (socket) => {
         });
     });
 
-    // Join an existing room
+    // Join the shared room or a specific room code
     socket.on('join-room', (data, callback) => {
         const playerName = typeof data === 'string' ? data : data.playerName;
         const { roomCode, isHost = false, playerId } = data;
-        const normalizedRoomCode = roomCode.toUpperCase();
+        const normalizedRoomCode = (roomCode || DEFAULT_ROOM_CODE).toUpperCase();
         const room = gameRooms.get(normalizedRoomCode);
 
         if (!room) {
@@ -599,12 +649,25 @@ io.on('connection', (socket) => {
         }
 
         const resolvedPlayerId = playerId || `${socket.id}-${Date.now()}`;
+        const existingPlayer = room.players.get(resolvedPlayerId);
+        const currentRegularPlayerCount = room.getPlayers().filter(player => !player.isHost).length;
+
+        if (!isHost && !existingPlayer && currentRegularPlayerCount >= MAX_NON_HOST_PLAYERS) {
+            callback({ success: false, error: `La salle est pleine. Maximum ${MAX_NON_HOST_PLAYERS} joueurs (hors maître du jeu).` });
+            return;
+        }
+
         room.addPlayer(resolvedPlayerId, socket.id, playerName, isHost);
+        if (isHost) {
+            room.hostSocketId = socket.id;
+            room.players.forEach(player => {
+                player.isHost = player.socketId === socket.id;
+            });
+        }
         socket.join(normalizedRoomCode);
 
         console.log(`👋 ${playerName} joined room ${normalizedRoomCode}`);
 
-        // Notify all players in the room
         io.to(normalizedRoomCode).emit('player-joined', {
             players: room.getPlayers(),
             newPlayer: playerName
@@ -615,6 +678,104 @@ io.on('connection', (socket) => {
             roomCode: normalizedRoomCode,
             players: room.getPlayers()
         });
+    });
+
+    socket.on('get-room-list', (data, callback) => {
+        const room = getAvailableRoom();
+
+        if (!room) {
+            callback({
+                success: true,
+                available: false,
+                roomCode: null,
+                players: [],
+                maxPlayers: MAX_NON_HOST_PLAYERS
+            });
+            return;
+        }
+
+        callback({
+            success: true,
+            available: true,
+            roomCode: room.code,
+            players: room.getPlayers(),
+            maxPlayers: MAX_NON_HOST_PLAYERS
+        });
+    });
+
+    socket.on('leave-room', (data, callback) => {
+        const roomCode = ((data && data.roomCode) || DEFAULT_ROOM_CODE).toUpperCase();
+        const room = gameRooms.get(roomCode);
+
+        if (!room) {
+            callback({ success: false, error: 'Room not found' });
+            return;
+        }
+
+        const playerId = data && data.playerId ? data.playerId : null;
+        const player = playerId ? room.players.get(playerId) : room.getPlayerBySocketId(socket.id);
+
+        if (player) {
+            room.removePlayer(player.playerId);
+        }
+
+        socket.leave(roomCode);
+
+        if (room.getPlayers().length > 0) {
+            io.to(roomCode).emit('player-left', {
+                players: room.getPlayers(),
+                leftPlayer: player ? player.name : 'Un joueur'
+            });
+        }
+
+        socket.emit('room-left', {
+            success: true,
+            roomCode
+        });
+
+        callback({ success: true, roomCode, players: room.getPlayers() });
+    });
+
+    socket.on('kick-player', (data, callback) => {
+        const roomCode = ((data && data.roomCode) || DEFAULT_ROOM_CODE).toUpperCase();
+        const room = gameRooms.get(roomCode);
+
+        if (!room) {
+            callback({ success: false, error: 'Room not found' });
+            return;
+        }
+
+        const requester = room.getPlayerBySocketId(socket.id);
+        if (!requester || !requester.isHost) {
+            callback({ success: false, error: 'Only the host can kick players' });
+            return;
+        }
+
+        const targetPlayerId = data && data.playerId ? data.playerId : null;
+        const targetPlayer = targetPlayerId ? room.players.get(targetPlayerId) : null;
+
+        if (!targetPlayer || targetPlayer.socketId === socket.id) {
+            callback({ success: false, error: 'Invalid player to kick' });
+            return;
+        }
+
+        room.removePlayer(targetPlayer.playerId);
+
+        const targetSocket = io.sockets.sockets.get(targetPlayer.socketId);
+        if (targetSocket) {
+            targetSocket.leave(roomCode);
+            targetSocket.emit('kicked-from-room', {
+                success: true,
+                message: 'Vous avez été expulsé de la salle.'
+            });
+        }
+
+        io.to(roomCode).emit('player-left', {
+            players: room.getPlayers(),
+            leftPlayer: targetPlayer.name
+        });
+
+        callback({ success: true, roomCode, players: room.getPlayers() });
     });
 
     // Start the game
@@ -631,13 +792,15 @@ io.on('connection', (socket) => {
             return;
         }
 
-        if (room.players.size < 6) {
-            callback({ success: false, error: 'Need at least 6 players (5 players + 1 game master)' });
+        const regularPlayerCount = room.getPlayers().filter(player => !player.isHost).length;
+
+        if (regularPlayerCount < 5) {
+            callback({ success: false, error: 'Need at least 5 players plus the game master' });
             return;
         }
 
-        if (room.players.size > 13) {
-            callback({ success: false, error: 'Maximum 13 players (12 players + 1 game master)' });
+        if (regularPlayerCount > MAX_NON_HOST_PLAYERS) {
+            callback({ success: false, error: `Maximum ${MAX_NON_HOST_PLAYERS} players (excluding the game master)` });
             return;
         }
 

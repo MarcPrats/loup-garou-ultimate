@@ -36,7 +36,6 @@ class WaitingRoomApp {
             localStorage.setItem('isHost', storedState.isHost ? 'true' : 'false');
             this.showScreen('home-screen');
         } else if (roomCode) {
-            // Auto-join mode - show name input then join
             this.actionType = 'join-from-link';
             this.pendingRoomCode = roomCode.toUpperCase();
             this.showScreen('name-input-screen');
@@ -106,6 +105,18 @@ class WaitingRoomApp {
             this.showNotification(`${data.leftPlayer} a quitté la partie`, 'info');
         });
 
+        this.socket.on('room-left', (data) => {
+            this.clearWaitingRoomState();
+            this.showScreen('home-screen');
+            this.showNotification('Vous avez quitté la salle', 'info');
+        });
+
+        this.socket.on('kicked-from-room', (data) => {
+            this.clearWaitingRoomState();
+            this.showScreen('home-screen');
+            this.showNotification(data.message || 'Vous avez été expulsé de la salle', 'info');
+        });
+
         this.socket.on('game-starting', (data) => {
             this.showNotification('La partie commence !', 'success');
             // Wait for role assignment - don't redirect yet
@@ -167,6 +178,7 @@ class WaitingRoomApp {
 
         document.getElementById('join-room-btn').addEventListener('click', () => {
             this.actionType = 'join';
+            this.pendingRoomCode = null;
             this.showScreen('name-input-screen');
             document.getElementById('player-name-input').focus();
         });
@@ -241,8 +253,7 @@ class WaitingRoomApp {
 
         if (this.actionType === 'create') {
             this.createRoom();
-        } else if (this.actionType === 'join-from-link') {
-            // Auto-join with the code from URL
+        } else if (this.actionType === 'join-from-link' || this.actionType === 'join') {
             this.joinRoomWithCode(this.pendingRoomCode);
         } else {
             this.showScreen('join-screen');
@@ -282,9 +293,10 @@ class WaitingRoomApp {
 
     joinRoomWithCode(code) {
         localStorage.setItem('isHost', 'false');
+        const roomCode = code || 'WOLF';
 
         this.socket.emit('join-room', {
-            roomCode: code,
+            roomCode,
             playerName: this.playerName,
             playerId: this.playerId || this.getOrCreatePlayerId(),
             isHost: false
@@ -311,8 +323,8 @@ class WaitingRoomApp {
         this.showScreen('waiting-room-screen');
         document.getElementById('room-code').textContent = roomCode;
 
-        // Generate and display invitation link
-        const invitationLink = `${window.location.origin}${window.location.pathname}?room=${roomCode}`;
+        // Display the shared waiting-room link that always points to the same page
+        const invitationLink = `${window.location.origin}/waiting_room`;
         document.getElementById('invitation-link').value = invitationLink;
 
         this.updatePlayersList(players);
@@ -512,7 +524,6 @@ class WaitingRoomApp {
         const gameMasterList = document.getElementById('game-master-list');
         const playerCount = document.getElementById('player-count');
 
-        // Separate game master from regular players
         const gameMaster = players.find(p => p.isHost);
         const regularPlayers = players.filter(p => !p.isHost);
 
@@ -520,7 +531,6 @@ class WaitingRoomApp {
         playersList.innerHTML = '';
         gameMasterList.innerHTML = '';
 
-        // Add game master
         if (gameMaster) {
             const gmCard = document.createElement('div');
             gmCard.className = 'player-card';
@@ -531,13 +541,23 @@ class WaitingRoomApp {
             gameMasterList.appendChild(gmCard);
         }
 
-        // Add regular players
         regularPlayers.forEach(player => {
             const playerCard = document.createElement('div');
             playerCard.className = 'player-card';
-            playerCard.innerHTML = `
-                <span class="player-name">${this.escapeHtml(player.name)}</span>
-            `;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'player-name';
+            nameSpan.textContent = player.name;
+            playerCard.appendChild(nameSpan);
+
+            if (this.isHost && !player.isHost && player.playerId) {
+                const kickButton = document.createElement('button');
+                kickButton.className = 'kick-btn';
+                kickButton.textContent = 'Expulser';
+                kickButton.addEventListener('click', () => this.kickPlayer(player));
+                playerCard.appendChild(kickButton);
+            }
+
             playersList.appendChild(playerCard);
         });
     }
@@ -555,11 +575,38 @@ class WaitingRoomApp {
     }
 
     leaveRoom() {
-        if (confirm('Voulez-vous vraiment quitter la partie ?')) {
-            this.clearWaitingRoomState();
-            this.socket.disconnect();
-            window.location.reload();
+        if (confirm('Voulez-vous vraiment quitter la salle ?')) {
+            this.socket.emit('leave-room', {
+                roomCode: this.currentRoomCode || 'WOLF',
+                playerId: this.playerId || this.getOrCreatePlayerId()
+            }, (response) => {
+                if (response && response.success) {
+                    this.clearWaitingRoomState();
+                    this.currentRoomCode = null;
+                    this.isHost = false;
+                    this.showScreen('home-screen');
+                }
+            });
         }
+    }
+
+    kickPlayer(player) {
+        if (!this.isHost) {
+            return;
+        }
+
+        if (!confirm(`Expulser ${player.name} de la salle ?`)) {
+            return;
+        }
+
+        this.socket.emit('kick-player', {
+            roomCode: this.currentRoomCode || 'WOLF',
+            playerId: player.playerId
+        }, (response) => {
+            if (!response || !response.success) {
+                this.showNotification(response?.error || 'Impossible d\'expulser ce joueur', 'info');
+            }
+        });
     }
 
     showRoleScreen(role, bluffRole = null, bluffSpecialInfo = null) {
@@ -734,7 +781,7 @@ class WaitingRoomApp {
     }
 
     updateRoomUrl(roomCode) {
-        const newUrl = `${window.location.pathname}?room=${roomCode}`;
+        const newUrl = '/waiting_room';
         window.history.replaceState({ roomCode }, '', newUrl);
     }
 
