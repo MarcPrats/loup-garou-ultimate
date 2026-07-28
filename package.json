@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "simulator": "ENABLE_SIMULATOR=true npm start",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "test": "node test/role-assignment.test.js"
   },
   "keywords": [
     "loup-garou",

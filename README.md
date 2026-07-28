@@ -134,7 +134,7 @@ MIT License. See the repository for details.
 
 ## 🧪 Development Simulator
 
-The repository includes a development-only simulator for checking the real MJ dashboard and private player role view without modifying the real shared room.
+The repository includes a development-only simulator for checking the MJ dashboard and the private player role view without modifying the real shared room.
 
 The simulator is disabled by default. Start the server with the simulator explicitly enabled:
 
@@ -157,11 +157,23 @@ $env:ENABLE_SIMULATOR="true"; npm start
 The simulator launcher lets you:
 
 - Create a simulated game with 5 to 12 players.
-- Open the actual waiting-room **MJ dashboard** in a new page.
-- Open the actual waiting-room **player view** in a new page for any simulated player.
-- Check the same role cards, role descriptions, bluff sections, rules buttons and dashboard layout used by a real game.
+- See each simulated player's role and type: loup garou, villageois or étranger.
+- Open the MJ dashboard in a new page.
+- Open the private player view in a new page for any simulated player.
 - Reset the current simulation.
 
-The simulator reuses `waiting-room.html` and `js/waiting-room.js`. It only adds a simulator mode that fetches isolated test data and passes it through the existing `showGameMasterScreen()` and `showRoleScreen()` rendering functions. This avoids maintaining a second copy of the game views.
+The simulator does not maintain a second copy of the role or MJ views. The markup from the existing `role-screen` and `game-master-screen` sections is extracted into `js/view-templates.js`, and their rendering logic is shared through `js/view-renderers.js`. Both the real waiting room and the simulator pages use these same templates and renderers.
 
-Simulation state is separate from the real one-room game. It does not create real Socket.IO players or send role tokens to users. When `ENABLE_SIMULATOR` is not enabled, the simulator page and API return `404`.
+Simulation state is separate from the real one-room Socket.IO game. When `ENABLE_SIMULATOR` is not enabled, the simulator pages and API return `404`.
+
+## 🧪 Reliability checks
+
+The server now protects the single home-game room against accidental host changes, only allows a socket to remove its own player, handles MJ departure, and clears role tokens when a room is closed or removed.
+
+Role-assignment coverage is available for every supported player count from 5 to 12 players. Run it with:
+
+````bash
+node test/role-assignment.test.js
+````
+
+The test verifies assignment counts, werewolf counts, the Angel/Drunk alternatives for 6, 8 and 11 players, and that the Angel and Drunk are never the same player.
