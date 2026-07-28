@@ -18,9 +18,19 @@ const io = socketIO(server, {
     }
 });
 
-const MAX_NON_HOST_PLAYERS = 15;
-const MIN_PLAYERS_TO_START = 6;
+const MAX_NON_HOST_PLAYERS = 12;
+const MIN_PLAYERS_TO_START = 5;
 const DEFAULT_ROOM_CODE = 'WOLF';
+const SIMULATOR_ENABLED = ['1', 'true', 'yes'].includes(
+    process.env.ENABLE_SIMULATOR?.toLowerCase()
+);
+
+function simulatorGuard(req, res, next) {
+    if (!SIMULATOR_ENABLED) {
+        return res.status(404).json({ error: 'Simulator disabled. Set ENABLE_SIMULATOR=true to enable it.' });
+    }
+    next();
+}
 
 // Serve the shared waiting-room entry point
 app.get(['/waiting_room', '/waiting_room/'], (req, res) => {
@@ -31,8 +41,36 @@ app.get(['/waiting-room', '/waiting-room/'], (req, res) => {
     res.redirect('/waiting_room');
 });
 
+// Development-only simulator. The page and its API are unavailable unless
+// ENABLE_SIMULATOR=true (or 1/yes) is explicitly set.
+app.get('/dev/simulator', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'simulator.html'));
+});
+app.get('/dev/simulator/mj', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'simulator-mj.html'));
+});
+app.get('/dev/simulator/player', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'simulator-player.html'));
+});
+app.get('/simulator.html', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'simulator.html'));
+});
+app.get('/js/simulator.js', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'js/simulator.js'));
+});
+app.get('/js/simulator-view.js', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'js/simulator-view.js'));
+});
+app.get('/js/simulator-mj.js', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'js/simulator-mj.js'));
+});
+app.get('/js/simulator-player.js', simulatorGuard, (req, res) => {
+    res.sendFile(path.join(__dirname, 'js/simulator-player.js'));
+});
+
 // Serve static files
 app.use(express.static(__dirname));
+app.use(express.json());
 
 // API endpoint to get role data by token
 app.get('/api/role/:token', (req, res) => {
@@ -262,10 +300,10 @@ function assignRoles(players, hostSocketId) {
 
     // Randomly select one villager (not werewolf) to be Drunk.
     // For 6, 8 and 11 players this is the alternative to the Angel.
-    // Keep the existing Drunk behavior for 9, 12 and 15 players.
+    // Keep the existing Drunk behavior for 9 and 12 players.
     let drunkPlayerSocketId = null;
     const drunkAllowed = outsiderChoice === 'drunk'
-        || [9, 12, 15].includes(playerCount);
+        || [9, 12].includes(playerCount);
     if (drunkAllowed) {
         const villagerPlayers = playersToAssignRoles.filter(player => {
             const role = assignments.get(player.socketId);
@@ -461,6 +499,226 @@ function assignRoles(players, hostSocketId) {
 
     return { assignments, drunkPlayerSocketId, renardInfo, petiteFilleInfo, werewolfBluffRoles, voyanteDecoySocketId, werewolfBluffSpecialInfo };
 }
+
+// Development-only game simulation state. This is deliberately separate from
+// gameRooms so test games never modify the real shared room.
+const simulatorState = {
+    game: null
+};
+
+function cloneRole(role) {
+    return role ? { ...role } : null;
+}
+
+function createSimulatorGame(playerCount) {
+    const count = Number(playerCount);
+    if (!Number.isInteger(count) || count < 5 || count > 12) {
+        throw new Error('Simulator player count must be an integer between 5 and 12.');
+    }
+
+    const hostSocketId = 'simulator-host';
+    const players = [
+        {
+            socketId: hostSocketId,
+            playerId: 'simulator-host',
+            name: 'Le MJ',
+            isHost: true
+        },
+        ...Array.from({ length: count }, (_, index) => ({
+            socketId: `simulator-player-${index + 1}`,
+            playerId: `simulator-player-${index + 1}`,
+            name: `Joueur ${index + 1}`,
+            isHost: false
+        }))
+    ];
+
+    const result = assignRoles(players, hostSocketId);
+    const simulatedPlayers = players
+        .filter(player => !player.isHost)
+        .map(player => {
+            const role = result.assignments.get(player.socketId);
+            const isDrunk = result.drunkPlayerSocketId === player.socketId;
+            const bluffRole = result.werewolfBluffRoles.get(player.socketId);
+            const bluffSpecialInfo = result.werewolfBluffSpecialInfo.get(player.socketId);
+            const details = [];
+
+            if (bluffRole) {
+                details.push({ type: 'bluff', label: 'Rôle de bluff', role: cloneRole(bluffRole) });
+            }
+            if (bluffSpecialInfo) {
+                details.push({
+                    type: 'bluff-special',
+                    label: 'Information spéciale de bluff',
+                    role: cloneRole(bluffSpecialInfo.role),
+                    twoPlayerNames: bluffSpecialInfo.twoPlayerNames
+                });
+            }
+            if (role?.id === 'renard' && result.renardInfo) {
+                details.push({
+                    type: 'renard',
+                    label: 'Information du Renard',
+                    role: cloneRole(result.renardInfo.werewolfRole),
+                    twoPlayerNames: result.renardInfo.twoPlayerNames
+                });
+            }
+            if (role?.id === 'petite-fille' && result.petiteFilleInfo) {
+                details.push({
+                    type: 'petite-fille',
+                    label: 'Information de la Petite Fille',
+                    role: cloneRole(result.petiteFilleInfo.villagerRole),
+                    twoPlayerNames: result.petiteFilleInfo.twoPlayerNames
+                });
+            }
+            if (result.voyanteDecoySocketId === player.socketId) {
+                details.push({ type: 'voyante-decoy', label: 'Leurre de la Voyante' });
+            }
+
+            const renardDetails = role?.id === 'renard' && result.renardInfo
+                ? {
+                    werewolfRole: cloneRole(result.renardInfo.werewolfRole),
+                    twoPlayerNames: result.renardInfo.twoPlayerNames
+                }
+                : null;
+            const petiteFilleDetails = role?.id === 'petite-fille' && result.petiteFilleInfo
+                ? {
+                    villagerRole: cloneRole(result.petiteFilleInfo.villagerRole),
+                    twoPlayerNames: result.petiteFilleInfo.twoPlayerNames
+                }
+                : null;
+            const voyanteDecoy = result.voyanteDecoySocketId === player.socketId
+                ? 'Leurre de la Voyante'
+                : null;
+
+            return {
+                playerId: player.playerId,
+                name: player.name,
+                role: cloneRole(role),
+                isDrunk,
+                details,
+                playerView: {
+                    playerName: player.name,
+                    name: player.name,
+                    role: cloneRole(role),
+                    bluffRole: role?.team === 'werewolves' ? cloneRole(bluffRole) : null,
+                    bluffSpecialInfo: role?.team === 'werewolves' ? bluffSpecialInfo || null : null
+                },
+                gameMasterView: {
+                    playerName: player.name,
+                    socketId: player.socketId,
+                    isHost: false,
+                    role: cloneRole(role),
+                    isDrunk,
+                    token: null,
+                    renardDetails,
+                    petiteFilleDetails,
+                    bluffRole: role?.team === 'werewolves' ? cloneRole(bluffRole) : null,
+                    voyanteDecoy
+                }
+            };
+        });
+
+    const angelPresent = simulatedPlayers.some(player => player.role?.id === 'ange');
+    const drunkPresent = Boolean(result.drunkPlayerSocketId);
+    let outsiderSummary = 'Aucun outsider spécial';
+    if (count === 6 || count === 8 || count === 11) {
+        outsiderSummary = angelPresent ? 'Ange' : 'Ivrogne';
+    } else if (angelPresent && drunkPresent) {
+        outsiderSummary = 'Ange + Ivrogne';
+    } else if (angelPresent) {
+        outsiderSummary = 'Ange';
+    } else if (drunkPresent) {
+        outsiderSummary = 'Ivrogne';
+    }
+
+    return {
+        id: `simulation-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        createdAt: new Date().toISOString(),
+        playerCount: count,
+        outsiderSummary,
+        players: simulatedPlayers,
+        gameMasterView: {
+            playerCount: count,
+            players: simulatedPlayers.map(player => player.gameMasterView)
+        }
+    };
+}
+
+function getSimulatorState() {
+    return {
+        enabled: SIMULATOR_ENABLED,
+        game: simulatorState.game
+            ? {
+                id: simulatorState.game.id,
+                createdAt: simulatorState.game.createdAt,
+                playerCount: simulatorState.game.playerCount,
+                outsiderSummary: simulatorState.game.outsiderSummary,
+                players: simulatorState.game.players.map(player => ({
+                    playerId: player.playerId,
+                    name: player.name,
+                    role: player.role,
+                    type: player.isDrunk || player.role?.id === 'ange'
+                        ? 'étranger'
+                        : player.role?.team === 'werewolves' ? 'loup garou' : 'villageois'
+                }))
+            }
+            : null
+    };
+}
+
+function getSimulatorGame(gameId) {
+    if (!simulatorState.game || simulatorState.game.id !== gameId) {
+        return null;
+    }
+    return simulatorState.game;
+}
+
+app.get('/api/test/simulator/state', simulatorGuard, (req, res) => {
+    res.json(getSimulatorState());
+});
+
+app.post('/api/test/simulator/reset', simulatorGuard, (req, res) => {
+    simulatorState.game = null;
+    res.json(getSimulatorState());
+});
+
+app.post('/api/test/simulator/game', simulatorGuard, (req, res) => {
+    try {
+        const game = createSimulatorGame(req.body?.playerCount);
+        simulatorState.game = game;
+        res.json(getSimulatorState());
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/test/simulator/game/:gameId/mj', simulatorGuard, (req, res) => {
+    const game = getSimulatorGame(req.params.gameId);
+    if (!game) {
+        return res.status(404).json({ error: 'Simulation not found.' });
+    }
+    res.json({
+        gameId: game.id,
+        playerCount: game.playerCount,
+        outsiderSummary: game.outsiderSummary,
+        ...game.gameMasterView
+    });
+});
+
+app.get('/api/test/simulator/game/:gameId/player/:playerId', simulatorGuard, (req, res) => {
+    const game = getSimulatorGame(req.params.gameId);
+    if (!game) {
+        return res.status(404).json({ error: 'Simulation not found.' });
+    }
+    const player = game.players.find(item => item.playerId === req.params.playerId);
+    if (!player) {
+        return res.status(404).json({ error: 'Simulated player not found.' });
+    }
+    res.json({
+        gameId: game.id,
+        playerCount: game.playerCount,
+        player: player.playerView
+    });
+});
 
 // Generate random 4-character room code
 function generateRoomCode() {
@@ -807,8 +1065,8 @@ io.on('connection', (socket) => {
 
         const regularPlayerCount = room.getPlayers().filter(player => !player.isHost).length;
 
-        if (regularPlayerCount < 5) {
-            callback({ success: false, error: 'Need at least 5 players plus the game master' });
+        if (regularPlayerCount < MIN_PLAYERS_TO_START) {
+            callback({ success: false, error: `Need at least ${MIN_PLAYERS_TO_START} players plus the game master` });
             return;
         }
 
@@ -817,11 +1075,20 @@ io.on('connection', (socket) => {
             return;
         }
 
+        // Assign roles before marking the room as started so an invalid configuration
+        // cannot leave the shared room stuck in a started state.
+        const playersList = room.getPlayers();
+        let assignmentResult;
+        try {
+            assignmentResult = assignRoles(playersList, room.hostSocketId);
+        } catch (error) {
+            callback({ success: false, error: error.message });
+            return;
+        }
+
         room.gameStarted = true;
 
-        // Assign roles to all players except the host (game master)
-        const playersList = room.getPlayers();
-        const { assignments, drunkPlayerSocketId, renardInfo, petiteFilleInfo, werewolfBluffRoles, voyanteDecoySocketId, werewolfBluffSpecialInfo } = assignRoles(playersList, room.hostSocketId);
+        const { assignments, drunkPlayerSocketId, renardInfo, petiteFilleInfo, werewolfBluffRoles, voyanteDecoySocketId, werewolfBluffSpecialInfo } = assignmentResult;
         room.roleAssignments = assignments;
         room.drunkPlayerSocketId = drunkPlayerSocketId;
         room.renardInfo = renardInfo;

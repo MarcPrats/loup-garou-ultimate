@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue MJ - Simulation</title>
+  <link rel="stylesheet" href="/css/waiting-room.css">
+  <style>
+    .simulator-page-back { display: block; width: fit-content; margin: 20px auto 0; }
+    .screen.active { display: block; }
+    body .container { width: calc(100% - 48px); max-width: 1400px; }
+    #game-master-screen { width: 100%; margin: 0 auto; color: #f5f7fa; }
+    #game-master-screen .gm-header,
+    #game-master-screen .gm-header h2,
+    #game-master-screen .gm-header .subtitle,
+    #game-master-screen .gm-stat,
+    #game-master-screen .gm-team-stat { color: #f5f7fa !important; }
+    .gm-players-container { overflow: visible; }
+    .gm-players-table { display: block; width: 100%; min-width: 0; border-collapse: collapse; }
+    .gm-players-table thead,
+    .gm-players-table tbody { display: block; width: 100%; }
+    .gm-players-table thead tr,
+    .gm-players-table tbody tr { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(230px, 1.45fr) minmax(180px, 1.1fr) minmax(220px, 1.25fr); align-items: stretch; width: 100%; }
+    .gm-players-table thead tr { margin-bottom: 8px; }
+    .gm-players-table tbody { display: grid; gap: 12px; }
+    .gm-players-table tbody tr { background: #33363b; border-radius: 16px; overflow: hidden; }
+    .gm-players-table th { display: flex; align-items: center; color: #cbd5e1 !important; background: transparent !important; border: 0 !important; padding: 10px 14px; }
+    .gm-players-table td { display: flex; align-items: center; min-width: 0; vertical-align: middle; color: #f5f7fa !important; background: transparent !important; border: 0 !important; padding: 16px 14px; }
+    .gm-players-table td:last-child { align-items: flex-start; }
+    .gm-player-name, .gm-role-name { display: flex; align-items: center; gap: 10px; min-width: 0; color: #f5f7fa !important; }
+    .gm-player-name a, .gm-role-name span, .gm-player-name { color: #f5f7fa !important; }
+    .gm-role-name span { min-width: 0; overflow-wrap: anywhere; }
+    .gm-role-image { width: 58px; height: 58px; object-fit: contain; flex: 0 0 auto; }
+    .gm-team-badge { display: inline-flex !important; align-items: center; gap: 6px; width: max-content !important; max-width: 100% !important; white-space: normal; overflow: visible !important; }
+    .sim-details { min-height: 0; color: #243447; width: 100%; }
+    .sim-details:empty { display: none; }
+    .gm-detail-card { color: #243447 !important; overflow-wrap: anywhere; }
+    .drunk-badge { display: inline-block; padding: 4px 8px; background: #ff9800; color: white; border-radius: 4px; font-size: 0.85em; }
+    @media (max-width: 1000px) {
+      body .container { width: calc(100% - 24px); }
+      .gm-players-table thead tr,
+      .gm-players-table tbody tr { grid-template-columns: minmax(125px, 1fr) minmax(180px, 1.35fr) minmax(145px, 1fr) minmax(180px, 1.1fr); }
+      .gm-role-image { width: 48px; height: 48px; }
+    }
+    @media (max-width: 700px) {
+      body .container { width: calc(100% - 20px); padding: 18px 12px; }
+      .gm-header h2 { font-size: 1.8rem; }
+      .gm-players-table thead { display: none; }
+      .gm-players-table tbody { display: grid; gap: 12px; }
+      .gm-players-table tbody tr { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.4fr); grid-template-areas: 'player role' 'team details'; gap: 4px 14px; width: auto; margin: 0; padding: 14px; border: 1px solid rgba(255,255,255,.16); border-radius: 12px; background: #33363b; }
+      .gm-players-table tbody tr td { display: block; width: auto; min-width: 0; padding: 6px 0; border-radius: 0 !important; background: transparent !important; }
+      .gm-players-table tbody tr td:nth-child(1) { grid-area: player; }
+      .gm-players-table tbody tr td:nth-child(2) { grid-area: role; }
+      .gm-players-table tbody tr td:nth-child(3) { grid-area: team; align-self: start; }
+      .gm-players-table tbody tr td:nth-child(4) { grid-area: details; align-self: start; }
+      .gm-players-table td::before { display: block; margin-bottom: 5px; color: #aeb7c4; font-size: .72rem; font-weight: 700; text-transform: uppercase; }
+      .gm-players-table td:nth-child(1)::before { content: 'Joueur'; }
+      .gm-players-table td:nth-child(2)::before { content: 'Rôle'; }
+      .gm-players-table td:nth-child(3)::before { content: 'Équipe'; }
+      .gm-players-table td:nth-child(4)::before { content: 'Détails'; }
+      .gm-player-name, .gm-role-name { flex-direction: row !important; align-items: center; justify-content: flex-start; }
+      .gm-role-name span { max-width: calc(100% - 54px); overflow-wrap: anywhere; }
+      .gm-role-image { width: 46px; height: 46px; }
+      .gm-team-badge { width: auto !important; max-width: 100% !important; }
+      .sim-details { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="game-master-screen" class="screen active"></div>
+  </div>
+  <script src="/js/view-templates.js"></script>
+  <script src="/js/view-renderers.js"></script>
+  <script src="/js/simulator-mj.js"></script>
+</body>
+</html>

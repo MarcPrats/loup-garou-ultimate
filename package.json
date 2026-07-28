@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "simulator": "ENABLE_SIMULATOR=true npm start",
     "dev": "nodemon server.js"
   },
   "keywords": [

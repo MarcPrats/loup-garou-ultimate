@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vue joueur - Simulation</title>
+  <link rel="stylesheet" href="/css/waiting-room.css">
+  <style>
+    .simulator-page-back { display: block; width: fit-content; margin: 18px auto 0; }
+    .screen.active { display: block; }
+    #role-screen { color: #f5f7fa; }
+    #role-screen .role-image-container { min-height: 150px; display: flex; align-items: center; justify-content: center; }
+    #role-screen #role-image { display: block; width: 150px; height: 150px; object-fit: contain; }
+    #role-screen .role-title, #role-screen .role-info, #role-screen h2, #role-screen h3, #role-screen h4, #role-screen p { color: inherit; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="role-screen" class="screen active"></div>
+  </div>
+  <script src="/js/view-templates.js"></script>
+  <script src="/js/view-renderers.js"></script>
+  <script src="/js/simulator-player.js"></script>
+</body>
+</html>

@@ -82,6 +82,24 @@ The rules page can be opened from the main role reference or directly from the w
 - The server exposes `/api/role/:token` to retrieve a player's role data.
 - Empty or inactive rooms are cleaned up automatically.
 
+### Role assignment
+
+The server assigns werewolf, villager and outsider roles based on the number of players. The Angel and Drunk are treated as outsiders:
+
+- With **6, 8 or 11 players**, the outsider slot is randomly assigned as either the **Angel** or the **Drunk**.
+- When the Drunk is selected, the affected player sees a normal villager role. Their drunk status is only visible to the game master.
+- With **9 or 12 players**, the current role rules can include both the Angel and the Drunk.
+- Other player-count configurations follow the role-assignment rules implemented in `server.js`.
+
+## 🌐 Deployment
+
+### Local network
+
+Players connected to the same network can use the host computer's local IP address, for example:
+
+````text
+http://192.168.X.X:5000/
+````
 
 ### Online deployment
 
@@ -113,3 +131,37 @@ Issues and enhancement requests are welcome. Before submitting a change, please 
 MIT License. See the repository for details.
 
 **Enjoy your game night! 🎲🐺**
+
+## 🧪 Development Simulator
+
+The repository includes a development-only simulator for checking the real MJ dashboard and private player role view without modifying the real shared room.
+
+The simulator is disabled by default. Start the server with the simulator explicitly enabled:
+
+````bash
+ENABLE_SIMULATOR=true npm start
+````
+
+Then open:
+
+````text
+http://localhost:5000/dev/simulator
+````
+
+On Windows PowerShell, use:
+
+````powershell
+$env:ENABLE_SIMULATOR="true"; npm start
+````
+
+The simulator launcher lets you:
+
+- Create a simulated game with 5 to 12 players.
+- Open the actual waiting-room **MJ dashboard** in a new page.
+- Open the actual waiting-room **player view** in a new page for any simulated player.
+- Check the same role cards, role descriptions, bluff sections, rules buttons and dashboard layout used by a real game.
+- Reset the current simulation.
+
+The simulator reuses `waiting-room.html` and `js/waiting-room.js`. It only adds a simulator mode that fetches isolated test data and passes it through the existing `showGameMasterScreen()` and `showRoleScreen()` rendering functions. This avoids maintaining a second copy of the game views.
+
+Simulation state is separate from the real one-room game. It does not create real Socket.IO players or send role tokens to users. When `ENABLE_SIMULATOR` is not enabled, the simulator page and API return `404`.
