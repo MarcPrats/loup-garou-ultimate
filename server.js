@@ -205,8 +205,17 @@ function assignRoles(players, hostSocketId) {
         werewolfCount = 3;
     }
 
-    // Check if Ange can be included
+    // For 6, 8 and 11 players, the single outsider slot is either
+    // Ange or Drunk. The Drunk is represented by the hidden drunk status
+    // below, while the player keeps the villager role assigned to them.
+    const outsiderChoiceAllowed = [6, 8, 11].includes(playerCount);
+    const outsiderChoice = outsiderChoiceAllowed
+        ? (Math.random() < 0.5 ? 'ange' : 'drunk')
+        : null;
     const angeAllowed = [6, 8, 9, 11, 12].includes(playerCount);
+    const includeAnge = angeAllowed && (
+        !outsiderChoiceAllowed || outsiderChoice === 'ange'
+    );
 
     // Separate roles by type
     const loupGarouUltime = GAME_ROLES.find(r => r.id === 'loup-garou-ultime');
@@ -228,8 +237,8 @@ function assignRoles(players, hostSocketId) {
         }
     }
 
-    // Add Ange if required for this player count
-    if (angeAllowed && ange) {
+    // Add Ange when this game uses the Angel outsider
+    if (includeAnge && ange) {
         rolePool.push(ange);
     }
 
@@ -251,9 +260,13 @@ function assignRoles(players, hostSocketId) {
         assignments.set(player.socketId, finalRoles[index]);
     });
 
-    // Randomly select one villager (not werewolf) to be drunk (only for 9, 12, or 15 players)
+    // Randomly select one villager (not werewolf) to be Drunk.
+    // For 6, 8 and 11 players this is the alternative to the Angel.
+    // Keep the existing Drunk behavior for 9, 12 and 15 players.
     let drunkPlayerSocketId = null;
-    if ([9, 12, 15].includes(playerCount)) {
+    const drunkAllowed = outsiderChoice === 'drunk'
+        || [9, 12, 15].includes(playerCount);
+    if (drunkAllowed) {
         const villagerPlayers = playersToAssignRoles.filter(player => {
             const role = assignments.get(player.socketId);
             return role && role.team === 'villagers';
@@ -961,7 +974,7 @@ io.on('connection', (socket) => {
                     const isEmpty = currentRoom.cleanupDisconnectedPlayers();
                     if (isEmpty) {
                         gameRooms.delete(roomCode);
-                        console.log(`🗑️  Room ${roomCode} deleted (empty)`);
+                        console.log(`🗑️ Room ${roomCode} deleted (empty)`);
                     }
                 }, 10000);
 
@@ -1014,7 +1027,7 @@ setInterval(() => {
         // Delete rooms older than 4 hours
         if (now - room.createdAt > 4 * 60 * 60 * 1000) {
             gameRooms.delete(roomCode);
-            console.log(`🗑️  Room ${roomCode} deleted (timeout)`);
+            console.log(`🗑️ Room ${roomCode} deleted (timeout)`);
         }
     }
 }, 10 * 60 * 1000);
