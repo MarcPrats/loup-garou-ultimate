@@ -307,7 +307,7 @@ function assignRoles(players, hostSocketId) {
     if (drunkAllowed) {
         const villagerPlayers = playersToAssignRoles.filter(player => {
             const role = assignments.get(player.socketId);
-            return role && role.team === 'villagers';
+            return role && role.team === 'villagers' && role.id !== 'ange';
         });
 
         if (villagerPlayers.length > 0) {
