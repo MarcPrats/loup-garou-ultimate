@@ -152,12 +152,6 @@ Then open:
 http://localhost:5000/dev/simulator
 ````
 
-On Windows PowerShell, use:
-
-````powershell
-$env:ENABLE_SIMULATOR="true"; npm start
-````
-
 The simulator launcher lets you:
 
 - Create a simulated game with 5 to 12 players.

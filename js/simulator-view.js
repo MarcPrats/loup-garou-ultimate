@@ -62,7 +62,7 @@
       if (player.renardDetails) details.push(`<div class="sim-detail">🦊 Info Renard<br>Loup : ${escapeHtml(player.renardDetails.werewolfRole.name)}<br>Joueurs : ${player.renardDetails.twoPlayerNames.map(escapeHtml).join(', ')}</div>`);
       if (player.petiteFilleDetails) details.push(`<div class="sim-detail">👧 Info Petite Fille<br>Villageois : ${escapeHtml(player.petiteFilleDetails.villagerRole.name)}<br>Joueurs : ${player.petiteFilleDetails.twoPlayerNames.map(escapeHtml).join(', ')}</div>`);
       if (player.bluffRole) details.push(`<div class="sim-detail">🎭 Rôle Bluff<br>${escapeHtml(player.bluffRole.name)}</div>`);
-      if (player.voyanteDecoy) details.push(`<div class="sim-detail">🔮 Leurre Voyante<br>${escapeHtml(player.voyanteDecoy)}</div>`);
+      if (player.voyanteDecoy) details.push(`<div class="sim-detail">🔮 Leurre Voyante</div>`);
       const roleImage = player.role?.image ? `<img class="gm-role-image" src="${imagePath(player.role)}" alt="">` : '';
       row.innerHTML = `
         <td><div class="gm-player-name">${escapeHtml(player.playerName)}</div></td>

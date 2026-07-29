@@ -368,10 +368,16 @@ function assignRoles(players, hostSocketId) {
     });
 
     if (petiteFillePlayer) {
-        // Find all villager players (excluding petite-fille herself)
+        // The Petite Fille may only learn a true Villageois role.
+        // Marginaux are excluded: the Ange has its own role card, while the
+        // Ivrogne is identified by the hidden drunkPlayerSocketId modifier.
         const villagerPlayers = playersToAssignRoles.filter(player => {
             const role = assignments.get(player.socketId);
-            return role && role.team === 'villagers' && player.socketId !== petiteFillePlayer.socketId;
+            return role
+                && role.team === 'villagers'
+                && role.id !== 'ange'
+                && player.socketId !== drunkPlayerSocketId
+                && player.socketId !== petiteFillePlayer.socketId;
         });
 
         if (villagerPlayers.length > 0) {
@@ -478,7 +484,10 @@ function assignRoles(players, hostSocketId) {
                     // For petite-fille bluff, show a villager role that IS actually in play
                     const villagersInPlay = playersToAssignRoles.filter(player => {
                         const role = assignments.get(player.socketId);
-                        return role && role.team === 'villagers';
+                        return role
+                            && role.team === 'villagers'
+                            && role.id !== 'ange'
+                            && player.socketId !== drunkPlayerSocketId;
                     });
 
                     if (villagersInPlay.length > 0) {

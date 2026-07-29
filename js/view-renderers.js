@@ -101,7 +101,7 @@
         const info = document.createElement('div');
         info.className = 'gm-detail-card';
         info.style.cssText = 'padding:8px;background-color:#fff3cd;border:1px solid #ffc107;border-radius:4px;font-size:0.85em;';
-        info.innerHTML = `<strong>🔮 Leurre Voyante</strong><br>${escapeHtml(player.voyanteDecoy)}`;
+        info.innerHTML = `<strong>🔮 Leurre Voyante</strong>`;
         detailsContainer.appendChild(info);
       }
       detailsCell.appendChild(detailsContainer);
