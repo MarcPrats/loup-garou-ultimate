@@ -98,7 +98,7 @@ const GAME_ROLES = [
         team: 'werewolves',
         image: 'loupgarou.webp',
         power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note : Vous pouvez choisir de vous tuer vous-même et l'infect loup-garou ou le grand loup jouera votre rôle.",
-        info: "Le loup garou ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien."
+        info: "Le Loup Garou Ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien."
     },
     {
         id: 'infect-loup',
@@ -113,7 +113,7 @@ const GAME_ROLES = [
         name: 'Grand Loup Garou',
         team: 'werewolves',
         image: 'grandloup.webp',
-        power: "S'il y a toujours plus de 5 joueurs en vie et que le loup garou ultime meurt, vous devenez le loup garou ultime.",
+        power: "S'il y a toujours plus de 5 joueurs en vie et que le Loup Garou Ultime meurt, vous devenez le Loup Garou Ultime.",
         info: "Le grand loup garou prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci."
     },
     {
@@ -129,7 +129,7 @@ const GAME_ROLES = [
         name: 'Renard',
         team: 'villagers',
         image: 'renard.webp',
-        power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de loup garou (sauf celui du loup garou ultime) puis pointera deux joueurs. L'un de ces deux joueurs est le loup garou précédemment montré.",
+        power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de loup garou (sauf celui du Loup Garou Ultime) puis pointera deux joueurs. L'un de ces deux joueurs est le loup garou précédemment montré.",
         info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations."
     },
     {
@@ -146,22 +146,22 @@ const GAME_ROLES = [
         team: 'villagers',
         image: 'cupidon.webp',
         power: "Chaque nuit, parmi les deux joueurs vivants qui vous entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2).",
-        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
+        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
         id: 'voyante',
         name: 'Voyante',
         team: 'villagers',
         image: 'voyante.webp',
-        power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un d'eux est le loup garou ultime, vous aurez l'information. ATTENTION : l'un des villageois est un leurre et vous apparaîtra comme le loup garou ultime !",
-        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le loup garou ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
+        power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un d'eux est le Loup Garou Ultime, vous aurez l'information. ATTENTION : l'un des villageois est un leurre et vous apparaîtra comme le Loup Garou Ultime !",
+        info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure."
     },
     {
         id: 'chevalier',
         name: 'Chevalier',
         team: 'villagers',
         image: 'chevalier.webp',
-        power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du loup garou ultime le temps d'une nuit.",
+        power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du Loup Garou Ultime le temps d'une nuit.",
         info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayez vite de les identifier afin de les protéger."
     },
     {
@@ -169,8 +169,8 @@ const GAME_ROLES = [
         name: 'Chasseur',
         team: 'villagers',
         image: 'chasseur.webp',
-        power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le loup garou ultime, il meurt.",
-        info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le loup garou ultime."
+        power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le Loup Garou Ultime, il meurt.",
+        info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime."
     },
     {
         id: 'flutiste',
@@ -193,8 +193,8 @@ const GAME_ROLES = [
         name: 'Ancien',
         team: 'villagers',
         image: 'ancien.webp',
-        power: "Le loup garou ultime ne peut pas vous tuer.",
-        info: "Votre pouvoir vous permet d'annuler la morsure du loup garou ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du loup garou ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit."
+        power: "Le Loup Garou Ultime ne peut pas vous tuer.",
+        info: "Votre pouvoir vous permet d'annuler la morsure du Loup Garou Ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du Loup Garou Ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit."
     },
     {
         id: 'enfant-sauvage',

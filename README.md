@@ -62,13 +62,17 @@ The game master starts the game from the waiting room. Roles are assigned automa
 
 The current server supports between **5 and 12 players, excluding the game master**.
 
-## 📖 Rules and Roles
+## 📖 Rules and Characters
 
-- `index.html` contains the application's role reference.
-- `reference.html` contains the French Trouble Brewing reference, including role distribution and night orders.
-- The reference page uses the application's role names and images where an equivalent exists.
+The main page contains only three actions in one panel: start or join the game, open the local rules, or open the rules wiki.
 
-The rules page can be opened from the main role reference or directly from the waiting room.
+- `reference.html` starts with the complete character catalogue, followed by role distribution and night orders.
+- Characters with complete app artwork open a dedicated detail page at `role.html?role=<character-id>`.
+- Characters without artwork keep their emoji and are marked **Bientôt disponible**; they are not clickable.
+- `js/roles-data.js` is the shared source for character names, categories, pictures, descriptions and additional details.
+- `js/reference-roles.js` renders the catalogue, while `js/role-detail.js` renders the selected character.
+
+The app terminology is **Villageois**, **Marginal**, **Loup Garou** and **Loup Garou Ultime**. Original Trouble Brewing role names are not displayed.
 
 ## 🔧 Technical Details
 
@@ -84,9 +88,9 @@ The rules page can be opened from the main role reference or directly from the w
 
 ### Role assignment
 
-The server assigns werewolf, villager and outsider roles based on the number of players. The Angel and Drunk are treated as outsiders:
+The server assigns werewolf, villager and marginal roles based on the number of players. The Angel and Drunk are treated as marginaux:
 
-- With **6, 8 or 11 players**, the outsider slot is randomly assigned as either the **Angel** or the **Drunk**.
+- With **6, 8 or 11 players**, the marginal slot is randomly assigned as either the **Angel** or the **Drunk**.
 - When the Drunk is selected, the affected player sees a normal villager role. Their drunk status is only visible to the game master.
 - With **9 or 12 players**, the current role rules can include both the Angel and the Drunk.
 - Other player-count configurations follow the role-assignment rules implemented in `server.js`.
@@ -157,7 +161,7 @@ $env:ENABLE_SIMULATOR="true"; npm start
 The simulator launcher lets you:
 
 - Create a simulated game with 5 to 12 players.
-- See each simulated player's role and type: loup garou, villageois or étranger.
+- See each simulated player's role and type: loup garou, villageois or marginal.
 - Open the MJ dashboard in a new page.
 - Open the private player view in a new page for any simulated player.
 - Reset the current simulation.
