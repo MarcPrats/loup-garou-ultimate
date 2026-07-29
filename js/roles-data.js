@@ -21,7 +21,7 @@
                 "plural": "Loups Garous",
                 "emoji": "🐺"
         },
-        "loup-garoue": {
+        "loup-garou-ultime": {
                 "label": "Loup Garou Ultime",
                 "plural": "Loup Garou Ultime",
                 "emoji": "🌕"
@@ -36,7 +36,7 @@
             categoryLabel: "Villageois",
             image: "images/petite-fille.webp",
             emoji: null,
-            summary: "Dès le début, vous savez que l'un de ces 2 joueurs est un Villageois particulier.",
+            summary: "Lors de la première nuit, vous savez qu'un Villageois se cache parmi deux joueurs.",
             descriptionHtml: `Lors de la première nuit, le maître du jeu vous montrera un rôle de
                             villageois puis pointera deux joueurs. L'un de ces deux joueurs est le
                             villageois précédemment montré.`,
@@ -51,7 +51,7 @@
             categoryLabel: "Villageois",
             image: null,
             emoji: "📚",
-            summary: "Dès le début, vous savez que l'un de ces 2 joueurs est un Marginal particulier. (Ou qu'il n'y en a aucun en jeu.)",
+            summary: "Lors de la première nuit, vous savez qu'un Marginal se cache parmi deux joueurs. (Ou qu'il n'y en a aucun en jeu.)",
             descriptionHtml: null,
             detailsHtml: null,
             available: false
@@ -63,7 +63,7 @@
             categoryLabel: "Villageois",
             image: "images/renard.webp",
             emoji: null,
-            summary: "Dès le début, vous savez que l'un de ces 2 joueurs est un Loup Garou particulier.",
+            summary: "Lors de la première nuit, vous savez qu'un Loup Garou se cache parmi deux joueurs.",
             descriptionHtml: `Lors de la première nuit, le maître du jeu vous montrera un rôle de loup
                             garou (sauf celui du Loup Garou Ultime) puis pointera deux joueurs. L'un
                             de ces deux joueurs est le loup garou précédemment montré.`,
@@ -78,7 +78,7 @@
             categoryLabel: "Villageois",
             image: "images/montreur-dours.webp",
             emoji: null,
-            summary: "Dès le début, vous savez combien de paires de joueurs maléfiques sont voisins l'un de l'autre.",
+            summary: "Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.",
             descriptionHtml: `Lors de la première nuit, vous découvrez combien de loup garous sont
                             placés côte à côte.`,
             detailsHtml: `<b>Conseil:</b> votre pouvoir ne s'applique que lors de la première
@@ -92,7 +92,7 @@
             categoryLabel: "Villageois",
             image: "images/cupidon.webp",
             emoji: null,
-            summary: "Chaque nuit, vous apprenez combien de vos 2 voisins vivants sont maléfiques.",
+            summary: "Chaque nuit, vous apprenez combien de vos 2 voisins vivants sont des Loups Garous.",
             descriptionHtml: `Chaque nuit, parmi les deux joueurs <b>vivants</b> qui vous entourent,
                             vous apprenez combien de loup garous vous entourent (0, 1 ou 2).`,
             detailsHtml: `<b>Conseil:</b> votre pouvoir s'applique chaque nuit et vous serez
@@ -108,9 +108,9 @@
             image: "images/voyante.webp",
             emoji: null,
             summary: "Chaque nuit, choisissez 2 joueurs : vous apprenez si l'un d'eux est le Loup Garou Ultime. Un joueur Gentil vous apparaît comme Loup Garou Ultime.",
-            descriptionHtml: `Chaque nuit, choisissez deux joueurs. Si au moins l'un d'eux est le loup
+            descriptionHtml: `Chaque nuit, choisissez deux joueurs (vous pouvez vous choisir vous-même). Si l'un d'eux est le loup
                             garou ultime, vous aurez l'information.
-                            <b>ATTENTION:</b> l'un des villageois est un leurre et vous apparaîtra
+                            <b>ATTENTION:</b> un gentil (villageois et marginaux) est un leurre et vous apparaîtra
                             comme le Loup Garou Ultime !`,
             detailsHtml: `<b>Conseil:</b> votre pouvoir s'applique chaque nuit et vous serez
                             probablement une cible pour le Loup Garou Ultime. <br/>
@@ -124,7 +124,7 @@
             categoryLabel: "Villageois",
             image: "images/enfant.webp",
             emoji: null,
-            summary: "Chaque nuit*, vous apprenez quel personnage a été exécuté aujourd'hui. * Pas la première nuit.",
+            summary: "Chaque nuit*, vous apprenez quel personnage a été exécuté aujourd'hui. * Ne se réveille pas la première nuit.",
             descriptionHtml: `Si un joueur est exécuté par le village durant la journée, vous
                             découvrez son identité la nuit.`,
             detailsHtml: `<b>Conseil:</b> votre pouvoir se déclenche <b>uniquement</b> après
@@ -139,7 +139,7 @@
             categoryLabel: "Villageois",
             image: "images/chevalier.webp",
             emoji: null,
-            summary: "Chaque nuit*, choisissez un joueur (pas vous-même) : il est protégé du Loup Garou Ultime cette nuit. * Pas la première nuit.",
+            summary: "Chaque nuit*, choisissez un joueur (pas vous-même) : il est protégé du Loup Garou Ultime cette nuit. * Ne se réveille pas la première nuit.",
             descriptionHtml: `Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci
                             est protégé du Loup Garou Ultime le temps d'une nuit.`,
             detailsHtml: `<b>Conseil:</b> votre pouvoir peut être précieux pour des personnages
@@ -173,8 +173,7 @@
             emoji: null,
             summary: "La première fois que vous êtes nominé(e), si le nominateur est un Villageois, il est immédiatement exécuté.",
             descriptionHtml: `Pendant la journée, si un joueur vous désigne pour une exécution et que
-                            ce joueur est un <b>villageois (à part si c'est l'ange ou s'il est
-                                bourré)</b>, alors il est immédiatement exécuté. Ce pouvoir n'est
+                            ce joueur est un <b>villageois (hors Marginaux)</b>, alors il est immédiatement exécuté. Ce pouvoir n'est
                             utilisé qu'une seule fois. <b>ATTENTION : </b> ne dites rien lorsque c'est
                             le cas. Le maître du jeu interviendra à ce moment précis.`,
             detailsHtml: `<b>Conseils:</b> ce pouvoir vous permet de vous protéger des mauvaises
@@ -247,12 +246,12 @@
             name: "Ivrogne",
             category: "marginal",
             categoryLabel: "Marginal",
-            image: null,
+            image: "images/ivrogne.webp",
             emoji: "🍺",
             summary: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un personnage Villageois, mais ce n'est pas le cas.",
-            descriptionHtml: null,
-            detailsHtml: null,
-            available: false
+            descriptionHtml: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un personnage Villageois, mais ce n'est pas le cas.",
+            detailsHtml: "<b>Conseil:</b> Pensez à consommer de l'alcool avec modération. L'abus d'alcool est dangereux pour la santé.",
+            available: true
         },
         {
             id: "reclus",
@@ -313,7 +312,7 @@
             categoryLabel: "Loup Garou",
             image: null,
             emoji: "🕵️",
-            summary: "Chaque nuit, vous voyez le Grimoire. Vous pouvez être perçu comme Gentil et comme Villageois ou Marginal, même mort(e).",
+            summary: "Chaque nuit, vous consulter les informations du MJ. Vous pouvez être perçu comme Gentil et comme Villageois ou Marginal, même mort(e).",
             descriptionHtml: null,
             detailsHtml: null,
             available: false
@@ -340,7 +339,7 @@
             categoryLabel: "Loup Garou",
             image: null,
             emoji: "⚖️",
-            summary: "Il y a des Marginaux supplémentaires en jeu. [+2 Marginaux]",
+            summary: "Deux marginaux supplémentaires ont été ajoutés au jeu.",
             descriptionHtml: null,
             detailsHtml: null,
             available: false
@@ -348,11 +347,11 @@
         {
             id: "loup-garou-ultime",
             name: "Loup Garou Ultime",
-            category: "loup-garoue",
+            category: "loup-garou-ultime",
             categoryLabel: "Loup Garou Ultime",
             image: "images/loupgarou.webp",
             emoji: null,
-            summary: "Chaque nuit*, choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime. * Pas la première nuit.",
+            summary: "Chaque nuit*, choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime. * Ne se réveille pas la première nuit.",
             descriptionHtml: `Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note :
                             Vous pouvez choisir de vous tuer vous-même et l'infect loup-garou ou le
                             grand loup jouera votre rôle.`,

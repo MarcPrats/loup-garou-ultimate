@@ -7,8 +7,9 @@
         link.className = `role-card ${role.category} role-card-link`;
         link.href = `role.html?role=${encodeURIComponent(role.id)}`;
         link.setAttribute('aria-label', `Voir les détails de ${role.name}`);
+        const image = role.image ? `<img class="role-icon" src="${role.image}" alt="${role.name}"></img>` : `<div class="role-icon-placeholder" aria-hidden="true">${role.emoji || '❔'}</div>`
         link.innerHTML = `
-            <img class="role-icon" src="${role.image}" alt="${role.name}">
+            ${image}
             <div class="role-body">
                 <span class="role-badge ${role.category}">${role.categoryLabel}</span>
                 <h3>${role.name}</h3>
@@ -39,8 +40,30 @@
         const root = document.getElementById('roles-catalog');
         if (!root || !window.RoleCatalog) return;
 
-        Object.entries(window.RoleCatalog.categories).forEach(([categoryId, category]) => {
-            const roles = window.RoleCatalog.getRolesByCategory(categoryId);
+        const categoryOrder = [
+            'loup-garou-ultime',
+            'loup-garou',
+            'villageois',
+            'marginal'
+        ];
+
+        categoryOrder.forEach((categoryId) => {
+            const category = window.RoleCatalog.categories[categoryId];
+            if (!category) return;
+
+            // Keep the registry order, but always display complete characters
+            // before the non-clickable Coming Soon characters.
+            const roles = window.RoleCatalog
+                .getRolesByCategory(categoryId)
+                .map((role, index) => ({ role, index }))
+                .sort((a, b) => {
+                    if (a.role.available !== b.role.available) {
+                        return a.role.available ? -1 : 1;
+                    }
+                    return a.index - b.index;
+                })
+                .map(({ role }) => role);
+
             if (!roles.length) return;
 
             const section = document.createElement('section');

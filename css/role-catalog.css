@@ -36,7 +36,7 @@
 .roles-catalog .role-card.villageois { border-left: 3px solid var(--catalog-green); }
 .roles-catalog .role-card.marginal { border-left: 3px solid var(--catalog-blue); }
 .roles-catalog .role-card.loup-garou { border-left: 3px solid var(--catalog-purple); }
-.roles-catalog .role-card.loup-garoue { border-left: 3px solid var(--catalog-red); }
+.roles-catalog .role-card.loup-garou-ultime { border-left: 3px solid var(--catalog-red); }
 
 .roles-catalog .role-card-link {
     cursor: pointer;
@@ -93,7 +93,7 @@
 .role-badge.villageois { color: #2ecc71; background: rgba(39,174,96,0.25); }
 .role-badge.marginal { color: #5dade2; background: rgba(52,152,219,0.25); }
 .role-badge.loup-garou { color: #d2a0e3; background: rgba(142,68,173,0.28); }
-.role-badge.loup-garoue { color: #ff6555; background: rgba(192,57,43,0.28); }
+.role-badge.loup-garou-ultime { color: #ff6555; background: rgba(192,57,43,0.28); }
 
 .role-card-cta,
 .coming-soon-label {

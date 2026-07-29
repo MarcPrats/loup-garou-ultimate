@@ -429,7 +429,8 @@ function assignRoles(players, hostSocketId) {
         }
     });
 
-    // If voyante is in play, assign one villager (except ange) as decoy
+    // If the Voyante is in play, choose the decoy from any Villageois or Marginal.
+    // This intentionally includes the Voyante herself, the Ange and the hidden Ivrogne.
     let voyanteDecoySocketId = null;
     const voyantePlayer = playersToAssignRoles.find(player => {
         const role = assignments.get(player.socketId);
@@ -437,10 +438,9 @@ function assignRoles(players, hostSocketId) {
     });
 
     if (voyantePlayer) {
-        // Find all villager players (except ange and voyante herself)
         const eligibleForDecoy = playersToAssignRoles.filter(player => {
             const role = assignments.get(player.socketId);
-            return role && role.team === 'villagers' && role.id !== 'ange' && player.socketId !== voyantePlayer.socketId;
+            return role && role.team === 'villagers';
         });
 
         if (eligibleForDecoy.length > 0) {

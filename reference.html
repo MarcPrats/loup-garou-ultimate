@@ -29,8 +29,8 @@
             padding: 20px;
         }
         .page { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; }
-        /* Roles are always rendered last, whatever their position in the markup */
-        .roles-section { order: 5; display: block; }
+        /* The character catalogue follows its natural markup position, directly after the header. */
+        .roles-section { display: block; }
         .bottom-back { order: 8; margin-top: 30px; }
         .back-bar { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 28px; }
         .back-bar .back-btn { margin-bottom: 0; }
@@ -214,21 +214,11 @@
         <div class="night-separator">Info des Loups Garous (7 joueurs ou plus)</div>
 
         <div class="night-step">
-            <div class="night-step-emoji">😈</div>
+            <div class="night-step-emoji">🐺</div>
             <div class="night-step-body">
                 <strong>Info Loups Garous</strong>
                 <span class="eye">👁</span>
-                <span>Si plusieurs Loups Garous, ils établissent un contact visuel. Montrez la carte « Voici le Loup Garou Ultime » et désignez le Loup Garou Ultime.</span>
-                <span> 😴</span>
-            </div>
-        </div>
-
-        <div class="night-step">
-            <div class="night-step-emoji">🐺</div>
-            <div class="night-step-body">
-                <strong>Info Loup Garou Ultime</strong>
-                <span class="eye">👁</span>
-                <span>Montrez la carte « Voici vos Loups Garous » et désignez chaque Loup Garou. Montrez la carte « Ces personnages ne sont pas en jeu » avec 3 jetons de Villageois absents.</span>
+                <span>Les Loups Garous ouvrent les yeux et se regardent. Pointez le Loup Garou Ultime.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -250,7 +240,7 @@
             <div class="night-step-body">
                 <strong>Espion</strong>
                 <span class="eye">👁</span>
-                <span>Montrez les informations sur la partie à l'espion aussi longtemps que nécessaire.</span>
+                <span>Montrez vos informations à l'espion aussi longtemps que nécessaire.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -260,7 +250,7 @@
             <div class="night-step-body">
                 <strong>Petite Fille</strong>
                 <span class="eye">👁</span>
-                <span>Montrez le jeton d'un Villageois en jeu. Désignez 2 joueurs dont l'un est ce Villageois.</span>
+                <span>Montrez la carte d'un Villageois en jeu. Désignez 2 joueurs dont l'un est ce Villageois.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -290,7 +280,7 @@
             <div class="night-step-body">
                 <strong>Montreur d'ours</strong>
                 <span class="eye">👁</span>
-                <span>Signalez avec les doigts le nombre de paires de joueurs maléfiques voisins l'un de l'autre (0, 1, 2…).</span>
+                <span>Signalez avec les doigts le nombre de Loups Garous voisins l'un de l'autre (0, 1, 2).</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -300,7 +290,7 @@
             <div class="night-step-body">
                 <strong>Cupidon</strong>
                 <span class="eye">👁</span>
-                <span>Signalez le nombre de voisins vivants maléfiques de Cupidon (0, 1 ou 2).</span>
+                <span>Signalez le nombre de Loups Garous vivants voisins de Cupidon (0, 1 ou 2).</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -360,7 +350,7 @@
             <img class="night-step-icon" src="images/infectloup.webp" alt="Empoisonneur">
             <div class="night-step-body">
                 <strong>Infect Loup Garou</strong>
-                <span>Retirez le marqueur Empoisonné du joueur précédent. </span>
+                <span>Le joueur Empoisonné ne l'est plus.</span>
                 <span class="eye">👁</span>
                 <span> L'Infect Loup Garou désigne un nouveau joueur — ce joueur est empoisonné.</span>
                 <span> 😴</span>
@@ -371,9 +361,9 @@
             <img class="night-step-icon" src="images/chevalier.webp" alt="Chevalier">
             <div class="night-step-body">
                 <strong>Chevalier</strong>
-                <span>Retirez le marqueur Protégé du joueur précédent. </span>
+                <span>Le joueur Protégé ne l'est plus. </span>
                 <span class="eye">👁</span>
-                <span> Le Chevalier désigne un joueur (pas lui-même) — marquez ce joueur comme « Protégé ».</span>
+                <span> Le Chevalier désigne un joueur (pas lui-même) — ce joueur est « Protégé ».</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -383,18 +373,7 @@
             <div class="night-step-body">
                 <strong>Espion</strong>
                 <span class="eye">👁</span>
-                <span>Montrez le Grimoire à l'Espion aussi longtemps que nécessaire.</span>
-                <span> 😴</span>
-            </div>
-        </div>
-
-        <div class="night-step">
-            <img class="night-step-icon" src="images/grandloup.webp" alt="Grand Loup Garou">
-            <div class="night-step-body">
-                <strong>Grand Loup Garou</strong>
-                <span class="night-cond">Uniquement si le Grand Loup Garou devient le Loup Garou Ultime cette nuit :</span>
-                <span class="eye">👁</span>
-                <span> Montrez la carte « Vous êtes » puis le jeton Loup Garou Ultime.</span>
+                <span>Montrez vos informations à l'Espion aussi longtemps que nécessaire.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -406,10 +385,6 @@
                 <span class="eye">👁</span>
                 <span>Le Loup Garou Ultime désigne un joueur — ce joueur meurt.</span>
                 <span> 😴</span>
-                <br>
-                <span class="night-cond" style="margin-top:4px;">Si le Loup Garou Ultime s'est désigné lui-même :</span>
-                <span>Remplacez le jeton d'un Loup Garou par le jeton Loup Garou Ultime. Réveillez ce nouveau Loup Garou Ultime, montrez-lui la carte « Vous êtes » puis le jeton.</span>
-                <span> 😴</span>
             </div>
         </div>
 
@@ -419,7 +394,7 @@
                 <strong>Sorcière</strong>
                 <span class="night-cond">Uniquement si la Sorcière est morte cette nuit :</span>
                 <span class="eye">👁</span>
-                <span> La Sorcière désigne un joueur — montrez-lui le jeton de ce joueur.</span>
+                <span> La Sorcière désigne un joueur — montrez-lui la carte de ce joueur.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -430,7 +405,7 @@
                 <strong>Enfant Sauvage</strong>
                 <span class="night-cond">Uniquement si un joueur a été exécuté aujourd'hui :</span>
                 <span class="eye">👁</span>
-                <span> Montrez à l'Enfant Sauvage le jeton de ce joueur.</span>
+                <span> Montrez à l'Enfant Sauvage la carte de ce joueur.</span>
                 <span> 😴</span>
             </div>
         </div>
@@ -440,7 +415,7 @@
             <div class="night-step-body">
                 <strong>Cupidon</strong>
                 <span class="eye">👁</span>
-                <span>Signalez le nombre de voisins vivants maléfiques de Cupidon (0, 1 ou 2).</span>
+                <span>Signalez le nombre de Loup Garous voisins vivants de Cupidon (0, 1 ou 2).</span>
                 <span> 😴</span>
             </div>
         </div>
