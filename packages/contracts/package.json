@@ -9,10 +9,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "devDependencies": {
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
   }
 }

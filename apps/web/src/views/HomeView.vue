@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 
-import type { HealthResponse, SystemReadyEvent } from '@lgu/contracts'
+import {
+  API_ROUTE,
+  SOCKET_EVENT,
+  healthResponseSchema,
+  type SystemReadyEvent,
+} from '@lgu/contracts'
 
 import { getSocket } from '../services/socket'
 
@@ -22,15 +27,15 @@ function handleConnectError() {
 }
 
 onMounted(async () => {
-  socket.on('system:ready', handleSystemReady)
+  socket.on(SOCKET_EVENT.SYSTEM_READY, handleSystemReady)
   socket.on('connect_error', handleConnectError)
   socket.connect()
 
   try {
-    const response = await fetch('/api/health')
+    const response = await fetch(API_ROUTE.HEALTH)
     if (!response.ok) throw new Error(`HTTP ${response.status}`)
 
-    const health = (await response.json()) as HealthResponse
+    const health = healthResponseSchema.parse(await response.json())
     apiStatus.value = health.status === 'ok' ? 'ready' : 'error'
   } catch {
     apiStatus.value = 'error'
@@ -38,7 +43,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  socket.off('system:ready', handleSystemReady)
+  socket.off(SOCKET_EVENT.SYSTEM_READY, handleSystemReady)
   socket.off('connect_error', handleConnectError)
 })
 </script>

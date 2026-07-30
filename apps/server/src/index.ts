@@ -2,11 +2,14 @@ import cors from '@fastify/cors'
 import Fastify from 'fastify'
 import { Server as SocketIoServer } from 'socket.io'
 
-import type {
-  ClientToServerEvents,
-  HealthResponse,
-  ServerToClientEvents,
-  SystemReadyEvent,
+import {
+  API_ROUTE,
+  APPLICATION,
+  SOCKET_EVENT,
+  healthResponseSchema,
+  systemReadyEventSchema,
+  type ClientToServerEvents,
+  type ServerToClientEvents,
 } from '@lgu/contracts'
 
 const port = Number(process.env.PORT ?? 3001)
@@ -21,9 +24,9 @@ await app.register(cors, {
   origin: webOrigin,
 })
 
-app.get('/api/health', async (): Promise<HealthResponse> => ({
-  app: 'loup-garou-ultimate',
-  version: '3.0.0-dev',
+app.get(API_ROUTE.HEALTH, async () => healthResponseSchema.parse({
+  app: APPLICATION.ID,
+  version: APPLICATION.VERSION,
   status: 'ok',
 }))
 
@@ -34,11 +37,11 @@ const io = new SocketIoServer<ClientToServerEvents, ServerToClientEvents>(app.se
 })
 
 io.on('connection', (socket) => {
-  const event: SystemReadyEvent = {
+  const event = systemReadyEventSchema.parse({
     message: 'Le serveur temps réel V3 est connecté.',
-  }
+  })
 
-  socket.emit('system:ready', event)
+  socket.emit(SOCKET_EVENT.SYSTEM_READY, event)
 })
 
 await app.listen({ port, host })
