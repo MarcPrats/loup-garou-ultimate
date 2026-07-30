@@ -52,3 +52,12 @@ Desktop.ini
 # Temporary files
 tmp/
 temp/
+
+# pnpm
+.pnpm-store/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+apps/web/.vite/

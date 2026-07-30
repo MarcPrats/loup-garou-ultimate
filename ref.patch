@@ -1,0 +1,624 @@
+diff --git a/.gitignore b/.gitignore
+index 9503a65..ffaa6d8 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -52,3 +52,12 @@ Desktop.ini
+ # Temporary files
+ tmp/
+ temp/
++
++# pnpm
++.pnpm-store/
++
++# TypeScript
++*.tsbuildinfo
++
++# Vite
++apps/web/.vite/
+diff --git a/.nvmrc b/.nvmrc
+new file mode 100644
+index 0000000..a45fd52
+--- /dev/null
++++ b/.nvmrc
+@@ -0,0 +1 @@
++24
+diff --git a/apps/server/package.json b/apps/server/package.json
+new file mode 100644
+index 0000000..385f44d
+--- /dev/null
++++ b/apps/server/package.json
+@@ -0,0 +1,28 @@
++{
++  "name": "@lgu/server",
++  "version": "3.0.0-dev",
++  "private": true,
++  "type": "module",
++  "scripts": {
++    "dev": "tsx watch src/index.ts",
++    "build": "tsup",
++    "start": "node dist/index.js",
++    "typecheck": "tsc -p tsconfig.json --noEmit",
++    "test": "vitest run"
++  },
++  "dependencies": {
++    "@fastify/cors": "^11.0.0",
++    "@lgu/contracts": "workspace:*",
++    "@lgu/game-core": "workspace:*",
++    "fastify": "^5.4.0",
++    "socket.io": "^4.8.0",
++    "zod": "^4.0.0"
++  },
++  "devDependencies": {
++    "@types/node": "^24.0.0",
++    "tsx": "^4.20.0",
++    "typescript": "^5.9.0",
++    "vitest": "^3.2.0",
++    "tsup": "^8.5.0"
++  }
++}
+diff --git a/apps/server/src/index.ts b/apps/server/src/index.ts
+new file mode 100644
+index 0000000..e87750e
+--- /dev/null
++++ b/apps/server/src/index.ts
+@@ -0,0 +1,44 @@
++import cors from '@fastify/cors'
++import Fastify from 'fastify'
++import { Server as SocketIoServer } from 'socket.io'
++
++import type {
++  ClientToServerEvents,
++  HealthResponse,
++  ServerToClientEvents,
++  SystemReadyEvent,
++} from '@lgu/contracts'
++
++const port = Number(process.env.PORT ?? 3001)
++const host = process.env.HOST ?? '0.0.0.0'
++const webOrigin = process.env.WEB_ORIGIN ?? 'http://localhost:5173'
++
++const app = Fastify({
++  logger: true,
++})
++
++await app.register(cors, {
++  origin: webOrigin,
++})
++
++app.get('/api/health', async (): Promise<HealthResponse> => ({
++  app: 'loup-garou-ultimate',
++  version: '3.0.0-dev',
++  status: 'ok',
++}))
++
++const io = new SocketIoServer<ClientToServerEvents, ServerToClientEvents>(app.server, {
++  cors: {
++    origin: webOrigin,
++  },
++})
++
++io.on('connection', (socket) => {
++  const event: SystemReadyEvent = {
++    message: 'Le serveur temps réel V3 est connecté.',
++  }
++
++  socket.emit('system:ready', event)
++})
++
++await app.listen({ port, host })
+diff --git a/apps/server/tsconfig.json b/apps/server/tsconfig.json
+new file mode 100644
+index 0000000..2e18113
+--- /dev/null
++++ b/apps/server/tsconfig.json
+@@ -0,0 +1,13 @@
++{
++  "extends": "../../tsconfig.base.json",
++  "compilerOptions": {
++    "outDir": "dist",
++    "rootDir": "src",
++    "lib": ["ES2022"],
++    "types": ["node"],
++    "sourceMap": true,
++    "declaration": true,
++    "noEmit": false
++  },
++  "include": ["src/**/*.ts"]
++}
+diff --git a/apps/server/tsup.config.ts b/apps/server/tsup.config.ts
+new file mode 100644
+index 0000000..25746dc
+--- /dev/null
++++ b/apps/server/tsup.config.ts
+@@ -0,0 +1,13 @@
++import { defineConfig } from 'tsup'
++
++export default defineConfig({
++  entry: ['src/index.ts'],
++  format: ['esm'],
++  platform: 'node',
++  target: 'node24',
++  outDir: 'dist',
++  clean: true,
++  sourcemap: true,
++  bundle: true,
++  noExternal: ['@lgu/contracts', '@lgu/game-core'],
++})
+diff --git a/apps/web/index.html b/apps/web/index.html
+new file mode 100644
+index 0000000..ed1fe0e
+--- /dev/null
++++ b/apps/web/index.html
+@@ -0,0 +1,13 @@
++<!doctype html>
++<html lang="fr">
++  <head>
++    <meta charset="UTF-8" />
++    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
++    <meta name="theme-color" content="#1a1a1a" />
++    <title>Loup Garou Ultimate V3</title>
++  </head>
++  <body>
++    <div id="app"></div>
++    <script type="module" src="/src/main.ts"></script>
++  </body>
++</html>
+diff --git a/apps/web/package.json b/apps/web/package.json
+new file mode 100644
+index 0000000..b38ea23
+--- /dev/null
++++ b/apps/web/package.json
+@@ -0,0 +1,30 @@
++{
++  "name": "@lgu/web",
++  "version": "3.0.0-dev",
++  "private": true,
++  "type": "module",
++  "scripts": {
++    "dev": "vite",
++    "build": "vue-tsc --noEmit && vite build",
++    "typecheck": "vue-tsc --noEmit",
++    "test": "vitest run"
++  },
++  "dependencies": {
++    "@lgu/contracts": "workspace:*",
++    "pinia": "^3.0.0",
++    "socket.io-client": "^4.8.0",
++    "vue": "^3.5.0",
++    "vue-router": "^4.5.0",
++    "zod": "^4.0.0"
++  },
++  "devDependencies": {
++    "@tailwindcss/vite": "^4.1.0",
++    "@vitejs/plugin-vue": "^6.0.0",
++    "@vue/test-utils": "^2.4.0",
++    "tailwindcss": "^4.1.0",
++    "typescript": "^5.9.0",
++    "vite": "^7.0.0",
++    "vitest": "^3.2.0",
++    "vue-tsc": "^3.0.0"
++  }
++}
+diff --git a/apps/web/src/App.vue b/apps/web/src/App.vue
+new file mode 100644
+index 0000000..7c2aa3f
+--- /dev/null
++++ b/apps/web/src/App.vue
+@@ -0,0 +1,3 @@
++<template>
++  <RouterView />
++</template>
+diff --git a/apps/web/src/env.d.ts b/apps/web/src/env.d.ts
+new file mode 100644
+index 0000000..11f02fe
+--- /dev/null
++++ b/apps/web/src/env.d.ts
+@@ -0,0 +1 @@
++/// <reference types="vite/client" />
+diff --git a/apps/web/src/main.ts b/apps/web/src/main.ts
+new file mode 100644
+index 0000000..4abafba
+--- /dev/null
++++ b/apps/web/src/main.ts
+@@ -0,0 +1,8 @@
++import { createPinia } from 'pinia'
++import { createApp } from 'vue'
++
++import App from './App.vue'
++import { router } from './router'
++import './styles.css'
++
++createApp(App).use(createPinia()).use(router).mount('#app')
+diff --git a/apps/web/src/router/index.ts b/apps/web/src/router/index.ts
+new file mode 100644
+index 0000000..290892c
+--- /dev/null
++++ b/apps/web/src/router/index.ts
+@@ -0,0 +1,14 @@
++import { createRouter, createWebHistory } from 'vue-router'
++
++import HomeView from '../views/HomeView.vue'
++
++export const router = createRouter({
++  history: createWebHistory(),
++  routes: [
++    {
++      path: '/',
++      name: 'home',
++      component: HomeView,
++    },
++  ],
++})
+diff --git a/apps/web/src/services/socket.ts b/apps/web/src/services/socket.ts
+new file mode 100644
+index 0000000..c7c47e7
+--- /dev/null
++++ b/apps/web/src/services/socket.ts
+@@ -0,0 +1,19 @@
++import { io, type Socket } from 'socket.io-client'
++
++import type {
++  ClientToServerEvents,
++  ServerToClientEvents,
++} from '@lgu/contracts'
++
++export type GameSocket = Socket<ServerToClientEvents, ClientToServerEvents>
++
++let socket: GameSocket | undefined
++
++export function getSocket(): GameSocket {
++  socket ??= io({
++    autoConnect: false,
++    transports: ['websocket', 'polling'],
++  })
++
++  return socket
++}
+diff --git a/apps/web/src/styles.css b/apps/web/src/styles.css
+new file mode 100644
+index 0000000..c03f69b
+--- /dev/null
++++ b/apps/web/src/styles.css
+@@ -0,0 +1,36 @@
++@import "tailwindcss";
++
++@theme {
++  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
++  --font-display: "Roboto Slab", ui-serif, Georgia, serif;
++
++  --color-lgu-background: #1a1a1a;
++  --color-lgu-surface: #292929;
++  --color-lgu-orange: #e67e22;
++  --color-lgu-blue: #3498db;
++  --color-lgu-villager: #27ae60;
++  --color-lgu-outsider: #3498db;
++  --color-lgu-werewolf: #8e44ad;
++  --color-lgu-ultimate: #c0392b;
++}
++
++:root {
++  color-scheme: dark;
++  font-family: var(--font-sans);
++  background: var(--color-lgu-background);
++}
++
++body {
++  margin: 0;
++  min-width: 320px;
++  min-height: 100vh;
++}
++
++button,
++a,
++input,
++select,
++textarea {
++  outline-color: var(--color-lgu-orange);
++  outline-offset: 3px;
++}
+diff --git a/apps/web/src/views/HomeView.vue b/apps/web/src/views/HomeView.vue
+new file mode 100644
+index 0000000..2b47393
+--- /dev/null
++++ b/apps/web/src/views/HomeView.vue
+@@ -0,0 +1,82 @@
++<script setup lang="ts">
++import { onBeforeUnmount, onMounted, ref } from 'vue'
++
++import type { HealthResponse, SystemReadyEvent } from '@lgu/contracts'
++
++import { getSocket } from '../services/socket'
++
++const apiStatus = ref<'checking' | 'ready' | 'error'>('checking')
++const socketStatus = ref<'connecting' | 'ready' | 'error'>('connecting')
++const serverMessage = ref('Connexion au nouveau serveur…')
++
++const socket = getSocket()
++
++function handleSystemReady(event: SystemReadyEvent) {
++  socketStatus.value = 'ready'
++  serverMessage.value = event.message
++}
++
++function handleConnectError() {
++  socketStatus.value = 'error'
++  serverMessage.value = 'Le serveur temps réel est indisponible.'
++}
++
++onMounted(async () => {
++  socket.on('system:ready', handleSystemReady)
++  socket.on('connect_error', handleConnectError)
++  socket.connect()
++
++  try {
++    const response = await fetch('/api/health')
++    if (!response.ok) throw new Error(`HTTP ${response.status}`)
++
++    const health = (await response.json()) as HealthResponse
++    apiStatus.value = health.status === 'ok' ? 'ready' : 'error'
++  } catch {
++    apiStatus.value = 'error'
++  }
++})
++
++onBeforeUnmount(() => {
++  socket.off('system:ready', handleSystemReady)
++  socket.off('connect_error', handleConnectError)
++})
++</script>
++
++<template>
++  <main class="min-h-screen bg-lgu-background px-4 py-12 text-white">
++    <section class="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-lgu-surface p-8 shadow-2xl sm:p-12">
++      <p class="mb-3 text-sm font-bold uppercase tracking-[0.25em] text-lgu-orange">
++        Fondation V3
++      </p>
++
++      <h1 class="font-display text-4xl font-bold sm:text-6xl">
++        Loup Garou Ultimate
++      </h1>
++
++      <p class="mt-5 text-lg leading-8 text-slate-300">
++        Vue, TypeScript, Tailwind et le nouveau serveur Node sont correctement initialisés.
++      </p>
++
++      <dl class="mt-10 grid gap-4 sm:grid-cols-2">
++        <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
++          <dt class="text-sm text-slate-400">API HTTP</dt>
++          <dd class="mt-2 font-bold" :class="apiStatus === 'ready' ? 'text-green-400' : 'text-amber-400'">
++            {{ apiStatus }}
++          </dd>
++        </div>
++
++        <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
++          <dt class="text-sm text-slate-400">Socket.IO</dt>
++          <dd class="mt-2 font-bold" :class="socketStatus === 'ready' ? 'text-green-400' : 'text-amber-400'">
++            {{ socketStatus }}
++          </dd>
++        </div>
++      </dl>
++
++      <p class="mt-6 rounded-xl bg-white/5 p-4 text-sm text-slate-300">
++        {{ serverMessage }}
++      </p>
++    </section>
++  </main>
++</template>
+diff --git a/apps/web/tsconfig.json b/apps/web/tsconfig.json
+new file mode 100644
+index 0000000..d4c166b
+--- /dev/null
++++ b/apps/web/tsconfig.json
+@@ -0,0 +1,9 @@
++{
++  "extends": "../../tsconfig.base.json",
++  "compilerOptions": {
++    "lib": ["ES2022", "DOM", "DOM.Iterable"],
++    "types": ["vite/client"],
++    "noEmit": true
++  },
++  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "vite.config.ts"]
++}
+diff --git a/apps/web/vite.config.ts b/apps/web/vite.config.ts
+new file mode 100644
+index 0000000..8a81523
+--- /dev/null
++++ b/apps/web/vite.config.ts
+@@ -0,0 +1,23 @@
++import tailwindcss from '@tailwindcss/vite'
++import vue from '@vitejs/plugin-vue'
++import { defineConfig } from 'vite'
++
++export default defineConfig({
++  plugins: [vue(), tailwindcss()],
++  server: {
++    host: '0.0.0.0',
++    port: 5173,
++    strictPort: true,
++    proxy: {
++      '/api': {
++        target: 'http://localhost:3001',
++        changeOrigin: true,
++      },
++      '/socket.io': {
++        target: 'http://localhost:3001',
++        changeOrigin: true,
++        ws: true,
++      },
++    },
++  },
++})
+diff --git a/package.json b/package.json
+index 5bc2cc1..59e2530 100644
+--- a/package.json
++++ b/package.json
+@@ -1,13 +1,23 @@
+ {
+   "name": "loup-garou-ultimate",
+-  "version": "2.0.0",
++  "version": "3.0.0-dev",
++  "private": true,
+   "description": "Multiplayer companion app for Loups Garous de Thiercelieux",
+-  "main": "server.js",
++  "packageManager": "pnpm@10.14.0",
++  "engines": {
++    "node": ">=24"
++  },
+   "scripts": {
+     "start": "node server.js",
+     "simulator": "ENABLE_SIMULATOR=true npm start",
+     "dev": "nodemon server.js",
+-    "test": "node test/*.test.js"
++    "dev:legacy": "nodemon server.js",
++    "test:legacy": "node test/petite-fille-rule.test.js && node test/role-assignment.test.js",
++    "dev:v3": "pnpm --parallel --filter @lgu/web --filter @lgu/server run dev",
++    "build:v3": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
++    "typecheck:v3": "pnpm -r --if-present run typecheck",
++    "test:v3": "pnpm -r --if-present run test",
++    "test": "pnpm test:legacy && pnpm test:v3"
+   },
+   "keywords": [
+     "loup-garou",
+diff --git a/packages/contracts/package.json b/packages/contracts/package.json
+new file mode 100644
+index 0000000..a7b6614
+--- /dev/null
++++ b/packages/contracts/package.json
+@@ -0,0 +1,18 @@
++{
++  "name": "@lgu/contracts",
++  "version": "3.0.0-dev",
++  "private": true,
++  "type": "module",
++  "exports": {
++    ".": "./src/index.ts"
++  },
++  "scripts": {
++    "build": "tsc -p tsconfig.json",
++    "typecheck": "tsc -p tsconfig.json --noEmit",
++    "test": "vitest run --passWithNoTests"
++  },
++  "devDependencies": {
++    "typescript": "^5.9.0",
++    "vitest": "^3.2.0"
++  }
++}
+diff --git a/packages/contracts/src/index.ts b/packages/contracts/src/index.ts
+new file mode 100644
+index 0000000..4502e54
+--- /dev/null
++++ b/packages/contracts/src/index.ts
+@@ -0,0 +1,15 @@
++export interface HealthResponse {
++  app: 'loup-garou-ultimate'
++  version: string
++  status: 'ok'
++}
++
++export interface SystemReadyEvent {
++  message: string
++}
++
++export interface ServerToClientEvents {
++  'system:ready': (event: SystemReadyEvent) => void
++}
++
++export interface ClientToServerEvents {}
+diff --git a/packages/contracts/tsconfig.json b/packages/contracts/tsconfig.json
+new file mode 100644
+index 0000000..94bba6d
+--- /dev/null
++++ b/packages/contracts/tsconfig.json
+@@ -0,0 +1,12 @@
++{
++  "extends": "../../tsconfig.base.json",
++  "compilerOptions": {
++    "outDir": "dist",
++    "rootDir": "src",
++    "lib": ["ES2022"],
++    "declaration": true,
++    "sourceMap": true,
++    "noEmit": false
++  },
++  "include": ["src/**/*.ts"]
++}
+diff --git a/packages/game-core/package.json b/packages/game-core/package.json
+new file mode 100644
+index 0000000..4c27a7e
+--- /dev/null
++++ b/packages/game-core/package.json
+@@ -0,0 +1,18 @@
++{
++  "name": "@lgu/game-core",
++  "version": "3.0.0-dev",
++  "private": true,
++  "type": "module",
++  "exports": {
++    ".": "./src/index.ts"
++  },
++  "scripts": {
++    "build": "tsc -p tsconfig.json",
++    "typecheck": "tsc -p tsconfig.json --noEmit",
++    "test": "vitest run --passWithNoTests"
++  },
++  "devDependencies": {
++    "typescript": "^5.9.0",
++    "vitest": "^3.2.0"
++  }
++}
+diff --git a/packages/game-core/src/index.ts b/packages/game-core/src/index.ts
+new file mode 100644
+index 0000000..09aec02
+--- /dev/null
++++ b/packages/game-core/src/index.ts
+@@ -0,0 +1 @@
++export const GAME_CORE_VERSION = '3.0.0-dev' as const
+diff --git a/packages/game-core/tsconfig.json b/packages/game-core/tsconfig.json
+new file mode 100644
+index 0000000..94bba6d
+--- /dev/null
++++ b/packages/game-core/tsconfig.json
+@@ -0,0 +1,12 @@
++{
++  "extends": "../../tsconfig.base.json",
++  "compilerOptions": {
++    "outDir": "dist",
++    "rootDir": "src",
++    "lib": ["ES2022"],
++    "declaration": true,
++    "sourceMap": true,
++    "noEmit": false
++  },
++  "include": ["src/**/*.ts"]
++}
+diff --git a/pnpm-workspace.yaml b/pnpm-workspace.yaml
+new file mode 100644
+index 0000000..286cf7f
+--- /dev/null
++++ b/pnpm-workspace.yaml
+@@ -0,0 +1,3 @@
++packages:
++  - apps/*
++  - packages/*
+diff --git a/tsconfig.base.json b/tsconfig.base.json
+new file mode 100644
+index 0000000..5ba47d7
+--- /dev/null
++++ b/tsconfig.base.json
+@@ -0,0 +1,16 @@
++{
++  "compilerOptions": {
++    "target": "ES2022",
++    "module": "ESNext",
++    "moduleResolution": "Bundler",
++    "strict": true,
++    "noUncheckedIndexedAccess": true,
++    "exactOptionalPropertyTypes": true,
++    "useDefineForClassFields": true,
++    "forceConsistentCasingInFileNames": true,
++    "skipLibCheck": true,
++    "resolveJsonModule": true,
++    "isolatedModules": true,
++    "verbatimModuleSyntax": true
++  }
++}

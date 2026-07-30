@@ -1,13 +1,23 @@
 {
   "name": "loup-garou-ultimate",
-  "version": "2.0.0",
+  "version": "3.0.0-dev",
+  "private": true,
   "description": "Multiplayer companion app for Loups Garous de Thiercelieux",
-  "main": "server.js",
+  "packageManager": "pnpm@10.14.0",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node server.js",
     "simulator": "ENABLE_SIMULATOR=true npm start",
     "dev": "nodemon server.js",
-    "test": "node test/*.test.js"
+    "dev:legacy": "nodemon server.js",
+    "test:legacy": "node test/petite-fille-rule.test.js && node test/role-assignment.test.js",
+    "dev:v3": "pnpm --parallel --filter @lgu/web --filter @lgu/server run dev",
+    "build:v3": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
+    "typecheck:v3": "pnpm -r --if-present run typecheck",
+    "test:v3": "pnpm -r --if-present run test",
+    "test": "pnpm test:legacy && pnpm test:v3"
   },
   "keywords": [
     "loup-garou",
