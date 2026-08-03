@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import {
+  clientRequestIdSchema,
   playerIdSchema,
   playerNameSchema,
   sessionTokenSchema,
@@ -10,6 +11,7 @@ export const emptyCommandSchema = z.object({}).strict()
 
 export const roomEnterCommandSchema = z.object({
   playerName: playerNameSchema,
+  clientRequestId: clientRequestIdSchema.optional(),
 }).strict()
 
 export const sessionResumeCommandSchema = z.object({

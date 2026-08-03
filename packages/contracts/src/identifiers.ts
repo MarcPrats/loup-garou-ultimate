@@ -10,6 +10,13 @@ export const sessionTokenSchema = z.string().trim().min(32).max(256).regex(SAFE_
 export const roleAccessTokenSchema = z.string().trim().min(32).max(256).regex(SAFE_IDENTIFIER_PATTERN)
 export const simulatorGameIdSchema = z.string().trim().min(1).max(128).regex(SAFE_IDENTIFIER_PATTERN)
 export const roleIdSchema = z.string().trim().min(1).max(64).regex(ROLE_IDENTIFIER_PATTERN)
+export const clientRequestIdSchema = z
+  .string()
+  .min(16)
+  .max(100)
+  .regex(/^[A-Za-z0-9_-]+$/)
+export type ClientRequestId = z.infer<typeof clientRequestIdSchema>
+
 export const playerNameSchema = z.string().trim().min(1).max(40)
 export const roomIdSchema = z.literal(ROOM_ID.MAIN)
 export const timestampSchema = z.number().int().nonnegative()

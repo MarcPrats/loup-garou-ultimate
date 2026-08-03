@@ -1,6 +1,6 @@
 import { Server as SocketIoServer } from 'socket.io'
 import { io as createClient, type Socket as ClientSocket } from 'socket.io-client'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ERROR_CODE,
@@ -90,9 +90,14 @@ async function connectClient(url: string): Promise<TestClient> {
 function enter(
   client: TestClient,
   playerName: string,
+  clientRequestId?: string,
 ): Promise<Ack<RoomEntryResponse>> {
   return new Promise((resolve) => {
-    client.emit(SOCKET_EVENT.ROOM_ENTER, { playerName }, resolve)
+    client.emit(
+      SOCKET_EVENT.ROOM_ENTER,
+      clientRequestId ? { playerName, clientRequestId } : { playerName },
+      resolve,
+    )
   })
 }
 
@@ -176,6 +181,58 @@ describe('V3 transport', () => {
     await new Promise((resolve) => setTimeout(resolve, 20))
 
     expect(await runtime.service.getRoomSnapshot()).toBeNull()
+  })
+
+  it('coalesces concurrent room-entry retries while the first is in flight', async () => {
+    const runtime = await createRuntime()
+    const firstClient = await connectClient(runtime.url)
+    const retryClient = await connectClient(runtime.url)
+    const requestId = 'entry_request_00000000000000000002'
+    const originalEnter = runtime.service.enter.bind(runtime.service)
+    let releaseEntry: () => void = () => undefined
+    const gate = new Promise<void>((resolve) => {
+      releaseEntry = resolve
+    })
+    vi.spyOn(runtime.service, 'enter').mockImplementation(async (command) => {
+      await gate
+      return originalEnter(command)
+    })
+
+    const first = enter(firstClient, 'Marc', requestId)
+    await Promise.resolve()
+    const retry = enter(retryClient, 'Marc', requestId)
+    releaseEntry()
+    const [firstResponse, retryResponse] = await Promise.all([first, retry])
+
+    expect(firstResponse.ok).toBe(true)
+    expect(retryResponse.ok).toBe(true)
+    if (!firstResponse.ok || !retryResponse.ok) return
+    expect(retryResponse.data.session).toEqual(firstResponse.data.session)
+    expect((await runtime.service.getRoomSnapshot())?.players).toHaveLength(1)
+  })
+
+  it('recovers an acknowledged entry retry without creating a ghost player', async () => {
+    const runtime = await createRuntime()
+    const requestId = 'entry_request_00000000000000000001'
+    const firstClient = await connectClient(runtime.url)
+    const first = await enter(firstClient, 'Marc', requestId)
+    expect(first.ok).toBe(true)
+    if (!first.ok) return
+
+    const sameSocketRetry = await enter(firstClient, 'Marc', requestId)
+    expect(sameSocketRetry).toEqual(first)
+    expect((await runtime.service.getRoomSnapshot())?.players).toHaveLength(1)
+
+    firstClient.disconnect()
+    await new Promise((resolve) => setTimeout(resolve, 10))
+    const recoveredClient = await connectClient(runtime.url)
+    const recovered = await enter(recoveredClient, 'Marc', requestId)
+
+    expect(recovered.ok).toBe(true)
+    if (!recovered.ok) return
+    expect(recovered.data.session).toEqual(first.data.session)
+    expect(recovered.data.room.players).toHaveLength(1)
+    expect(recovered.data.room.players[0]?.connected).toBe(true)
   })
 
   it('binds at most one active session to each socket', async () => {

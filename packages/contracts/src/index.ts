@@ -72,6 +72,7 @@ export {
   type RoleAccessResponse,
 } from './http'
 export {
+  clientRequestIdSchema,
   playerIdSchema,
   playerNameSchema,
   revisionSchema,
@@ -81,6 +82,7 @@ export {
   sessionTokenSchema,
   simulatorGameIdSchema,
   timestampSchema,
+  type ClientRequestId,
   type PlayerId,
   type PlayerName,
   type RoleAccessToken,

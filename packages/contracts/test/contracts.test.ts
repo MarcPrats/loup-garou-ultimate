@@ -64,6 +64,14 @@ describe('command contracts', () => {
       playerName: 'Marc',
     })
     expect(roomEnterCommandSchema.safeParse({ playerName: '' }).success).toBe(false)
+    expect(roomEnterCommandSchema.safeParse({
+      playerName: 'Marc',
+      clientRequestId: 'entry_request_00000000000000000001',
+    }).success).toBe(true)
+    expect(roomEnterCommandSchema.safeParse({
+      playerName: 'Marc',
+      clientRequestId: 'short',
+    }).success).toBe(false)
     expect(roomEnterCommandSchema.safeParse({ playerName: 'Marc', isHost: true }).success).toBe(false)
   })
 })

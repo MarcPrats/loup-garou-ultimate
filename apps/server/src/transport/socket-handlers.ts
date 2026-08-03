@@ -18,7 +18,10 @@ import {
   sessionResumeCommandSchema,
   systemReadyEventSchema,
   type AckCallback,
+  type ClientRequestId,
   type EmptyResponse,
+  type PlayerName,
+  type RoomEntryResponse,
   type RoomSnapshot,
   type SessionCredentials,
 } from '@lgu/contracts'
@@ -44,6 +47,15 @@ const MESSAGE = {
   HOST_LEFT: 'Le maître du jeu a quitté la partie.',
   ROOM_EXPIRED: 'La partie a expiré.',
 } as const
+
+const ENTER_REQUEST_TTL_MS = 5 * 60 * 1_000
+
+interface CachedEnterRequest {
+  readonly playerName: PlayerName
+  readonly pending: Promise<RoomEntryResponse>
+  response: RoomEntryResponse | null
+  expiresAt: number
+}
 
 export interface SocketHandlerOptions {
   readonly onUnexpectedError?: (error: unknown) => void
@@ -169,6 +181,27 @@ export function registerSocketHandlers(
   options: SocketHandlerOptions = {},
 ): void {
   const onUnexpectedError = options.onUnexpectedError ?? (() => undefined)
+  const enterRequests = new Map<ClientRequestId, CachedEnterRequest>()
+
+  function getCachedEnterRequest(
+    requestId: ClientRequestId,
+  ): CachedEnterRequest | null {
+    const cached = enterRequests.get(requestId)
+    if (!cached) return null
+    if (cached.response && cached.expiresAt <= Date.now()) {
+      enterRequests.delete(requestId)
+      return null
+    }
+    return cached
+  }
+
+  function purgeExpiredEnterRequests(now: number): void {
+    for (const [requestId, cached] of enterRequests) {
+      if (cached.response && cached.expiresAt <= now) {
+        enterRequests.delete(requestId)
+      }
+    }
+  }
 
   io.on('connection', (socket) => {
     socket.emit(
@@ -178,12 +211,82 @@ export function registerSocketHandlers(
 
     socket.on(SOCKET_EVENT.ROOM_ENTER, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
-        assertUnboundSocket(socket)
         const command = parseCommand(roomEnterCommandSchema, rawCommand)
-        const response = await service.enter({
+        const cached = command.clientRequestId
+          ? getCachedEnterRequest(command.clientRequestId)
+          : null
+
+        if (cached) {
+          if (cached.playerName !== command.playerName) {
+            throw new LobbyError(
+              ERROR_CODE.INVALID_PAYLOAD,
+              'La requête d’entrée ne correspond pas au joueur initial.',
+            )
+          }
+          const cachedResponse = cached.response ?? await cached.pending
+          if (
+            socket.data.sessionToken
+            && socket.data.sessionToken !== cachedResponse.session.sessionToken
+          ) {
+            assertUnboundSocket(socket)
+          }
+          if (!socket.data.sessionToken) assertUnboundSocket(socket)
+
+          const resumed = await service.resume({
+            sessionToken: cachedResponse.session.sessionToken,
+            connectionId: socket.id,
+          })
+          bindSession(socket, resumed.response.session)
+          await socket.join(ROOM_ID.MAIN)
+          if (resumed.replacedConnectionId) {
+            io.in(resumed.replacedConnectionId).disconnectSockets(true)
+          }
+          if (resumed.publicStateChanged) {
+            broadcastSnapshot(io, resumed.response.room)
+          }
+          await emitResumedPrivateView(
+            socket,
+            service,
+            resumed.response.destination,
+          )
+          return {
+            session: resumed.response.session,
+            room: resumed.response.room,
+            destination: resumed.response.destination,
+          }
+        }
+
+        assertUnboundSocket(socket)
+        const pending = service.enter({
           playerName: command.playerName,
           connectionId: socket.id,
         })
+        const requestRecord: CachedEnterRequest | null = command.clientRequestId
+          ? {
+              playerName: command.playerName,
+              pending,
+              response: null,
+              expiresAt: Number.POSITIVE_INFINITY,
+            }
+          : null
+        if (command.clientRequestId && requestRecord) {
+          purgeExpiredEnterRequests(Date.now())
+          enterRequests.set(command.clientRequestId, requestRecord)
+        }
+
+        let response: RoomEntryResponse
+        try {
+          response = await pending
+          if (requestRecord) {
+            requestRecord.response = response
+            requestRecord.expiresAt = Date.now() + ENTER_REQUEST_TTL_MS
+          }
+        } catch (error) {
+          if (command.clientRequestId) {
+            enterRequests.delete(command.clientRequestId)
+          }
+          throw error
+        }
         bindSession(socket, response.session)
         await socket.join(ROOM_ID.MAIN)
         broadcastSnapshot(io, response.room)
