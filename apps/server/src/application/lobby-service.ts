@@ -8,6 +8,7 @@ import {
   roleAccessTokenSchema,
   sessionTokenSchema,
   type HostDashboard,
+  type PlayerId,
   type PrivateAssignment,
   type RoleAccessResponse,
   type RoomEntryResponse,
@@ -55,11 +56,31 @@ export interface LobbyServiceDependencies {
 export interface ResumeResult {
   readonly response: SessionResumeResponse
   readonly replacedConnectionId: ConnectionId | null
+  readonly publicStateChanged: boolean
 }
 
 export interface RoomChangeResult {
   readonly room: RoomSnapshot | null
-  readonly playerId: string
+  readonly playerId: PlayerId
+  readonly connectionId: ConnectionId | null
+  readonly roomClosedReason: LobbyRoomState['closeReason']
+}
+
+export interface PrivateAssignmentDelivery {
+  readonly connectionId: ConnectionId
+  readonly assignment: PrivateAssignment
+}
+
+export interface HostDashboardDelivery {
+  readonly connectionId: ConnectionId
+  readonly dashboard: HostDashboard
+}
+
+export interface StartGameResult {
+  readonly room: RoomSnapshot
+  readonly startedAt: number
+  readonly privateAssignments: readonly PrivateAssignmentDelivery[]
+  readonly hostDashboard: HostDashboardDelivery
 }
 
 export interface DisconnectResult {
@@ -101,7 +122,10 @@ function findSessionPlayer(
   room: LobbyRoomState,
   sessionToken: string,
 ): LobbyPlayerState {
-  const player = room.players.find((candidate) => candidate.sessionToken === sessionToken)
+  const player = room.players.find(
+    (candidate) => candidate.sessionToken === sessionToken
+      && !candidate.sessionRevoked,
+  )
   if (!player) {
     throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
   }
@@ -189,6 +213,7 @@ function createPlayer(
     joinOrder,
     lastSeenAt: joinedAt,
     disconnectedAt: null,
+    sessionRevoked: false,
   }
 }
 
@@ -252,6 +277,15 @@ export class LobbyService {
       }
 
       assertLobbyPhase(room)
+      if (room.players.some(
+        (player) => player.connected
+          && player.connectionId === command.connectionId,
+      )) {
+        throw new LobbyError(
+          ERROR_CODE.INVALID_PAYLOAD,
+          'Cette connexion possède déjà une session active.',
+        )
+      }
       const duplicateName = room.players.some(
         (player) => player.name.toLocaleLowerCase('fr')
           === parsedName.data.toLocaleLowerCase('fr'),
@@ -294,6 +328,16 @@ export class LobbyService {
       assertRoomOpen(room)
 
       const player = findSessionPlayer(room, command.sessionToken)
+      if (room.players.some(
+        (candidate) => candidate.id !== player.id
+          && candidate.connected
+          && candidate.connectionId === command.connectionId,
+      )) {
+        throw new LobbyError(
+          ERROR_CODE.INVALID_PAYLOAD,
+          'Cette connexion possède déjà une session active.',
+        )
+      }
       const now = this.dependencies.clock.now()
       const replacedConnectionId = player.connected
         && player.connectionId !== command.connectionId
@@ -317,6 +361,7 @@ export class LobbyService {
         result: {
           response: toEntryResponse(room, player),
           replacedConnectionId,
+          publicStateChanged: publicStateChanged || hostChanged,
         },
       }
     })
@@ -385,30 +430,64 @@ export class LobbyService {
       }
 
       const player = authenticateConnectedSession(room, command)
+      const connectionId = player.connectionId
       const now = this.dependencies.clock.now()
 
-      if (room.phase === ROOM_PHASE.STARTED && player.isHost) {
+      if (room.phase === ROOM_PHASE.STARTED) {
         player.connectionId = null
         player.connected = false
         player.lastSeenAt = now
         player.disconnectedAt = now
-        closeRoom(room, now, ROOM_CLOSED_REASON.HOST_LEFT)
+        player.sessionRevoked = true
+
+        if (player.isHost) {
+          closeRoom(room, now, ROOM_CLOSED_REASON.HOST_LEFT)
+        } else {
+          if (room.game) {
+            const grantIndex = room.game.roleAccessGrants.findIndex(
+              (grant) => grant.playerId === player.id,
+            )
+            if (grantIndex >= 0) {
+              room.game.roleAccessGrants.splice(grantIndex, 1)
+            }
+          }
+          touchRoom(room, now)
+        }
+
         return {
           room,
-          result: { room: toRoomSnapshot(room), playerId: player.id },
+          result: {
+            room: toRoomSnapshot(room),
+            playerId: player.id,
+            connectionId,
+            roomClosedReason: room.closeReason,
+          },
         }
       }
 
       room.players = room.players.filter((candidate) => candidate.id !== player.id)
       if (room.players.length === 0) {
-        return { room: null, result: { room: null, playerId: player.id } }
+        return {
+          room: null,
+          result: {
+            room: null,
+            playerId: player.id,
+            connectionId,
+            roomClosedReason: null,
+          },
+        }
       }
 
       if (player.isHost) electHost(room)
       touchRoom(room, now)
       return {
         room,
-        result: { room: toRoomSnapshot(room), playerId: player.id },
+        result: {
+          room: toRoomSnapshot(room),
+          playerId: player.id,
+          connectionId,
+          roomClosedReason: null,
+        },
       }
     })
   }
@@ -438,14 +517,19 @@ export class LobbyService {
       touchRoom(room, this.dependencies.clock.now())
       return {
         room,
-        result: { room: toRoomSnapshot(room), playerId: target.id },
+        result: {
+          room: toRoomSnapshot(room),
+          playerId: target.id,
+          connectionId: target.connectionId,
+          roomClosedReason: null,
+        },
       }
     })
   }
 
-  start(command: SessionCommand): Promise<RoomSnapshot> {
+  start(command: SessionCommand): Promise<StartGameResult> {
     assertConnectionId(command.connectionId)
-    return this.dependencies.repository.mutate<RoomSnapshot>((room) => {
+    return this.dependencies.repository.mutate<StartGameResult>((room) => {
       if (!room) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
@@ -475,7 +559,34 @@ export class LobbyService {
       )
       room.phase = ROOM_PHASE.STARTED
       touchRoom(room, startedAt)
-      return { room, result: toRoomSnapshot(room) }
+
+      const privateAssignments = room.players
+        .filter((player) => !player.isHost)
+        .map((player) => {
+          if (!player.connectionId) {
+            throw new Error(`Started player has no connection: ${player.id}`)
+          }
+          return {
+            connectionId: player.connectionId,
+            assignment: toPrivateAssignment(room, player.id),
+          }
+        })
+      if (!host.connectionId) {
+        throw new Error('Started host has no connection')
+      }
+
+      return {
+        room,
+        result: {
+          room: toRoomSnapshot(room),
+          startedAt,
+          privateAssignments,
+          hostDashboard: {
+            connectionId: host.connectionId,
+            dashboard: toHostDashboard(room),
+          },
+        },
+      }
     })
   }
 
@@ -524,9 +635,14 @@ export class LobbyService {
         'Le lien de rôle est invalide.',
       )
     }
-    assertStartedGame(room)
+    if (room.phase !== ROOM_PHASE.STARTED || !room.game) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_ROLE_TOKEN,
+        'Le lien de rôle est invalide.',
+      )
+    }
 
-    const grant = room.game?.roleAccessGrants.find(
+    const grant = room.game.roleAccessGrants.find(
       (candidate) => candidate.token === parsedToken.data,
     )
     if (!grant) {

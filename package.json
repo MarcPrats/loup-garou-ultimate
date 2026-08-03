@@ -9,6 +9,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "start:v3": "pnpm --filter @lgu/server start",
     "simulator": "ENABLE_SIMULATOR=true npm start",
     "dev": "nodemon server.js",
     "dev:legacy": "nodemon server.js",

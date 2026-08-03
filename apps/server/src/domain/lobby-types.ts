@@ -25,6 +25,7 @@ export interface LobbyPlayerState {
   readonly joinOrder: number
   lastSeenAt: number
   disconnectedAt: number | null
+  sessionRevoked: boolean
 }
 
 export interface RoleAccessGrant {
@@ -35,7 +36,7 @@ export interface RoleAccessGrant {
 
 export interface StoredGameState {
   readonly assignment: AssignmentResult
-  readonly roleAccessGrants: readonly RoleAccessGrant[]
+  readonly roleAccessGrants: RoleAccessGrant[]
   readonly startedAt: number
 }
 

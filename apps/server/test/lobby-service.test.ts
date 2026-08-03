@@ -141,6 +141,7 @@ describe('LobbyService', () => {
       connectionId: 'player-new',
     })
     expect(resumed.replacedConnectionId).toBeNull()
+    expect(resumed.publicStateChanged).toBe(true)
     expect(resumed.response.room.revision).toBe(4)
     expect(resumed.response.room.players[1]?.connected).toBe(true)
 
@@ -149,10 +150,33 @@ describe('LobbyService', () => {
       connectionId: 'player-newer',
     })
     expect(replaced.replacedConnectionId).toBe('player-new')
+    expect(replaced.publicStateChanged).toBe(false)
     expect(replaced.response.room.revision).toBe(4)
 
     const staleDisconnect = await service.disconnect('player-new')
     expect(staleDisconnect.changed).toBe(false)
+  })
+
+  it('prevents two active sessions from sharing one connection ID', async () => {
+    const { service } = createFixture()
+    await service.enter({ playerName: 'Le MJ', connectionId: 'shared' })
+    const player = await service.enter({
+      playerName: 'Marc',
+      connectionId: 'player',
+    })
+
+    await expectLobbyError(
+      service.enter({ playerName: 'Intrus', connectionId: 'shared' }),
+      ERROR_CODE.INVALID_PAYLOAD,
+    )
+    await expectLobbyError(
+      service.resume({
+        sessionToken: player.session.sessionToken,
+        connectionId: 'shared',
+      }),
+      ERROR_CODE.INVALID_PAYLOAD,
+    )
+    expect((await service.getRoomSnapshot())?.players).toHaveLength(2)
   })
 
   it('starts only for the host with five connected regular players', async () => {
@@ -192,8 +216,10 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect(started.phase).toBe(ROOM_PHASE.STARTED)
-    expect(started.canStart).toBe(false)
+    expect(started.room.phase).toBe(ROOM_PHASE.STARTED)
+    expect(started.room.canStart).toBe(false)
+    expect(started.privateAssignments).toHaveLength(PLAYER_COUNT.MINIMUM)
+    expect(started.hostDashboard.connectionId).toBe('host')
   })
 
   it('transfers host ownership when the host leaves the lobby', async () => {
@@ -232,7 +258,54 @@ describe('LobbyService', () => {
     })
 
     expect(result.room?.phase).toBe(ROOM_PHASE.CLOSED)
+    expect(result.roomClosedReason).toBe(ROOM_CLOSED_REASON.HOST_LEFT)
     expect((await repository.read())?.closeReason).toBe(ROOM_CLOSED_REASON.HOST_LEFT)
+  })
+
+  it('keeps a revoked player as a disconnected game tombstone', async () => {
+    const { repository, service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    const privateAssignment = await service.getPrivateAssignment({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1',
+    })
+
+    const result = await service.leave({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1',
+    })
+    const dashboard = await service.getHostDashboard({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    expect(result.room?.players).toHaveLength(PLAYER_COUNT.MINIMUM + 1)
+    expect(result.room?.players.find(
+      (player) => player.id === players[0]!.session.playerId,
+    )?.connected).toBe(false)
+    expect(dashboard.players).toHaveLength(PLAYER_COUNT.MINIMUM)
+    const internalRoom = await repository.read()
+    expect(internalRoom?.players.find(
+      (player) => player.id === players[0]!.session.playerId,
+    )?.sessionRevoked).toBe(true)
+    expect(internalRoom?.game?.roleAccessGrants.some(
+      (grant) => grant.playerId === players[0]!.session.playerId,
+    )).toBe(false)
+    await expectLobbyError(
+      service.accessRole(privateAssignment.roleAccessToken),
+      ERROR_CODE.INVALID_ROLE_TOKEN,
+    )
+    await expectLobbyError(
+      service.resume({
+        sessionToken: players[0]!.session.sessionToken,
+        connectionId: 'player-return',
+      }),
+      ERROR_CODE.SESSION_NOT_FOUND,
+    )
   })
 
   it('allows only the host to kick players and only in the lobby', async () => {
@@ -333,8 +406,10 @@ describe('LobbyService', () => {
     expect(internalRoom?.game?.roleAccessGrants).toHaveLength(
       PLAYER_COUNT.MINIMUM + 1,
     )
-    expect(JSON.stringify(started)).not.toContain('assignment')
-    expect(JSON.stringify(started)).not.toContain('role_')
+    expect(JSON.stringify(started.room)).not.toContain('assignment')
+    expect(JSON.stringify(started.room)).not.toContain('role_')
+    expect(started.privateAssignments).toHaveLength(PLAYER_COUNT.MINIMUM)
+    expect(started.hostDashboard.dashboard).toEqual(dashboard)
     expect(privateAssignment.player.id).toBe(players[0]!.session.playerId)
     expect(privateAssignment.roleAccessToken).toMatch(/^role_/)
     expect(privateAssignment).not.toHaveProperty('isDrunk')
