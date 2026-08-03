@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   ERROR_CODE,
   ROOM_CLOSED_REASON,
+  ROLE_ACCESS_VIEW,
   ROOM_PHASE,
   SESSION_DESTINATION,
 } from '@lgu/contracts'
@@ -13,12 +14,17 @@ import { LOBBY_TIME_LIMIT } from '../src/config/lobby-constants'
 import { LobbyError } from '../src/domain/lobby-error'
 import { InMemoryRoomRepository } from '../src/infrastructure/in-memory-room-repository'
 import {
+  DeterministicAssignmentGenerator,
   FakeClock,
   PlayerIdSequence,
+  RoleAccessTokenSequence,
   SessionTokenSequence,
+  ThrowingAssignmentGenerator,
 } from './support/fakes'
 
-function createFixture() {
+function createFixture(
+  assignmentGenerator = new DeterministicAssignmentGenerator(),
+) {
   const clock = new FakeClock()
   const repository = new InMemoryRoomRepository()
   const service = new LobbyService({
@@ -26,9 +32,23 @@ function createFixture() {
     clock,
     playerIdGenerator: new PlayerIdSequence(),
     sessionTokenGenerator: new SessionTokenSequence(),
+    roleAccessTokenGenerator: new RoleAccessTokenSequence(),
+    assignmentGenerator,
   })
 
-  return { clock, repository, service }
+  return { assignmentGenerator, clock, repository, service }
+}
+
+async function fillMinimumGame(service: LobbyService) {
+  const host = await service.enter({ playerName: 'Le MJ', connectionId: 'host' })
+  const players = []
+  for (let index = 1; index <= PLAYER_COUNT.MINIMUM; index += 1) {
+    players.push(await service.enter({
+      playerName: `Joueur ${index}`,
+      connectionId: `player-${index}`,
+    }))
+  }
+  return { host, players }
 }
 
 async function expectLobbyError(
@@ -286,5 +306,154 @@ describe('LobbyService', () => {
     })
 
     expect((await service.getRoomSnapshot())?.revision).toBe(1)
+  })
+
+  it('persists one generated game and maps separate private and host views', async () => {
+    const { assignmentGenerator, repository, service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    const internalRoom = await repository.read()
+    const privateAssignment = await service.getPrivateAssignment({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1',
+    })
+    const dashboard = await service.getHostDashboard({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    expect(assignmentGenerator.calls).toBe(1)
+    expect(internalRoom?.game?.assignment.assignments).toHaveLength(
+      PLAYER_COUNT.MINIMUM,
+    )
+    expect(internalRoom?.game?.roleAccessGrants).toHaveLength(
+      PLAYER_COUNT.MINIMUM + 1,
+    )
+    expect(JSON.stringify(started)).not.toContain('assignment')
+    expect(JSON.stringify(started)).not.toContain('role_')
+    expect(privateAssignment.player.id).toBe(players[0]!.session.playerId)
+    expect(privateAssignment.roleAccessToken).toMatch(/^role_/)
+    expect(privateAssignment).not.toHaveProperty('isDrunk')
+    expect(privateAssignment).not.toHaveProperty('isVoyanteDecoy')
+    expect(dashboard.players).toHaveLength(PLAYER_COUNT.MINIMUM)
+    expect(dashboard.players.every((player) => 'isDrunk' in player)).toBe(true)
+    expect(dashboard.players.every((player) => 'isVoyanteDecoy' in player)).toBe(true)
+    await expectLobbyError(
+      service.getHostDashboard({
+        sessionToken: players[0]!.session.sessionToken,
+        connectionId: 'player-1',
+      }),
+      ERROR_CODE.NOT_GAME_MASTER,
+    )
+    await expectLobbyError(
+      service.getPrivateAssignment({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+      }),
+      ERROR_CODE.PLAYER_NOT_FOUND,
+    )
+  })
+
+  it('authorizes role links by audience without leaking player tokens to the host', async () => {
+    const { repository, service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    const room = await repository.read()
+    const hostGrant = room?.game?.roleAccessGrants.find(
+      (grant) => grant.view === ROLE_ACCESS_VIEW.GAME_MASTER,
+    )
+    const playerGrant = room?.game?.roleAccessGrants.find(
+      (grant) => grant.playerId === players[0]!.session.playerId,
+    )
+    expect(hostGrant).toBeDefined()
+    expect(playerGrant).toBeDefined()
+
+    const playerAccess = await service.accessRole(playerGrant!.token)
+    const hostAccess = await service.accessRole(hostGrant!.token)
+
+    expect(playerAccess.view).toBe(ROLE_ACCESS_VIEW.PLAYER)
+    expect(hostAccess.view).toBe(ROLE_ACCESS_VIEW.GAME_MASTER)
+    expect(JSON.stringify(hostAccess)).not.toContain('role_')
+    await expectLobbyError(
+      service.accessRole('invalid_role_token_that_is_long_enough_000000'),
+      ERROR_CODE.INVALID_ROLE_TOKEN,
+    )
+  })
+
+  it('keeps game generation atomic when assignment fails', async () => {
+    const generator = new ThrowingAssignmentGenerator()
+    const { repository, service } = createFixture(generator)
+    const { host } = await fillMinimumGame(service)
+    const beforeStart = await repository.read()
+
+    await expect(
+      service.start({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+      }),
+    ).rejects.toThrow('Assignment generation failed')
+
+    const afterFailure = await repository.read()
+    expect(generator.calls).toBe(1)
+    expect(afterFailure).toEqual(beforeStart)
+    expect(afterFailure?.phase).toBe(ROOM_PHASE.LOBBY)
+    expect(afterFailure?.game).toBeNull()
+  })
+
+  it('serializes concurrent starts and never regenerates an existing game', async () => {
+    const { assignmentGenerator, repository, service } = createFixture()
+    const { host } = await fillMinimumGame(service)
+    const command = {
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    }
+
+    const results = await Promise.allSettled([
+      service.start(command),
+      service.start(command),
+    ])
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1)
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1)
+    expect(assignmentGenerator.calls).toBe(1)
+    expect((await repository.read())?.game).not.toBeNull()
+
+    await expectLobbyError(service.start(command), ERROR_CODE.GAME_ALREADY_STARTED)
+    expect(assignmentGenerator.calls).toBe(1)
+  })
+
+  it('returns the same private assignment after a post-start reconnect', async () => {
+    const { assignmentGenerator, service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    const beforeReconnect = await service.getPrivateAssignment({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1',
+    })
+    await service.disconnect('player-1')
+    const resumed = await service.resume({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1-new',
+    })
+    const afterReconnect = await service.getPrivateAssignment({
+      sessionToken: players[0]!.session.sessionToken,
+      connectionId: 'player-1-new',
+    })
+
+    expect(resumed.response.destination).toBe(SESSION_DESTINATION.PLAYER_ROLE)
+    expect(afterReconnect).toEqual(beforeReconnect)
+    expect(assignmentGenerator.calls).toBe(1)
   })
 })

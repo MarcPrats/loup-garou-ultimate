@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { APPLICATION } from './constants'
+import { APPLICATION, ROLE_ACCESS_VIEW } from './constants'
 import { hostDashboardSchema } from './game'
 import { privateAssignmentSchema } from './roles'
 
@@ -12,11 +12,11 @@ export const healthResponseSchema = z.object({
 
 export const roleAccessResponseSchema = z.discriminatedUnion('view', [
   z.object({
-    view: z.literal('player'),
+    view: z.literal(ROLE_ACCESS_VIEW.PLAYER),
     assignment: privateAssignmentSchema,
   }).strict(),
   z.object({
-    view: z.literal('game-master'),
+    view: z.literal(ROLE_ACCESS_VIEW.GAME_MASTER),
     dashboard: hostDashboardSchema,
   }).strict(),
 ])

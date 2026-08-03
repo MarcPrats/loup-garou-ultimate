@@ -5,7 +5,11 @@ import {
   ROOM_PHASE,
   playerIdSchema,
   playerNameSchema,
+  roleAccessTokenSchema,
   sessionTokenSchema,
+  type HostDashboard,
+  type PrivateAssignment,
+  type RoleAccessResponse,
   type RoomEntryResponse,
   type RoomSnapshot,
   type SessionResumeResponse,
@@ -18,6 +22,7 @@ import type {
   Clock,
   ConnectionId,
   EnterRoomCommand,
+  GameAssignmentGenerator,
   LobbyPlayerState,
   LobbyRoomState,
   ResumeSessionCommand,
@@ -31,12 +36,20 @@ import {
   getSessionDestination,
   toRoomSnapshot,
 } from './room-mapper'
+import { createStoredGameState } from './game-state'
+import {
+  toHostDashboard,
+  toPrivateAssignment,
+  toRoleAccessResponse,
+} from './game-view-mapper'
 
 export interface LobbyServiceDependencies {
   readonly repository: RoomRepository
   readonly clock: Clock
   readonly playerIdGenerator: ValueGenerator
   readonly sessionTokenGenerator: ValueGenerator
+  readonly roleAccessTokenGenerator: ValueGenerator
+  readonly assignmentGenerator: GameAssignmentGenerator
 }
 
 export interface ResumeResult {
@@ -112,6 +125,16 @@ function authenticateConnectedSession(
 function assertRoomOpen(room: LobbyRoomState): void {
   if (room.phase === ROOM_PHASE.CLOSED) {
     throw new LobbyError(ERROR_CODE.ROOM_CLOSED, 'La partie est fermée.')
+  }
+}
+
+function assertStartedGame(room: LobbyRoomState): void {
+  assertRoomOpen(room)
+  if (room.phase !== ROOM_PHASE.STARTED || !room.game) {
+    throw new LobbyError(
+      ERROR_CODE.GAME_NOT_STARTED,
+      'La partie n’a pas encore commencé.',
+    )
   }
 }
 
@@ -223,6 +246,7 @@ export class LobbyService {
           lastActivityAt: now,
           closedAt: null,
           closeReason: null,
+          game: null,
         }
         return { room: createdRoom, result: toEntryResponse(createdRoom, host) }
       }
@@ -442,10 +466,77 @@ export class LobbyService {
         )
       }
 
+      const startedAt = this.dependencies.clock.now()
+      room.game = createStoredGameState(
+        room,
+        this.dependencies.assignmentGenerator,
+        this.dependencies.roleAccessTokenGenerator,
+        startedAt,
+      )
       room.phase = ROOM_PHASE.STARTED
-      touchRoom(room, this.dependencies.clock.now())
+      touchRoom(room, startedAt)
       return { room, result: toRoomSnapshot(room) }
     })
+  }
+
+  async getPrivateAssignment(command: SessionCommand): Promise<PrivateAssignment> {
+    assertConnectionId(command.connectionId)
+    const room = await this.dependencies.repository.read()
+    if (!room) {
+      throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+    }
+    assertStartedGame(room)
+    const player = authenticateConnectedSession(room, command)
+    if (player.isHost) {
+      throw new LobbyError(
+        ERROR_CODE.PLAYER_NOT_FOUND,
+        'Le maître du jeu ne possède pas de rôle joueur.',
+      )
+    }
+    return toPrivateAssignment(room, player.id)
+  }
+
+  async getHostDashboard(command: SessionCommand): Promise<HostDashboard> {
+    assertConnectionId(command.connectionId)
+    const room = await this.dependencies.repository.read()
+    if (!room) {
+      throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+    }
+    assertStartedGame(room)
+    const player = authenticateConnectedSession(room, command)
+    assertHost(player)
+    return toHostDashboard(room)
+  }
+
+  async accessRole(roleAccessToken: string): Promise<RoleAccessResponse> {
+    const parsedToken = roleAccessTokenSchema.safeParse(roleAccessToken)
+    if (!parsedToken.success) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_ROLE_TOKEN,
+        'Le lien de rôle est invalide.',
+      )
+    }
+
+    const room = await this.dependencies.repository.read()
+    if (!room || room.phase === ROOM_PHASE.CLOSED) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_ROLE_TOKEN,
+        'Le lien de rôle est invalide.',
+      )
+    }
+    assertStartedGame(room)
+
+    const grant = room.game?.roleAccessGrants.find(
+      (candidate) => candidate.token === parsedToken.data,
+    )
+    if (!grant) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_ROLE_TOKEN,
+        'Le lien de rôle est invalide.',
+      )
+    }
+
+    return toRoleAccessResponse(room, grant)
   }
 
   cleanup(): Promise<CleanupResult> {

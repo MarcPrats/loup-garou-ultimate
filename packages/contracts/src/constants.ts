@@ -27,6 +27,12 @@ export const ROOM_PHASE = {
 } as const
 export type RoomPhase = ValueOf<typeof ROOM_PHASE>
 
+export const ROLE_ACCESS_VIEW = {
+  PLAYER: 'player',
+  GAME_MASTER: 'game-master',
+} as const
+export type RoleAccessView = ValueOf<typeof ROLE_ACCESS_VIEW>
+
 export const SESSION_DESTINATION = {
   LOBBY: 'lobby',
   PLAYER_ROLE: 'player-role',

@@ -1,10 +1,16 @@
 import type {
   PlayerId,
   PlayerName,
+  RoleAccessToken,
+  RoleAccessView,
   RoomClosedReason,
   RoomPhase,
   SessionToken,
 } from '@lgu/contracts'
+import type {
+  AssignablePlayer,
+  AssignmentResult,
+} from '@lgu/game-core'
 
 export type ConnectionId = string
 
@@ -21,6 +27,18 @@ export interface LobbyPlayerState {
   disconnectedAt: number | null
 }
 
+export interface RoleAccessGrant {
+  readonly playerId: PlayerId
+  readonly token: RoleAccessToken
+  readonly view: RoleAccessView
+}
+
+export interface StoredGameState {
+  readonly assignment: AssignmentResult
+  readonly roleAccessGrants: readonly RoleAccessGrant[]
+  readonly startedAt: number
+}
+
 export interface LobbyRoomState {
   readonly id: 'main'
   phase: RoomPhase
@@ -30,10 +48,15 @@ export interface LobbyRoomState {
   lastActivityAt: number
   closedAt: number | null
   closeReason: RoomClosedReason | null
+  game: StoredGameState | null
 }
 
 export interface Clock {
   now(): number
+}
+
+export interface GameAssignmentGenerator {
+  assign(players: readonly AssignablePlayer[]): AssignmentResult
 }
 
 export interface ValueGenerator {
