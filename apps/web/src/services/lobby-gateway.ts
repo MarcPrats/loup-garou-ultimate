@@ -61,6 +61,7 @@ export interface LobbyGatewayHandlers {
 export interface LobbyGateway {
   connect(): Promise<void>
   reconnect(): Promise<void>
+  disconnect(): void
   subscribe(handlers: LobbyGatewayHandlers): () => void
   enter(playerName: string): Promise<Ack<RoomEntryResponse>>
   resume(sessionToken: SessionToken): Promise<Ack<SessionResumeResponse>>
@@ -128,6 +129,10 @@ export class SocketLobbyGateway implements LobbyGateway {
   async reconnect(): Promise<void> {
     this.socket.disconnect()
     await this.connect()
+  }
+
+  disconnect(): void {
+    this.socket.disconnect()
   }
 
   subscribe(handlers: LobbyGatewayHandlers): () => void {

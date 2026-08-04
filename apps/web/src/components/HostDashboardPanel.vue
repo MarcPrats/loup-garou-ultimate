@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
-import type { HostDashboard } from '@lgu/contracts'
+import { SPECIAL_INFORMATION_TYPE, TEAM, type HostDashboard } from '@lgu/contracts'
 
+import { LEGACY_PAGE } from '../constants/app'
 import { getRolePresentation } from '../constants/role-presentation'
-import HostAssignmentCard from './HostAssignmentCard.vue'
 import RoleAccessLink from './RoleAccessLink.vue'
 
 const props = withDefaults(defineProps<{
@@ -13,101 +13,61 @@ const props = withDefaults(defineProps<{
 }>(), {
   showAccessLink: true,
 })
-
 const emit = defineEmits<{ copied: [] }>()
-const query = ref('')
 
-const connectedCount = computed(() => (
-  props.dashboard.players.filter((entry) => entry.player.connected).length
-))
-const filteredAssignments = computed(() => {
-  const normalized = query.value.trim().toLocaleLowerCase('fr')
-  if (!normalized) return props.dashboard.players
-  return props.dashboard.players.filter((entry) => {
-    const roleName = getRolePresentation(entry.role.id)?.name ?? entry.role.id
-    const bluffName = entry.bluffRoleId
-      ? getRolePresentation(entry.bluffRoleId)?.name ?? entry.bluffRoleId
-      : ''
-    return [entry.player.name, roleName, bluffName]
-      .some((value) => value.toLocaleLowerCase('fr').includes(normalized))
-  })
-})
+const assignments = computed(() => props.dashboard.players.map((assignment) => ({
+  ...assignment,
+  rolePresentation: getRolePresentation(assignment.role.id),
+  bluffPresentation: assignment.bluffRoleId ? getRolePresentation(assignment.bluffRoleId) : null,
+  cluePresentation: assignment.specialInformation ? getRolePresentation(assignment.specialInformation.roleId) : null,
+})))
 </script>
 
 <template>
-  <div class="space-y-6">
-    <header>
-      <p class="text-sm font-bold uppercase tracking-[0.22em] text-lgu-orange">
-        Tableau privé du maître du jeu
-      </p>
-      <h1 class="mt-2 font-display text-4xl font-bold text-white sm:text-6xl">
-        Attributions de la partie
-      </h1>
-      <p class="mt-4 max-w-3xl leading-7 text-slate-300">
-        Cette vue contient toutes les informations secrètes. Ne la montrez jamais aux joueurs.
-      </p>
+  <div class="legacy-gm-view">
+    <header class="legacy-gm-header">
+      <h2>👑 Maître du Jeu</h2>
+      <p class="legacy-subtitle">Vue d'ensemble de tous les rôles</p>
+      <div class="legacy-gm-stats"><span class="legacy-gm-stat">🎮 {{ dashboard.playerCount }} Joueurs</span></div>
+      <div class="legacy-gm-team-counts">
+        <span class="legacy-gm-team-stat werewolf">🐺 {{ dashboard.werewolfCount }} Loups-Garous</span>
+        <span class="legacy-gm-team-stat villager">👥 {{ dashboard.villagerTeamCount }} Villageois</span>
+      </div>
     </header>
 
-    <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      <div class="rounded-2xl border border-white/10 bg-white/5 p-5">
-        <p class="text-sm text-slate-400">Joueurs</p>
-        <p class="mt-1 font-display text-3xl font-bold text-white">{{ dashboard.playerCount }}</p>
-      </div>
-      <div class="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 p-5">
-        <p class="text-sm text-emerald-200/75">Camp du village</p>
-        <p class="mt-1 font-display text-3xl font-bold text-emerald-100">{{ dashboard.villagerTeamCount }}</p>
-      </div>
-      <div class="rounded-2xl border border-purple-400/20 bg-purple-400/10 p-5">
-        <p class="text-sm text-purple-200/75">Loups-garous</p>
-        <p class="mt-1 font-display text-3xl font-bold text-purple-100">{{ dashboard.werewolfCount }}</p>
-      </div>
-      <div class="rounded-2xl border border-sky-400/20 bg-sky-400/10 p-5">
-        <p class="text-sm text-sky-200/75">Connectés</p>
-        <p class="mt-1 font-display text-3xl font-bold text-sky-100">{{ connectedCount }}</p>
-      </div>
-    </section>
+    <div class="legacy-gm-table-container">
+      <table class="legacy-gm-table">
+        <thead><tr><th>Joueur</th><th>Rôle</th><th>Équipe</th><th>Détails</th></tr></thead>
+        <tbody>
+          <tr v-for="assignment in assignments" :key="assignment.player.id">
+            <td><div class="legacy-gm-player-name">{{ assignment.player.name }}</div></td>
+            <td>
+              <div class="legacy-gm-role-name">
+                <img v-if="assignment.rolePresentation" class="legacy-gm-role-image" :src="assignment.rolePresentation.imagePath" :alt="assignment.rolePresentation.name">
+                <span>{{ assignment.rolePresentation?.name ?? assignment.role.id }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="legacy-gm-team-badge" :class="assignment.role.team === TEAM.WEREWOLVES ? 'team-werewolves' : 'team-villagers'">
+                {{ assignment.role.team === TEAM.WEREWOLVES ? '🐺 Loup-Garou' : '👥 Villageois' }}
+              </span>
+            </td>
+            <td><div class="legacy-gm-details">
+              <span v-if="assignment.isDrunk" class="legacy-drunk-badge">🍺 Bourré</span>
+              <div v-if="assignment.specialInformation" class="legacy-gm-detail-card clue">
+                <strong>{{ assignment.specialInformation.type === SPECIAL_INFORMATION_TYPE.RENARD ? '🦊 Info Renard' : '👧 Info Petite Fille' }}</strong><br>
+                {{ assignment.specialInformation.type === SPECIAL_INFORMATION_TYPE.RENARD ? 'Loup' : 'Villageois' }}: {{ assignment.cluePresentation?.name ?? assignment.specialInformation.roleId }}<br>
+                Joueurs: {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}
+              </div>
+              <div v-if="assignment.bluffPresentation" class="legacy-gm-detail-card bluff"><strong>🎭 Rôle Bluff</strong><br>{{ assignment.bluffPresentation.name }}</div>
+              <div v-if="assignment.isVoyanteDecoy" class="legacy-gm-detail-card decoy"><strong>🔮 Leurre Voyante</strong></div>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-    <RoleAccessLink
-      v-if="showAccessLink"
-      :token="dashboard.roleAccessToken"
-      @copied="emit('copied')"
-    />
-
-    <section class="rounded-3xl border border-white/10 bg-slate-900/70 p-5 sm:p-7">
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 class="font-display text-3xl font-bold text-white">Joueurs et rôles</h2>
-          <p class="mt-2 text-sm text-slate-400">
-            Ouvrez une fiche pour consulter tous ses secrets.
-          </p>
-        </div>
-        <div class="sm:w-72">
-          <label for="assignment-search" class="text-sm font-bold text-slate-300">
-            Rechercher
-          </label>
-          <input
-            id="assignment-search"
-            v-model="query"
-            type="search"
-            placeholder="Joueur ou rôle"
-            class="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white placeholder:text-slate-500"
-          >
-        </div>
-      </div>
-
-      <div class="mt-6 space-y-3">
-        <HostAssignmentCard
-          v-for="assignment in filteredAssignments"
-          :key="assignment.player.id"
-          :assignment="assignment"
-        />
-        <p
-          v-if="filteredAssignments.length === 0"
-          class="rounded-2xl border border-dashed border-white/15 p-6 text-center text-slate-400"
-        >
-          Aucun joueur ne correspond à cette recherche.
-        </p>
-      </div>
-    </section>
+    <a :href="LEGACY_PAGE.RULES" class="legacy-btn legacy-btn-secondary legacy-rules-button">📖 Consulter les Règles</a>
+    <RoleAccessLink v-if="showAccessLink" class="legacy-private-link" :token="dashboard.roleAccessToken" @copied="emit('copied')" />
   </div>
 </template>

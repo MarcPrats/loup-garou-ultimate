@@ -16,8 +16,8 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-10 text-white sm:py-14">
-    <div class="mx-auto w-full max-w-4xl">
+  <main class="legacy-page">
+    <div class="legacy-screen legacy-game-container">
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
@@ -42,7 +42,7 @@ async function confirmLeave(): Promise<void> {
       />
       <button
         type="button"
-        class="mx-auto mt-8 block rounded-2xl border border-white/15 px-6 py-3 font-bold text-slate-200 hover:bg-white/10"
+        class="legacy-btn legacy-btn-back legacy-leave-button"
         @click="confirmingLeave = true"
       >
         Quitter la partie

@@ -28,17 +28,26 @@ export const STORAGE_KEY = {
 
 export const ROUTE_NAME = {
   HOME: 'home',
+  ENTRY: 'entry',
   LOBBY: 'lobby',
   PLAYER_ROLE: 'player-role',
   GAME_MASTER: 'game-master',
   ROLE_ACCESS: 'role-access',
+  SIMULATOR: 'simulator',
 } as const
 export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME]
 
 export const ROUTE_PATH = {
   HOME: '/',
+  ENTRY: '/waiting_room',
   LOBBY: '/lobby',
   PLAYER_ROLE: '/role',
   GAME_MASTER: '/game-master',
   ROLE_ACCESS: '/access',
+  SIMULATOR: '/simulator',
+} as const
+
+export const LEGACY_PAGE = {
+  RULES: '/reference.html',
+  WIKI: 'https://wiki.bloodontheclocktower.com/Trouble_Brewing',
 } as const

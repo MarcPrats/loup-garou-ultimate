@@ -2,6 +2,7 @@ import type { Pinia } from 'pinia'
 import {
   createRouter,
   createWebHistory,
+  type RouteRecordRaw,
 } from 'vue-router'
 
 import { SESSION_DESTINATION, type SessionDestination } from '@lgu/contracts'
@@ -13,6 +14,13 @@ import HomeView from '../views/HomeView.vue'
 import LobbyView from '../views/LobbyView.vue'
 import PlayerRoleView from '../views/PlayerRoleView.vue'
 import RoleAccessView from '../views/RoleAccessView.vue'
+
+export function shouldRedirectToSimulator(
+  simulatorOnly: boolean,
+  routeName: unknown,
+): boolean {
+  return simulatorOnly && routeName !== ROUTE_NAME.SIMULATOR
+}
 
 export function routeNameForDestination(
   destination: SessionDestination | null,
@@ -29,43 +37,65 @@ export function routeNameForDestination(
 
 
 export function createAppRouter(pinia: Pinia) {
+  const routes: RouteRecordRaw[] = [
+    {
+      path: ROUTE_PATH.HOME,
+      name: ROUTE_NAME.HOME,
+      component: HomeView,
+    },
+    {
+      path: ROUTE_PATH.ENTRY,
+      alias: ['/waiting_room/', '/waiting-room', '/waiting-room/'],
+      name: ROUTE_NAME.ENTRY,
+      component: HomeView,
+    },
+    {
+      path: ROUTE_PATH.LOBBY,
+      name: ROUTE_NAME.LOBBY,
+      component: LobbyView,
+      meta: { requiresSession: true },
+    },
+    {
+      path: ROUTE_PATH.PLAYER_ROLE,
+      name: ROUTE_NAME.PLAYER_ROLE,
+      component: PlayerRoleView,
+      meta: { requiresSession: true },
+    },
+    {
+      path: ROUTE_PATH.GAME_MASTER,
+      name: ROUTE_NAME.GAME_MASTER,
+      component: GameMasterView,
+      meta: { requiresSession: true },
+    },
+    {
+      path: ROUTE_PATH.ROLE_ACCESS,
+      name: ROUTE_NAME.ROLE_ACCESS,
+      component: RoleAccessView,
+      meta: { roleAccess: true },
+    },
+  ]
+
+  if (__SIMULATOR_ENABLED__) {
+    routes.push({
+      path: ROUTE_PATH.SIMULATOR,
+      name: ROUTE_NAME.SIMULATOR,
+      component: () => import(
+        '../features/simulator/SimulatorView.vue'
+      ),
+      meta: { simulator: true },
+    })
+  }
+
   const router = createRouter({
     history: createWebHistory(),
-    routes: [
-      {
-        path: ROUTE_PATH.HOME,
-        name: ROUTE_NAME.HOME,
-        component: HomeView,
-      },
-      {
-        path: ROUTE_PATH.LOBBY,
-        name: ROUTE_NAME.LOBBY,
-        component: LobbyView,
-        meta: { requiresSession: true },
-      },
-      {
-        path: ROUTE_PATH.PLAYER_ROLE,
-        name: ROUTE_NAME.PLAYER_ROLE,
-        component: PlayerRoleView,
-        meta: { requiresSession: true },
-      },
-      {
-        path: ROUTE_PATH.GAME_MASTER,
-        name: ROUTE_NAME.GAME_MASTER,
-        component: GameMasterView,
-        meta: { requiresSession: true },
-      },
-      {
-        path: ROUTE_PATH.ROLE_ACCESS,
-        name: ROUTE_NAME.ROLE_ACCESS,
-        component: RoleAccessView,
-        meta: { roleAccess: true },
-      },
-    ],
+    routes,
     scrollBehavior: () => ({ top: 0 }),
   })
 
   router.beforeEach(async (to) => {
+    if (shouldRedirectToSimulator(__SIMULATOR_ONLY__, to.name)) {
+      return { name: ROUTE_NAME.SIMULATOR }
+    }
     if (!to.meta.requiresSession) return true
 
     const lobby = useLobbyStore(pinia)

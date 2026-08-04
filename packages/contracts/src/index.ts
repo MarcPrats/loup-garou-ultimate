@@ -125,8 +125,10 @@ export {
   simulatedPlayerSummarySchema,
   simulatorCreateCommandSchema,
   simulatorGameSchema,
+  simulatorScenarioSchema,
   type SimulatedPlayerSummary,
   type SimulatorCreateCommand,
   type SimulatorGame,
+  type SimulatorScenario,
 } from './simulator'
 export type { ClientToServerEvents, ServerToClientEvents } from './socket-events'

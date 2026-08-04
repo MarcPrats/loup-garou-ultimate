@@ -73,6 +73,11 @@ class FakeSocket {
     return this
   }
 
+  disconnect(): this {
+    this.connected = false
+    return this
+  }
+
   fire(event: string): void {
     for (const handler of this.listeners.get(event) ?? []) handler()
   }

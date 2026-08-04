@@ -81,8 +81,9 @@ class FakeGateway implements LobbyGateway {
     room: createRoom(),
     destination: SESSION_DESTINATION.LOBBY,
   })
-  readonly connect = vi.fn(async () => undefined)
-  readonly reconnect = vi.fn(async () => undefined)
+  readonly connect = vi.fn<() => Promise<void>>(async () => undefined)
+  readonly reconnect = vi.fn<() => Promise<void>>(async () => undefined)
+  readonly disconnect = vi.fn(() => undefined)
   readonly resume = vi.fn(async (_token: SessionToken) => this.resumeResponse)
   readonly enter = vi.fn(async (_name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
@@ -250,6 +251,71 @@ describe('lobby store', () => {
     )
 
     expect(gateway.reconnect).toHaveBeenCalledOnce()
+    store.dispose()
+  })
+
+
+  it('does not construct or connect the gateway when simulator mode starts first', () => {
+    const gateway = new FakeGateway()
+    const getGateway = vi.fn(() => gateway)
+    const useStore = createLobbyStoreDefinition(
+      'lobby-simulator-isolation',
+      { getGateway, storage: new FakeStorage() },
+    )
+    const store = useStore()
+
+    store.suspendRealtime()
+
+    expect(getGateway).not.toHaveBeenCalled()
+    expect(gateway.connect).not.toHaveBeenCalled()
+    expect(gateway.disconnect).not.toHaveBeenCalled()
+    store.dispose()
+  })
+
+
+  it('invalidates an in-flight initialization while simulator mode is active', async () => {
+    let resolveConnect: () => void = () => undefined
+    const gateway = new FakeGateway()
+    gateway.connect.mockImplementationOnce(() => new Promise<void>((resolve) => {
+      resolveConnect = resolve
+    }))
+    const storage = new FakeStorage(SESSION)
+    const store = createStore(gateway, storage)
+
+    const initializing = store.initialize()
+    await Promise.resolve()
+    store.suspendRealtime()
+    resolveConnect()
+    await initializing
+
+    expect(gateway.disconnect).toHaveBeenCalled()
+    expect(gateway.resume).not.toHaveBeenCalled()
+    expect(storage.save).not.toHaveBeenCalled()
+
+    await store.resumeRealtime()
+    expect(gateway.resume).toHaveBeenCalledWith(SESSION.sessionToken)
+    expect(store.room).not.toBeNull()
+    store.dispose()
+  })
+
+  it('cancels private-view recovery timers when realtime is suspended', async () => {
+    vi.useFakeTimers()
+    const gateway = new FakeGateway()
+    const store = createStore(gateway, new FakeStorage(SESSION))
+    await store.initialize()
+    gateway.reconnect.mockClear()
+
+    gateway.handlers?.onRoomSnapshot({
+      ...createRoom(2),
+      phase: ROOM_PHASE.STARTED,
+      canStart: false,
+    })
+    store.suspendRealtime()
+    await vi.advanceTimersByTimeAsync(
+      CLIENT_TIMING.PRIVATE_VIEW_RECOVERY_DELAY_MS,
+    )
+
+    expect(gateway.reconnect).not.toHaveBeenCalled()
     store.dispose()
   })
 

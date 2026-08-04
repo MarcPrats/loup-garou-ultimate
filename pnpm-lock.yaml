@@ -30,6 +30,9 @@ importers:
       '@lgu/game-core':
         specifier: workspace:*
         version: link:../../packages/game-core
+      '@lgu/game-projection':
+        specifier: workspace:*
+        version: link:../../packages/game-projection
       fastify:
         specifier: ^5.4.0
         version: 5.10.0
@@ -67,6 +70,9 @@ importers:
       '@lgu/game-core':
         specifier: workspace:*
         version: link:../../packages/game-core
+      '@lgu/game-projection':
+        specifier: workspace:*
+        version: link:../../packages/game-projection
       pinia:
         specifier: ^3.0.0
         version: 3.0.4(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))
@@ -125,6 +131,22 @@ importers:
         version: 3.2.7(@types/node@24.13.3)(happy-dom@18.0.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)
 
   packages/game-core:
+    devDependencies:
+      typescript:
+        specifier: ^5.9.0
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@24.13.3)(happy-dom@18.0.1)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.1)
+
+  packages/game-projection:
+    dependencies:
+      '@lgu/contracts':
+        specifier: workspace:*
+        version: link:../contracts
+      '@lgu/game-core':
+        specifier: workspace:*
+        version: link:../game-core
     devDependencies:
       typescript:
         specifier: ^5.9.0

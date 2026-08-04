@@ -89,6 +89,8 @@ export function createLobbyStoreDefinition(
     let sessionEpoch = 0
     let privateRecoveryTimer: number | null = null
     let retiringSession = false
+    let realtimeSuspended = false
+    let realtimeEpoch = 0
 
     const currentPlayer = computed<PublicPlayer | null>(() => {
       if (!credentials.value || !room.value) return null
@@ -211,19 +213,26 @@ export function createLobbyStoreDefinition(
     }
 
     async function resumeStoredSession(): Promise<void> {
-      if (!credentials.value || connectionState.value !== CONNECTION_STATE.ONLINE) {
+      if (
+        realtimeSuspended
+        || !credentials.value
+        || connectionState.value !== CONNECTION_STATE.ONLINE
+      ) {
         return
       }
       if (resumePromise) return resumePromise
 
       const expectedEpoch = sessionEpoch
+      const expectedRealtimeEpoch = realtimeEpoch
       const expectedToken = credentials.value.sessionToken
       restoringSession.value = true
       resumePromise = (async () => {
         try {
           const response = await getGateway().resume(expectedToken)
           if (
-            sessionEpoch !== expectedEpoch
+            realtimeSuspended
+            || realtimeEpoch !== expectedRealtimeEpoch
+            || sessionEpoch !== expectedEpoch
             || credentials.value?.sessionToken !== expectedToken
           ) return
           if (!response.ok) {
@@ -239,13 +248,18 @@ export function createLobbyStoreDefinition(
           showNotice(NOTIFICATION_LEVEL.SUCCESS, MESSAGE.SESSION_RESTORED)
         } catch (caught) {
           if (
-            sessionEpoch === expectedEpoch
+            !realtimeSuspended
+            && realtimeEpoch === expectedRealtimeEpoch
+            && sessionEpoch === expectedEpoch
             && credentials.value?.sessionToken === expectedToken
           ) {
             setCommandError(caught)
           }
         } finally {
-          if (sessionEpoch === expectedEpoch) restoringSession.value = false
+          if (
+            realtimeEpoch === expectedRealtimeEpoch
+            && sessionEpoch === expectedEpoch
+          ) restoringSession.value = false
           resumePromise = null
         }
       })()
@@ -254,6 +268,11 @@ export function createLobbyStoreDefinition(
     }
 
     function handleConnectionState(state: ConnectionState): void {
+      if (realtimeSuspended) {
+        connectionState.value = CONNECTION_STATE.OFFLINE
+        if (state === CONNECTION_STATE.ONLINE) getGateway().disconnect()
+        return
+      }
       connectionState.value = state
       if (state === CONNECTION_STATE.ONLINE) {
         if (!credentials.value) clearError()
@@ -271,34 +290,43 @@ export function createLobbyStoreDefinition(
         onSystemReady: () => {
           handleConnectionState(CONNECTION_STATE.ONLINE)
         },
-        onRoomSnapshot: applyRoomSnapshot,
+        onRoomSnapshot: (snapshot) => {
+          if (!realtimeSuspended) applyRoomSnapshot(snapshot)
+        },
         onGameStarted: () => {
+          if (realtimeSuspended) return
           showNotice(NOTIFICATION_LEVEL.SUCCESS, MESSAGE.GAME_STARTED)
         },
         onPrivateAssignment: (assignment) => {
+          if (realtimeSuspended) return
           if (assignment.player.id !== credentials.value?.playerId) return
           privateAssignment.value = assignment
           destination.value = SESSION_DESTINATION.PLAYER_ROLE
           cancelPrivateViewRecovery()
         },
         onHostDashboard: (dashboard) => {
+          if (realtimeSuspended) return
           if (!currentPlayer.value?.isHost) return
           hostDashboard.value = dashboard
           destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()
         },
         onRoomClosed: (event) => {
+          if (realtimeSuspended) return
           clearSession()
           showNotice(NOTIFICATION_LEVEL.ERROR, event.message)
         },
         onSessionEnded: (event) => {
+          if (realtimeSuspended) return
           clearSession()
           showNotice(NOTIFICATION_LEVEL.WARNING, event.message)
         },
         onNotification: (event) => {
+          if (realtimeSuspended) return
           showNotice(event.level, event.message)
         },
         onProtocolError: () => {
+          if (realtimeSuspended) return
           error.value = {
             code: ERROR_CODE.INTERNAL_ERROR,
             message: MESSAGE.PROTOCOL_ERROR,
@@ -311,16 +339,29 @@ export function createLobbyStoreDefinition(
     function initialize(): Promise<void> {
       if (initializePromise) return initializePromise
 
+      const expectedRealtimeEpoch = realtimeEpoch
       initializePromise = (async () => {
         registerGatewayHandlers()
         connectionState.value = CONNECTION_STATE.CONNECTING
         try {
           await getGateway().connect()
+          if (
+            realtimeSuspended
+            || realtimeEpoch !== expectedRealtimeEpoch
+          ) {
+            getGateway().disconnect()
+            return
+          }
           connectionState.value = CONNECTION_STATE.ONLINE
           await resumeStoredSession()
         } catch (caught) {
-          connectionState.value = CONNECTION_STATE.ERROR
-          setCommandError(caught)
+          if (
+            !realtimeSuspended
+            && realtimeEpoch === expectedRealtimeEpoch
+          ) {
+            connectionState.value = CONNECTION_STATE.ERROR
+            setCommandError(caught)
+          }
         } finally {
           initialized.value = true
         }
@@ -430,7 +471,8 @@ export function createLobbyStoreDefinition(
 
     function startKeepAlive(): void {
       if (
-        keepAliveTimer !== null
+        realtimeSuspended
+        || keepAliveTimer !== null
         || !credentials.value
         || !room.value
         || connectionState.value !== CONNECTION_STATE.ONLINE
@@ -453,13 +495,15 @@ export function createLobbyStoreDefinition(
     }
 
     function schedulePrivateViewRecovery(): void {
+      if (realtimeSuspended) return
       if (destination.value !== SESSION_DESTINATION.LOBBY) return
       if (privateRecoveryTimer !== null) return
       const expectedEpoch = sessionEpoch
       privateRecoveryTimer = window.setTimeout(() => {
         privateRecoveryTimer = null
         if (
-          sessionEpoch === expectedEpoch
+          !realtimeSuspended
+          && sessionEpoch === expectedEpoch
           && room.value?.phase === ROOM_PHASE.STARTED
           && destination.value === SESSION_DESTINATION.LOBBY
         ) {
@@ -514,6 +558,39 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    function suspendRealtime(): void {
+      realtimeSuspended = true
+      realtimeEpoch += 1
+      stopKeepAlive()
+      cancelPrivateViewRecovery()
+      resumePromise = null
+      restoringSession.value = false
+      connectionState.value = CONNECTION_STATE.OFFLINE
+      if (unsubscribe) getGateway().disconnect()
+    }
+
+    async function resumeRealtime(): Promise<void> {
+      realtimeSuspended = false
+      realtimeEpoch += 1
+      if (!initialized.value) await initialize()
+      if (realtimeSuspended) return
+      try {
+        connectionState.value = CONNECTION_STATE.CONNECTING
+        await getGateway().connect()
+        if (realtimeSuspended) {
+          getGateway().disconnect()
+          return
+        }
+        connectionState.value = CONNECTION_STATE.ONLINE
+        await resumeStoredSession()
+      } catch (caught) {
+        if (!realtimeSuspended) {
+          connectionState.value = CONNECTION_STATE.ERROR
+          setCommandError(caught)
+        }
+      }
+    }
+
     function dispose(): void {
       unsubscribe?.()
       unsubscribe = null
@@ -556,6 +633,8 @@ export function createLobbyStoreDefinition(
       showCopiedNotice,
       retryRestoration,
       startNewSession,
+      suspendRealtime,
+      resumeRealtime,
       dispose,
     }
   })

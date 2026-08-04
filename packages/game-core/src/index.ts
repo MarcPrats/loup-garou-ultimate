@@ -15,6 +15,7 @@ export {
 } from './constants'
 export {
   createMathRandomSource,
+  createSeededRandomSource,
   pickRandom,
   randomIndex,
   shuffle,

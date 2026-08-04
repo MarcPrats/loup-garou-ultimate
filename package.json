@@ -10,12 +10,12 @@
   "scripts": {
     "start": "node server.js",
     "start:v3": "pnpm --filter @lgu/server start",
-    "simulator": "ENABLE_SIMULATOR=true npm start",
+    "simulator": "pnpm --filter @lgu/web dev --mode simulator --open /simulator",
     "dev": "nodemon server.js",
     "dev:legacy": "nodemon server.js",
     "test:legacy": "node test/petite-fille-rule.test.js && node test/role-assignment.test.js",
     "dev:v3": "pnpm --parallel --filter @lgu/web --filter @lgu/server run dev",
-    "build:v3": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
+    "build:v3": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/game-projection build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
     "typecheck:v3": "pnpm -r --if-present run typecheck",
     "test:v3": "pnpm -r --if-present run test",
     "test": "pnpm test:legacy && pnpm test:v3"

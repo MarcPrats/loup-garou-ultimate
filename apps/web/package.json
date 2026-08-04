@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && node scripts/verify-production-build.mjs",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run"
   },
@@ -16,7 +16,8 @@
     "socket.io-client": "^4.8.0",
     "vue": "^3.5.0",
     "vue-router": "^4.5.0",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "@lgu/game-projection": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.0",

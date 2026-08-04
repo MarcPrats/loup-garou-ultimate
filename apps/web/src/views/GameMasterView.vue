@@ -16,8 +16,8 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-10 text-white sm:py-14">
-    <div class="mx-auto w-full max-w-6xl">
+  <main class="legacy-page">
+    <div class="legacy-screen legacy-gm-container">
       <HostDashboardPanel
         v-if="lobby.hostDashboard"
         :dashboard="lobby.hostDashboard"
@@ -42,7 +42,7 @@ async function confirmLeave(): Promise<void> {
       />
       <button
         type="button"
-        class="mx-auto mt-8 block rounded-2xl border border-red-400/25 bg-red-400/10 px-6 py-3 font-bold text-red-200 hover:bg-red-400/20"
+        class="legacy-btn legacy-btn-back legacy-leave-button"
         @click="confirmingLeave = true"
       >
         Fermer la partie
