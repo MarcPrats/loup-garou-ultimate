@@ -16,7 +16,7 @@ test('runs the complete production game flow with private views and legacy rules
     const home = await homeContext.newPage()
     await home.goto('/')
     await expect(home.locator('.legacy-home-action')).toHaveText([
-      '🎮 Lancer la partie',
+      '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '📚 Wiki des règles',
     ])

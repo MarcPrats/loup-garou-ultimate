@@ -77,7 +77,7 @@ onMounted(() => void lobby.initialize())
       <h1>Loup Garou Ultime</h1>
       <nav class="legacy-home-actions" aria-label="Actions principales">
         <a id="entry-btn" :href="ROUTE_PATH.ENTRY" class="legacy-home-action legacy-home-action-primary">
-          🎮 Lancer la partie
+          🎮 Créer / Rejoindre la partie
         </a>
         <a :href="LEGACY_PAGE.RULES" class="legacy-home-action">📜 Règles</a>
         <a :href="LEGACY_PAGE.WIKI" class="legacy-home-action" target="_blank" rel="noopener noreferrer">

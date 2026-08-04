@@ -33,7 +33,7 @@ describe('legacy UI parity', () => {
     await router.isReady()
     const wrapper = mount(HomeView, { global: { plugins: [pinia, router] } })
     expect(wrapper.findAll('.legacy-home-action').map((item) => item.text())).toEqual([
-      '🎮 Lancer la partie',
+      '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '📚 Wiki des règles',
     ])
