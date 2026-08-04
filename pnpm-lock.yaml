@@ -64,6 +64,9 @@ importers:
       '@lgu/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@lgu/game-core':
+        specifier: workspace:*
+        version: link:../../packages/game-core
       pinia:
         specifier: ^3.0.0
         version: 3.0.4(typescript@5.9.3)(vue@3.5.40(typescript@5.9.3))

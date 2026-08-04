@@ -193,6 +193,7 @@ describe('lobby store', () => {
     expect(store.hostDashboard).toBeNull()
 
     gateway.handlers?.onHostDashboard({
+      roleAccessToken: 'role_00000000000000000000000000000000002',
       players: [],
       playerCount: 1,
       werewolfCount: 0,

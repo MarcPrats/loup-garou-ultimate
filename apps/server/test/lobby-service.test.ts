@@ -456,7 +456,9 @@ describe('LobbyService', () => {
 
     expect(playerAccess.view).toBe(ROLE_ACCESS_VIEW.PLAYER)
     expect(hostAccess.view).toBe(ROLE_ACCESS_VIEW.GAME_MASTER)
-    expect(JSON.stringify(hostAccess)).not.toContain('role_')
+    if (hostAccess.view === ROLE_ACCESS_VIEW.GAME_MASTER) {
+      expect(hostAccess.dashboard.roleAccessToken).toMatch(/^role_/)
+    }
     await expectLobbyError(
       service.accessRole('invalid_role_token_that_is_long_enough_000000'),
       ERROR_CODE.INVALID_ROLE_TOKEN,

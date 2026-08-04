@@ -13,6 +13,7 @@ const route = useRoute()
 const router = useRouter()
 
 async function synchronizeRoute(): Promise<void> {
+  if (route.meta.roleAccess) return
   if (!lobby.initialized) return
   if (!lobby.hasSession) {
     if (route.name !== ROUTE_NAME.HOME) {

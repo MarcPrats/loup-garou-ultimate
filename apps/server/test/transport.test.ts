@@ -426,7 +426,7 @@ describe('V3 transport', () => {
     expect(hostResponse.json()).toMatchObject({
       view: ROLE_ACCESS_VIEW.GAME_MASTER,
     })
-    expect(JSON.stringify(hostResponse.json())).not.toContain('role_')
+    expect(hostResponse.json().dashboard.roleAccessToken).toBe(hostToken)
 
     const invalidResponse = await runtime.app.inject({
       method: 'GET',

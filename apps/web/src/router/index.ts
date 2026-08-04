@@ -12,6 +12,7 @@ import GameMasterView from '../views/GameMasterView.vue'
 import HomeView from '../views/HomeView.vue'
 import LobbyView from '../views/LobbyView.vue'
 import PlayerRoleView from '../views/PlayerRoleView.vue'
+import RoleAccessView from '../views/RoleAccessView.vue'
 
 export function routeNameForDestination(
   destination: SessionDestination | null,
@@ -53,6 +54,12 @@ export function createAppRouter(pinia: Pinia) {
         name: ROUTE_NAME.GAME_MASTER,
         component: GameMasterView,
         meta: { requiresSession: true },
+      },
+      {
+        path: ROUTE_PATH.ROLE_ACCESS,
+        name: ROUTE_NAME.ROLE_ACCESS,
+        component: RoleAccessView,
+        meta: { roleAccess: true },
       },
     ],
     scrollBehavior: () => ({ top: 0 }),

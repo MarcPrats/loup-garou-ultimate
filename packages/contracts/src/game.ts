@@ -8,7 +8,11 @@ import {
   type RoomClosedReason,
   type SessionEndedReason,
 } from './constants'
-import { revisionSchema, timestampSchema } from './identifiers'
+import {
+  revisionSchema,
+  roleAccessTokenSchema,
+  timestampSchema,
+} from './identifiers'
 import { hostPlayerAssignmentSchema } from './roles'
 
 const notificationLevelValues = Object.values(NOTIFICATION_LEVEL) as [
@@ -38,6 +42,7 @@ export const gameStartedEventSchema = z.object({
 }).strict()
 
 export const hostDashboardSchema = z.object({
+  roleAccessToken: roleAccessTokenSchema,
   players: z.array(hostPlayerAssignmentSchema),
   playerCount: z.number().int().positive(),
   werewolfCount: z.number().int().nonnegative(),

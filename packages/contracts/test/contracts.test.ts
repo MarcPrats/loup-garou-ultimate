@@ -14,6 +14,7 @@ import {
   ackSuccess,
   createAckSchema,
   healthResponseSchema,
+  hostDashboardSchema,
   hostPlayerAssignmentSchema,
   privateAssignmentSchema,
   publicErrorSchema,
@@ -82,6 +83,22 @@ describe('privacy boundaries', () => {
       ...privateAssignment,
       isDrunk: true,
     }).success).toBe(false)
+  })
+
+  it('requires a private role-access token in the MJ dashboard', () => {
+    expect(hostDashboardSchema.safeParse({
+      players: [],
+      playerCount: 1,
+      werewolfCount: 0,
+      villagerTeamCount: 1,
+    }).success).toBe(false)
+    expect(hostDashboardSchema.safeParse({
+      roleAccessToken: token,
+      players: [],
+      playerCount: 1,
+      werewolfCount: 0,
+      villagerTeamCount: 1,
+    }).success).toBe(true)
   })
 
   it('requires hidden fields in the MJ assignment', () => {

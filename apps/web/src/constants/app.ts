@@ -31,6 +31,7 @@ export const ROUTE_NAME = {
   LOBBY: 'lobby',
   PLAYER_ROLE: 'player-role',
   GAME_MASTER: 'game-master',
+  ROLE_ACCESS: 'role-access',
 } as const
 export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME]
 
@@ -39,4 +40,5 @@ export const ROUTE_PATH = {
   LOBBY: '/lobby',
   PLAYER_ROLE: '/role',
   GAME_MASTER: '/game-master',
+  ROLE_ACCESS: '/access',
 } as const

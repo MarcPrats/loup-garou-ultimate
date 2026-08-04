@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
+import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
@@ -15,34 +16,44 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="grid min-h-screen place-items-center px-4 py-12 text-white">
-    <section class="w-full max-w-xl rounded-[2rem] border border-white/10 bg-slate-900/80 p-8 text-center shadow-2xl backdrop-blur sm:p-12">
-      <p class="text-sm font-bold uppercase tracking-[0.22em] text-lgu-orange">
-        Tableau du maître du jeu
-      </p>
-      <h1 class="mt-3 font-display text-4xl font-bold">La partie est prête</h1>
-      <p class="mt-5 leading-7 text-slate-300">
-        Les attributions complètes ont été reçues de façon privée. Le tableau détaillé sera construit à l’étape suivante.
-      </p>
+  <main class="min-h-screen px-4 py-10 text-white sm:py-14">
+    <div class="mx-auto w-full max-w-6xl">
+      <HostDashboardPanel
+        v-if="lobby.hostDashboard"
+        :dashboard="lobby.hostDashboard"
+        @copied="lobby.showCopiedNotice"
+      />
+
+      <section
+        v-else
+        role="status"
+        class="rounded-3xl border border-white/10 bg-slate-900/80 p-10 text-center shadow-2xl"
+      >
+        <span class="mx-auto block h-10 w-10 animate-spin rounded-full border-4 border-white/15 border-t-lgu-orange" aria-hidden="true" />
+        <h1 class="mt-5 font-display text-3xl font-bold">Récupération du tableau…</h1>
+        <p class="mt-3 text-slate-300">Les attributions privées sont en cours de restauration.</p>
+      </section>
+
       <FeedbackBanner
         v-if="lobby.error"
-        class="mt-6 text-left"
+        class="mt-6"
         :message="lobby.error.message"
         variant="error"
       />
       <button
         type="button"
-        class="mt-8 rounded-2xl border border-red-400/25 bg-red-400/10 px-6 py-3 font-bold text-red-200 hover:bg-red-400/20"
+        class="mx-auto mt-8 block rounded-2xl border border-red-400/25 bg-red-400/10 px-6 py-3 font-bold text-red-200 hover:bg-red-400/20"
         @click="confirmingLeave = true"
       >
         Fermer la partie
       </button>
-    </section>
+    </div>
+
     <ConfirmDialog
       v-if="confirmingLeave"
       id="host-leave-dialog"
       title="Fermer la partie ?"
-      description="Tous les participants seront déconnectés et les liens de rôle deviendront invalides."
+      description="Tous les participants seront déconnectés et les liens privés deviendront invalides."
       confirm-label="Fermer la partie"
       destructive
       @cancel="confirmingLeave = false"

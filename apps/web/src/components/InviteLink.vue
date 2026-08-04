@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps<{ value: string }>()
+const props = withDefaults(defineProps<{
+  value: string
+  label?: string
+}>(), {
+  label: 'Lien d’invitation',
+})
 const emit = defineEmits<{ copied: [] }>()
 const copying = ref(false)
 const copyError = ref(false)
@@ -35,7 +40,7 @@ async function copyLink(): Promise<void> {
 <template>
   <div>
     <label for="invitation-link" class="text-sm font-semibold text-slate-300">
-      Lien d’invitation
+      {{ label }}
     </label>
     <div class="mt-2 flex flex-col gap-2 sm:flex-row">
       <input

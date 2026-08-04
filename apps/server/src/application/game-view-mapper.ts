@@ -159,6 +159,12 @@ export function toPrivateAssignment(
 
 export function toHostDashboard(room: LobbyRoomState): HostDashboard {
   const game = requireGame(room)
+  const host = room.players.find((player) => player.isHost)
+  if (!host) throw new Error('Started room has no game master')
+  const hostGrant = findGrant(game, host.id)
+  if (hostGrant.view !== ROLE_ACCESS_VIEW.GAME_MASTER) {
+    throw new Error('Game master has an invalid role access grant')
+  }
   const players = game.assignment.assignments.map((assignment) => {
     const player = requirePlayer(room, assignment.playerId)
     return {
@@ -180,6 +186,7 @@ export function toHostDashboard(room: LobbyRoomState): HostDashboard {
   })
 
   return hostDashboardSchema.parse({
+    roleAccessToken: hostGrant.token,
     players,
     playerCount: players.length,
     werewolfCount: players.filter(
