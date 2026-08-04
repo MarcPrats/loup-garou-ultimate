@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 import { Server as SocketIoServer } from 'socket.io'
 
 import { LobbyService } from './application/lobby-service'
@@ -17,6 +19,7 @@ import type { GameSocketServer } from './transport/socket-types'
 export interface ServerRuntimeOptions {
   readonly webOrigin: string
   readonly logger?: boolean
+  readonly webRoot?: string
 }
 
 export function createLobbyService(): LobbyService {
@@ -34,6 +37,7 @@ export interface ServerRuntime {
   readonly app: ReturnType<typeof createHttpApp>
   readonly io: GameSocketServer
   readonly service: LobbyService
+  close(): Promise<void>
 }
 
 export function createServerRuntime(
@@ -44,6 +48,7 @@ export function createServerRuntime(
     service,
     webOrigin: options.webOrigin,
     logger: options.logger ?? false,
+    webRoot: options.webRoot ?? fileURLToPath(new URL('../../web/dist/', import.meta.url)),
   })
   const io: GameSocketServer = new SocketIoServer(app.server, {
     cors: { origin: options.webOrigin },
@@ -58,10 +63,17 @@ export function createServerRuntime(
   }, LOBBY_TIME_LIMIT.CLEANUP_INTERVAL_MS)
   cleanupTimer.unref()
 
-  app.addHook('onClose', async () => {
+  let closePromise: Promise<void> | null = null
+  app.addHook('preClose', async () => {
     clearInterval(cleanupTimer)
-    await new Promise<void>((resolve) => io.close(() => resolve()))
+    io.disconnectSockets(true)
+    io.engine.close()
   })
 
-  return { app, io, service }
+  function close(): Promise<void> {
+    closePromise ??= app.close()
+    return closePromise
+  }
+
+  return { app, io, service, close }
 }

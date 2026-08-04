@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: loup-garou-ultimate
+    env: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build:v3
+    startCommand: node apps/server/dist/index.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: 24
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: WEB_ORIGIN
+        value: https://loup-garou-ultimate.onrender.com

@@ -61,3 +61,8 @@ temp/
 
 # Vite
 apps/web/.vite/
+
+# Browser E2E artifacts
+playwright-report/
+test-results/
+blob-report/

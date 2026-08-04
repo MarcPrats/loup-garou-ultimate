@@ -9,5 +9,5 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   bundle: true,
-  noExternal: ['@lgu/contracts', '@lgu/game-core'],
+  noExternal: ['@lgu/contracts', '@lgu/game-core', '@lgu/game-projection'],
 })

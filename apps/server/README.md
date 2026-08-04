@@ -1,25 +1,24 @@
-# V3 server
+# `@lgu/server`
 
-The V3 server is being migrated in layers.
+The V3 Fastify and Socket.IO production server owns the in-memory room, session recovery, role assignment, private access tokens, public/player/MJ projections, static Vue delivery, and graceful shutdown.
 
-## Current layers
+## Commands
 
-- `domain/`: room/session state and domain errors.
-- `application/`: lobby use cases and public snapshot mapping.
-- `infrastructure/`: serialized in-memory repository and production clock/ID generators.
-- `config/`: lifecycle time limits.
+```bash
+pnpm --filter @lgu/server dev
+pnpm --filter @lgu/server typecheck
+pnpm --filter @lgu/server test
+pnpm --filter @lgu/server build
+pnpm --filter @lgu/server start
+```
 
-`LobbyService` is transport-independent. Socket.IO handlers will validate contract payloads, call this service and emit the returned snapshots in the next step.
+The repository-level `pnpm start` command is the normal production entrypoint. Run `pnpm build` first so `apps/web/dist` exists.
 
-## Important invariants
+## Environment
 
-- Socket IDs are connection IDs, never player identities.
-- Player IDs and session tokens are server generated.
-- The first entrant becomes game master.
-- The room supports 12 non-host players.
-- Five connected non-host players are required to start.
-- Disconnected players retain their session and room slot for five minutes.
-- Host disconnect does not immediately destroy a game; explicit host leave after start closes it.
-- Every public mutation increments the room revision once.
-- Keep-alive and same-session socket replacement do not increment the public revision.
-- Public snapshots never expose session tokens or connection IDs.
+- `HOST`, default `0.0.0.0`
+- `PORT`, default `3001`
+- `WEB_ORIGIN`, default `http://localhost:5173`
+- `WEB_ROOT`, optional absolute Vue build-directory override
+
+`SIGINT` and `SIGTERM` call the idempotent runtime close function. The Fastify lifecycle clears the cleanup timer and closes Socket.IO.

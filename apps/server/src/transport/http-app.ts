@@ -10,6 +10,7 @@ import {
 } from '@lgu/contracts'
 
 import type { LobbyService } from '../application/lobby-service'
+import { registerStaticWeb } from './static-web'
 import {
   getHttpStatus,
   toPublicError,
@@ -19,6 +20,7 @@ export interface HttpAppOptions {
   readonly service: LobbyService
   readonly webOrigin: string
   readonly logger?: boolean
+  readonly webRoot?: string
 }
 
 export function createHttpApp(options: HttpAppOptions): FastifyInstance {
@@ -51,5 +53,6 @@ export function createHttpApp(options: HttpAppOptions): FastifyInstance {
     },
   )
 
+  registerStaticWeb(app, options.webRoot)
   return app
 }
