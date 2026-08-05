@@ -10,23 +10,19 @@ import {
 import { ROUTE_PATH } from '../constants/app'
 import { ROLE_CONTENT } from '../constants/role-content'
 import { getRolePresentation } from '../constants/role-presentation'
+import RoleCard from './RoleCard.vue'
 
 const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
 }>(), {
 })
 
-const role = computed(() => getRolePresentation(props.assignment.role.id))
-const roleContent = computed(() => ROLE_CONTENT[props.assignment.role.id])
 const bluffRole = computed(() => props.assignment.bluffRoleId
   ? getRolePresentation(props.assignment.bluffRoleId)
   : null)
 const bluffContent = computed(() => props.assignment.bluffRoleId
   ? ROLE_CONTENT[props.assignment.bluffRoleId]
   : null)
-const teamLabel = computed(() => props.assignment.role.team === TEAM.WEREWOLVES
-  ? '🐺 Loup-Garou'
-  : '👥 Villageois')
 const clueIsBluff = computed(() => props.assignment.bluffRoleId !== null)
 const showClueKnowledgeSection = computed(() => (
   clueIsBluff.value && props.assignment.role.team === TEAM.WEREWOLVES
@@ -43,28 +39,7 @@ const clueRole = computed(() => props.assignment.specialInformation
   <div class="app-role-reveal">
     <span class="sr-only">{{ assignment.player.name }} · Votre couverture</span>
     <h2>Votre Rôle</h2>
-    <div v-if="role" class="app-role-card">
-      <div class="app-role-image-container">
-        <img :src="role.imagePath" :alt="role.name">
-      </div>
-      <div class="app-role-info">
-        <h3 class="app-role-title">{{ role.name }}</h3>
-        <span class="app-role-team-badge" :class="assignment.role.team === TEAM.WEREWOLVES ? 'team-werewolves' : 'team-villagers'">
-          {{ teamLabel }}
-        </span>
-      </div>
-    </div>
-
-    <div v-if="roleContent" class="app-role-description-container">
-      <section class="app-description-section app-power-section">
-        <div class="app-section-header"><span class="app-section-icon">⚡</span><h4>Votre Pouvoir</h4></div>
-        <p class="app-section-text">{{ roleContent.power }}</p>
-      </section>
-      <section class="app-description-section app-info-section">
-        <div class="app-section-header"><span class="app-section-icon">💡</span><h4>Autres Infos</h4></div>
-        <p class="app-section-text">{{ roleContent.info }}</p>
-      </section>
-    </div>
+    <RoleCard :role-id="assignment.role.id" eyebrow="Votre rôle" />
 
     <div v-if="bluffRole && bluffContent" class="app-role-description-container app-bluff-section">
       <h3 class="app-bluff-title">🎭 Votre Rôle de Couverture</h3>

@@ -11,6 +11,7 @@ import { PUBLIC_LINK, ROUTE_NAME } from '../constants/app'
 import { createAppRouter } from '../router'
 import HomeView from '../views/HomeView.vue'
 import RulesView from '../views/RulesView.vue'
+import { getRolePresentation } from '../constants/role-presentation'
 
 const assignment: PrivateAssignment = {
   player: { id: 'player_1', name: 'Marc' },
@@ -145,3 +146,8 @@ describe('Vue rules page', () => {
     expect(createAppRouter(createPinia()).resolve('/rules/role/voyante').name).toBe(ROUTE_NAME.ROLE_DETAIL)
   })
 })
+
+  it('resolves the canonical werewolf roles used by the reference catalogue', () => {
+    expect(getRolePresentation('infect-loup')).toBeTruthy()
+    expect(getRolePresentation('grand-loup')).toBeTruthy()
+  })

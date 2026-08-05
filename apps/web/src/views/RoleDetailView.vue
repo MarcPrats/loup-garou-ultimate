@@ -2,12 +2,14 @@
 import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 
+import type { RoleId } from '@lgu/contracts'
+
 import RoleCard from '../components/RoleCard.vue'
 import { ROUTE_NAME } from '../constants/app'
 import { getRolePresentation } from '../constants/role-presentation'
 
 const route = useRoute()
-const roleId = computed(() => String(route.params.roleId ?? ''))
+const roleId = computed(() => String(route.params.roleId ?? '') as RoleId)
 const presentation = computed(() => getRolePresentation(roleId.value))
 
 onMounted(() => {
@@ -39,7 +41,10 @@ onBeforeUnmount(() => {
         </RouterLink>
       </nav>
 
-      <RoleCard v-if="presentation" :role-id="roleId" eyebrow="Fiche personnage" />
+      <div v-if="presentation" class="app-role-reveal">
+        <h2>Fiche personnage</h2>
+        <RoleCard :role-id="roleId" eyebrow="Fiche personnage" />
+      </div>
       <section v-else class="rounded-3xl border border-white/10 bg-white/5 p-8">
         <h1 class="font-display text-3xl font-bold">Personnage inconnu</h1>
         <p class="mt-3 text-slate-300">Le personnage demandé n'est pas disponible dans cette version.</p>

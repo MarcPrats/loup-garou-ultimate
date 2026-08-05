@@ -62,7 +62,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     available: true,
   },
   {
-    id: 'infect-loup-garou',
+    id: 'infect-loup',
     name: 'Infect Loup Garou',
     category: 'loup-garou',
     categoryLabel: 'Loup Garou',
@@ -80,7 +80,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     available: false,
   },
   {
-    id: 'grand-loup-garou',
+    id: 'grand-loup',
     name: 'Grand Loup Garou',
     category: 'loup-garou',
     categoryLabel: 'Loup Garou',
