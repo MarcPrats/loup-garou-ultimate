@@ -202,8 +202,24 @@ button:disabled {
 
 .app-role-reveal { text-align: center; }
 .app-role-card { margin: 30px 0; padding: 30px; border: 2px solid var(--app-border); border-radius: 12px; background: rgb(255 255 255 / 8%); animation: app-role-reveal .6s ease; }
-.app-role-image-container { margin-bottom: 20px; }
-.app-role-image-container img { width: 200px; height: 200px; margin: 0 auto; object-fit: cover; border: 3px solid var(--app-accent); border-radius: 50%; box-shadow: 0 8px 30px rgb(230 126 34 / 40%); animation: app-glow 2s ease-in-out infinite alternate; }
+.app-role-image-container {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto 20px;
+  overflow: hidden;
+  border: 3px solid var(--app-accent);
+  border-radius: 50%;
+  box-shadow: 0 8px 30px rgb(230 126 34 / 40%);
+  animation: app-glow 2s ease-in-out infinite alternate;
+}
+.app-role-image-container img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 0;
+  transform: scale(1.15);
+}
 .app-role-info { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .app-role-title { margin: 0; font-size: 2rem; background: linear-gradient(135deg, var(--app-accent), var(--app-blue)); background-clip: text; color: transparent; }
 .app-role-team-badge { display: inline-block; padding: 8px 20px; border-radius: 20px; color: white; font-size: .95rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
@@ -233,7 +249,7 @@ button:disabled {
 @media (max-width: 600px) {
   .app-screen, .app-home-shell { padding: 25px; }
   .app-home-shell h1, .app-screen h1 { font-size: 2rem; }
-  .app-role-image-container img { width: 150px; height: 150px; }
+  .app-role-image-container { width: 150px; height: 150px; }
   .app-role-title { font-size: 1.5rem; }
 }
 @media (max-width: 480px) {

@@ -16,7 +16,9 @@ defineProps<{ role: RulesRoleCatalogEntry }>()
     :to="{ name: ROUTE_NAME.ROLE_DETAIL, params: { roleId: role.id } }"
     :aria-label="`Voir les détails de ${role.name}`"
   >
-    <img v-if="role.imagePath" class="role-icon" :src="role.imagePath" :alt="role.name">
+    <div v-if="role.imagePath" class="role-icon-frame">
+      <img class="role-icon" :src="role.imagePath" :alt="role.name">
+    </div>
     <div v-else class="role-icon-placeholder" aria-hidden="true">{{ role.emoji ?? '❔' }}</div>
     <div class="role-body">
       <span class="role-badge" :class="role.category">{{ role.categoryLabel }}</span>
@@ -33,7 +35,9 @@ defineProps<{ role: RulesRoleCatalogEntry }>()
     :class="role.category"
     :aria-label="`${role.name}, bientôt disponible`"
   >
-    <img v-if="role.imagePath" class="role-icon" :src="role.imagePath" :alt="role.name">
+    <div v-if="role.imagePath" class="role-icon-frame">
+      <img class="role-icon" :src="role.imagePath" :alt="role.name">
+    </div>
     <div v-else class="role-icon-placeholder" aria-hidden="true">{{ role.emoji ?? '❔' }}</div>
     <div class="role-body">
       <span class="role-badge" :class="role.category">{{ role.categoryLabel }}</span>
