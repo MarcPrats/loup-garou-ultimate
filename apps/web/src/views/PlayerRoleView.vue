@@ -21,8 +21,6 @@ async function confirmLeave(): Promise<void> {
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
-        :show-access-link="false"
-        @copied="lobby.showCopiedNotice"
       />
 
       <section

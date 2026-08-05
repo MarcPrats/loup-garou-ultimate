@@ -159,12 +159,10 @@ generate()
           <HostDashboardPanel
             v-if="activeView === SIMULATOR_VIEW.HOST"
             :dashboard="scenario.hostDashboard"
-            :show-access-link="false"
           />
           <PlayerAssignmentPanel
             v-else-if="activePlayerAssignment"
             :assignment="activePlayerAssignment"
-            :show-access-link="false"
           />
         </div>
       </template>

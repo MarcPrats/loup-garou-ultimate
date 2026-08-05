@@ -101,7 +101,6 @@ onBeforeUnmount(() => controller?.abort())
         </div>
         <PlayerAssignmentPanel
           :assignment="response.assignment"
-          :show-access-link="false"
         />
       </div>
 
@@ -113,7 +112,6 @@ onBeforeUnmount(() => controller?.abort())
         </div>
         <HostDashboardPanel
           :dashboard="response.dashboard"
-          :show-access-link="false"
         />
       </div>
     </div>

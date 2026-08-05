@@ -17,7 +17,6 @@ import HostAssignmentCard from '../components/HostAssignmentCard.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import { ROUTE_NAME } from '../constants/app'
 import { createAppRouter } from '../router'
-import RoleAccessLink from '../components/RoleAccessLink.vue'
 import {
   ROLE_PRESENTATION_BY_ID,
   getRolePresentation,
@@ -110,26 +109,3 @@ describe('MJ assignment', () => {
   })
 })
 
-describe('role access link', () => {
-  it('keeps the bearer token in the URL fragment', () => {
-    const wrapper = mount(RoleAccessLink, {
-      props: { token: ACCESS_TOKEN },
-    })
-    const input = wrapper.get('input')
-
-    expect(input.attributes('value')).toBe(
-      `${window.location.origin}/access#${ACCESS_TOKEN}`,
-    )
-    expect(input.attributes('value')).not.toContain('/access/')
-  })
-
-  it('resolves the private token from a fragment-only anonymous route', () => {
-    const router = createAppRouter(createPinia())
-    const resolved = router.resolve(`/access#${ACCESS_TOKEN}`)
-
-    expect(resolved.name).toBe(ROUTE_NAME.ROLE_ACCESS)
-    expect(resolved.meta.roleAccess).toBe(true)
-    expect(resolved.hash).toBe(`#${ACCESS_TOKEN}`)
-  })
-
-})

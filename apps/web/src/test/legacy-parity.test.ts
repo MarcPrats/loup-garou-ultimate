@@ -51,7 +51,7 @@ describe('legacy UI parity', () => {
   })
 
   it('restores the complete legacy player role, bluff and clue content', () => {
-    const wrapper = mount(PlayerAssignmentPanel, { props: { assignment, showAccessLink: false } })
+    const wrapper = mount(PlayerAssignmentPanel, { props: { assignment } })
     const text = wrapper.text()
     expect(text).toContain('Votre Pouvoir')
     expect(text).toContain("Chaque nuit (sauf la première), choisissez un joueur")
@@ -84,7 +84,7 @@ describe('legacy UI parity', () => {
         specialInformation: null,
       }],
     }
-    const text = mount(HostDashboardPanel, { props: { dashboard, showAccessLink: false } }).text()
+    const text = mount(HostDashboardPanel, { props: { dashboard } }).text()
     expect(text).toContain("Vue d'ensemble de tous les rôles")
     expect(text).toContain('JoueurRôleÉquipeDétails')
     expect(text).toContain('🍺 Bourré')
@@ -102,7 +102,7 @@ describe('legacy UI parity', () => {
         players: [{ id: 'player_2', name: 'Alice' }, { id: 'player_3', name: 'Nora' }],
       },
     }
-    const text = mount(PlayerAssignmentPanel, { props: { assignment: realPetiteFille, showAccessLink: false } }).text()
+    const text = mount(PlayerAssignmentPanel, { props: { assignment: realPetiteFille } }).text()
     expect(text).not.toContain('Info Petite Fille')
     expect(text).not.toContain('Informations privées')
     expect(text).not.toContain('Ce que vous devriez savoir')
@@ -114,7 +114,7 @@ describe('legacy UI parity', () => {
       role: { id: ROLE_ID.RENARD, team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
       bluffRoleId: null,
     }
-    const text = mount(PlayerAssignmentPanel, { props: { assignment: realRenard, showAccessLink: false } }).text()
+    const text = mount(PlayerAssignmentPanel, { props: { assignment: realRenard } }).text()
     expect(text).not.toContain('Informations privées')
     expect(text).not.toContain('Info Renard')
     expect(text).not.toContain('Info Renard (Bluff)')

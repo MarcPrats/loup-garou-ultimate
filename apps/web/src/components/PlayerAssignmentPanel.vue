@@ -10,15 +10,11 @@ import {
 import { LEGACY_PAGE } from '../constants/app'
 import { LEGACY_ROLE_CONTENT } from '../constants/legacy-role-content'
 import { getRolePresentation } from '../constants/role-presentation'
-import RoleAccessLink from './RoleAccessLink.vue'
 
 const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
-  showAccessLink?: boolean
 }>(), {
-  showAccessLink: true,
 })
-const emit = defineEmits<{ copied: [] }>()
 
 const role = computed(() => getRolePresentation(props.assignment.role.id))
 const roleContent = computed(() => LEGACY_ROLE_CONTENT[props.assignment.role.id])
@@ -99,7 +95,5 @@ const clueRole = computed(() => props.assignment.specialInformation
     </div>
 
     <a :href="LEGACY_PAGE.RULES" class="legacy-btn legacy-btn-secondary legacy-rules-button">📖 Consulter les Règles</a>
-
-    <RoleAccessLink v-if="showAccessLink" class="legacy-private-link" :token="assignment.roleAccessToken" @copied="emit('copied')" />
   </div>
 </template>

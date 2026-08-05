@@ -5,15 +5,11 @@ import { SPECIAL_INFORMATION_TYPE, TEAM, type HostDashboard } from '@lgu/contrac
 
 import { LEGACY_PAGE } from '../constants/app'
 import { getRolePresentation } from '../constants/role-presentation'
-import RoleAccessLink from './RoleAccessLink.vue'
 
 const props = withDefaults(defineProps<{
   dashboard: HostDashboard
-  showAccessLink?: boolean
 }>(), {
-  showAccessLink: true,
 })
-const emit = defineEmits<{ copied: [] }>()
 
 const assignments = computed(() => props.dashboard.players.map((assignment) => ({
   ...assignment,
@@ -68,6 +64,5 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
     </div>
 
     <a :href="LEGACY_PAGE.RULES" class="legacy-btn legacy-btn-secondary legacy-rules-button">📖 Consulter les Règles</a>
-    <RoleAccessLink v-if="showAccessLink" class="legacy-private-link" :token="dashboard.roleAccessToken" @copied="emit('copied')" />
   </div>
 </template>
