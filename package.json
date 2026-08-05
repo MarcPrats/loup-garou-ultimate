@@ -1,13 +1,23 @@
 {
   "name": "loup-garou-ultimate",
-  "version": "2.0.0",
+  "version": "3.0.0-dev",
+  "private": true,
   "description": "Multiplayer companion app for Loups Garous de Thiercelieux",
-  "main": "server.js",
+  "packageManager": "pnpm@10.28.2",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
-    "start": "node server.js",
-    "simulator": "ENABLE_SIMULATOR=true npm start",
-    "dev": "nodemon server.js",
-    "test": "node test/*.test.js"
+    "start": "pnpm --filter @lgu/server start",
+    "simulator": "pnpm --filter @lgu/web dev --mode simulator --host 0.0.0.0 --port 5174 --open /simulator",
+    "dev": "pnpm --parallel --filter @lgu/web --filter @lgu/server run dev",
+    "build": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/game-projection build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "test": "pnpm -r --if-present run test",
+    "test:e2e": "playwright test",
+    "test:e2e:simulator": "playwright test --config playwright.simulator.config.ts",
+    "test:e2e:all": "pnpm test:e2e && pnpm test:e2e:simulator",
+    "heroku-postbuild": "pnpm build"
   },
   "keywords": [
     "loup-garou",
@@ -17,11 +27,8 @@
   ],
   "author": "Marc Prats",
   "license": "MIT",
-  "dependencies": {
-    "express": "^4.22.1",
-    "socket.io": "^4.8.3"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "nodemon": "^3.0.1"
+    "@playwright/test": "^1.62.1"
   }
 }

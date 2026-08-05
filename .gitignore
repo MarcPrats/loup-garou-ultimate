@@ -52,3 +52,17 @@ Desktop.ini
 # Temporary files
 tmp/
 temp/
+
+# pnpm
+.pnpm-store/
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+apps/web/.vite/
+
+# Browser E2E artifacts
+playwright-report/
+test-results/
+blob-report/

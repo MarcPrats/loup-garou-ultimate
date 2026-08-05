@@ -1,0 +1,31 @@
+{
+  "name": "Loup Garou Ultimate V3",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "postCreateCommand": "corepack enable && pnpm install --frozen-lockfile",
+  "forwardPorts": [3001, 5173, 5174],
+  "portsAttributes": {
+    "3001": {
+      "label": "V3 production server",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "V3 web development",
+      "onAutoForward": "openPreview"
+    },
+    "5174": {
+      "label": "Standalone simulator",
+      "onAutoForward": "notify"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Vue.volar",
+        "dbaeumer.vscode-eslint"
+      ]
+    }
+  }
+}
