@@ -2,12 +2,12 @@
 
 ## User-facing parity
 
-- Original three-action menu, ordering, labels, links, and visual language.
-- Legacy `/waiting_room` entry aliases and player-name flow.
+- Three-action menu, ordering, labels, links, and visual language.
+- V3 `/waiting_room` entry aliases and player-name flow.
 - Invitation link, roster, host badge, kick, start, rules, waiting, and leave controls.
 - Complete player role artwork, team, power, additional information, bluff role, bluff power/information, and role-specific clues.
 - Complete MJ player/role/team table with hidden Ivrogne, Voyante-decoy, bluff, Renard, and Petite Fille information.
-- Original rules reference, character detail pages, scripts, CSS, and images.
+- Vue rules reference, Vue character detail pages, and V3-owned image assets.
 - Session restoration across reloads and private direct-access links.
 - Deterministic 5 to 12 player simulator using production contracts, projections, and display components.
 

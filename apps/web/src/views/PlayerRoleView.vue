@@ -16,8 +16,8 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="legacy-page">
-    <div class="legacy-screen legacy-game-container">
+  <main class="app-page">
+    <div class="app-screen app-game-container">
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
@@ -41,7 +41,7 @@ async function confirmLeave(): Promise<void> {
       />
       <button
         type="button"
-        class="legacy-btn legacy-btn-back legacy-leave-button"
+        class="app-btn app-btn-back app-leave-button"
         @click="confirmingLeave = true"
       >
         Quitter la partie

@@ -37,12 +37,6 @@ export function createHttpApp(options: HttpAppOptions): FastifyInstance {
     status: 'ok',
   }))
 
-  app.route({
-    method: ['GET', 'HEAD'],
-    url: '/reference.html',
-    handler: async (_request, reply) => reply.redirect('/reference'),
-  })
-
   app.get<{ Params: { token: string } }>(
     `${API_ROUTE.ROLE_ACCESS_PREFIX}/:token`,
     async (request, reply) => {

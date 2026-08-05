@@ -5,7 +5,7 @@ import type { PublicPlayer } from '@lgu/contracts'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
-import { LEGACY_PAGE } from '../constants/app'
+import { ROUTE_PATH } from '../constants/app'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
@@ -52,50 +52,50 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="legacy-page">
-    <section class="legacy-screen legacy-game-container">
-      <header class="legacy-room-header">
+  <main class="app-page">
+    <section class="app-screen app-game-container">
+      <header class="app-room-header">
         <h2>Salle d'Attente</h2>
-        <p class="legacy-room-limit-hint">Jusqu'à 12 joueurs peuvent rejoindre la salle (hors maître du jeu).</p>
-        <div class="legacy-invitation-container">
-          <p class="legacy-invitation-label">🔗 Lien d'invitation</p>
-          <div class="legacy-invitation-group">
-            <input :value="inviteUrl" readonly class="legacy-invitation-link" aria-label="Lien d'invitation">
-            <button type="button" class="legacy-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</button>
+        <p class="app-room-limit-hint">Jusqu'à 12 joueurs peuvent rejoindre la salle (hors maître du jeu).</p>
+        <div class="app-invitation-container">
+          <p class="app-invitation-label">🔗 Lien d'invitation</p>
+          <div class="app-invitation-group">
+            <input :value="inviteUrl" readonly class="app-invitation-link" aria-label="Lien d'invitation">
+            <button type="button" class="app-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</button>
           </div>
-          <p v-if="copyError" class="legacy-copy-error" role="alert">Copie impossible. Sélectionnez le lien et copiez-le manuellement.</p>
+          <p v-if="copyError" class="app-copy-error" role="alert">Copie impossible. Sélectionnez le lien et copiez-le manuellement.</p>
         </div>
       </header>
 
-      <section v-if="lobby.host" class="legacy-roster-section">
+      <section v-if="lobby.host" class="app-roster-section">
         <h3>Maître du Jeu</h3>
-        <div class="legacy-players-list">
-          <div class="legacy-player-card">
-            <span class="legacy-player-name">{{ lobby.host.name }}</span>
-            <span class="legacy-host-badge">Hôte</span>
+        <div class="app-players-list">
+          <div class="app-player-card">
+            <span class="app-player-name">{{ lobby.host.name }}</span>
+            <span class="app-host-badge">Hôte</span>
           </div>
         </div>
       </section>
 
-      <section class="legacy-roster-section">
+      <section class="app-roster-section">
         <h3>Joueurs ({{ lobby.regularPlayers.length }})</h3>
-        <div class="legacy-players-list">
-          <div v-for="player in lobby.regularPlayers" :key="player.id" class="legacy-player-card">
-            <span class="legacy-player-name">{{ player.name }}<small v-if="player.id === lobby.currentPlayer?.id"> (vous)</small></span>
-            <button v-if="lobby.isHost && player.id !== lobby.currentPlayer?.id" type="button" class="legacy-kick-button" @click="pendingKick = player">Expulser</button>
+        <div class="app-players-list">
+          <div v-for="player in lobby.regularPlayers" :key="player.id" class="app-player-card">
+            <span class="app-player-name">{{ player.name }}<small v-if="player.id === lobby.currentPlayer?.id"> (vous)</small></span>
+            <button v-if="lobby.isHost && player.id !== lobby.currentPlayer?.id" type="button" class="app-kick-button" @click="pendingKick = player">Expulser</button>
           </div>
-          <p v-if="lobby.regularPlayers.length === 0" class="legacy-waiting-text">Aucun joueur pour le moment.</p>
+          <p v-if="lobby.regularPlayers.length === 0" class="app-waiting-text">Aucun joueur pour le moment.</p>
         </div>
       </section>
 
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-      <div class="legacy-waiting-actions">
-        <button v-if="lobby.isHost" type="button" class="legacy-btn legacy-btn-primary" :disabled="!lobby.room?.canStart || lobby.starting" @click="lobby.start">
+      <div class="app-waiting-actions">
+        <button v-if="lobby.isHost" type="button" class="app-btn app-btn-primary" :disabled="!lobby.room?.canStart || lobby.starting" @click="lobby.start">
           {{ lobby.starting ? 'Lancement…' : '🎮 Démarrer la Partie' }}
         </button>
-        <p v-else class="legacy-waiting-text">En attente du lancement par l'hôte...</p>
-        <a :href="LEGACY_PAGE.RULES" class="legacy-btn legacy-btn-secondary">📖 Consulter les règles</a>
-        <button type="button" class="legacy-btn legacy-btn-back" :disabled="lobby.leaving" @click="confirmingLeave = true">
+        <p v-else class="app-waiting-text">En attente du lancement par l'hôte...</p>
+        <a :href="ROUTE_PATH.RULES" class="app-btn app-btn-secondary">📖 Consulter les règles</a>
+        <button type="button" class="app-btn app-btn-back" :disabled="lobby.leaving" @click="confirmingLeave = true">
           {{ lobby.leaving ? 'Départ…' : 'Quitter' }}
         </button>
       </div>

@@ -45,9 +45,8 @@ describe('V3 production runtime', () => {
     expect(spaRoute.statusCode).toBe(200)
     expect(spaRoute.body).toContain('<div id="app">V3</div>')
 
-    const rules = await app.inject({ method: 'GET', url: '/reference.html' })
-    expect(rules.statusCode).toBe(302)
-    expect(rules.headers.location).toBe('/reference')
+    const deletedStaticPage = await app.inject({ method: 'GET', url: '/reference.html' })
+    expect(deletedStaticPage.statusCode).toBe(404)
 
     const asset = await app.inject({ method: 'GET', url: '/assets/app.js' })
     expect(asset.statusCode).toBe(200)

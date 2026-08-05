@@ -23,7 +23,7 @@ const PRESENTATION_DETAILS: Record<
   Omit<RolePresentation, 'id' | 'name' | 'category'>
 > = {
   [ROLE_ID.ULTIMATE_WEREWOLF]: {
-    imagePath: '/loupgarou.webp',
+    imagePath: '/images/loupgarou.webp',
     fallbackSymbol: '🐺',
     summary: 'Chaque nuit, il choisit un joueur qui meurt. Il ne se réveille pas la première nuit.',
     instructions: [
@@ -32,7 +32,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.INFECT_WEREWOLF]: {
-    imagePath: '/infectloup.webp',
+    imagePath: '/images/infectloup.webp',
     fallbackSymbol: '🩸',
     summary: 'Chaque nuit, il choisit un joueur empoisonné pour la nuit et le jour suivants.',
     instructions: [
@@ -41,7 +41,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.GRAND_WEREWOLF]: {
-    imagePath: '/grandloup.webp',
+    imagePath: '/images/grandloup.webp',
     fallbackSymbol: '🌕',
     summary: 'Il devient le Loup Garou Ultime si celui-ci meurt alors qu’au moins cinq joueurs sont en vie.',
     instructions: [
@@ -50,7 +50,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.PETITE_FILLE]: {
-    imagePath: '/petite-fille.webp',
+    imagePath: '/images/petite-fille.webp',
     fallbackSymbol: '👧',
     summary: 'Lors de la première nuit, elle apprend qu’un Villageois se cache parmi deux joueurs.',
     instructions: [
@@ -59,7 +59,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.RENARD]: {
-    imagePath: '/renard.webp',
+    imagePath: '/images/renard.webp',
     fallbackSymbol: '🦊',
     summary: 'Lors de la première nuit, il apprend qu’un Loup Garou se cache parmi deux joueurs.',
     instructions: [
@@ -68,7 +68,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.MONTREUR_DOURS]: {
-    imagePath: '/montreur-dours.webp',
+    imagePath: '/images/montreur-dours.webp',
     fallbackSymbol: '🐻',
     summary: 'Lors de la première nuit, il découvre combien de loups-garous sont placés côte à côte.',
     instructions: [
@@ -77,7 +77,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.CUPIDON]: {
-    imagePath: '/cupidon.webp',
+    imagePath: '/images/cupidon.webp',
     fallbackSymbol: '💘',
     summary: 'Chaque nuit, il apprend combien de ses deux voisins vivants sont des loups-garous.',
     instructions: [
@@ -86,7 +86,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.VOYANTE]: {
-    imagePath: '/voyante.webp',
+    imagePath: '/images/voyante.webp',
     fallbackSymbol: '🔮',
     summary: 'Chaque nuit, elle choisit deux joueurs et apprend si l’un d’eux est le Loup Garou Ultime.',
     instructions: [
@@ -95,7 +95,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.CHEVALIER]: {
-    imagePath: '/chevalier.webp',
+    imagePath: '/images/chevalier.webp',
     fallbackSymbol: '🛡️',
     summary: 'Chaque nuit, sauf la première, il protège un autre joueur du Loup Garou Ultime.',
     instructions: [
@@ -104,7 +104,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.CHASSEUR]: {
-    imagePath: '/chasseur.webp',
+    imagePath: '/images/chasseur.webp',
     fallbackSymbol: '🏹',
     summary: 'Une fois par partie, pendant le jour, il désigne publiquement un joueur.',
     instructions: [
@@ -113,7 +113,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.FLUTISTE]: {
-    imagePath: '/flute.webp',
+    imagePath: '/images/flute.webp',
     fallbackSymbol: '🎵',
     summary: 'La première fois qu’il est nominé, son nominateur est exécuté si celui-ci est Villageois.',
     instructions: [
@@ -122,7 +122,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.SORCIERE]: {
-    imagePath: '/sorciere.webp',
+    imagePath: '/images/sorciere.webp',
     fallbackSymbol: '🧪',
     summary: 'Si elle meurt la nuit, elle choisit un joueur et découvre son personnage.',
     instructions: [
@@ -131,7 +131,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.ANCIEN]: {
-    imagePath: '/ancien.webp',
+    imagePath: '/images/ancien.webp',
     fallbackSymbol: '🧓',
     summary: 'Il est protégé du pouvoir du Loup Garou Ultime.',
     instructions: [
@@ -140,7 +140,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.ENFANT_SAUVAGE]: {
-    imagePath: '/enfant.webp',
+    imagePath: '/images/enfant.webp',
     fallbackSymbol: '🌿',
     summary: 'Chaque nuit, sauf la première, il apprend quel personnage a été exécuté pendant le jour.',
     instructions: [
@@ -149,7 +149,7 @@ const PRESENTATION_DETAILS: Record<
     ],
   },
   [ROLE_ID.ANGEL]: {
-    imagePath: '/ange.webp',
+    imagePath: '/images/ange.webp',
     fallbackSymbol: '😇',
     summary: 'Si l’Ange meurt par exécution, son équipe perd immédiatement.',
     instructions: [
@@ -180,7 +180,7 @@ export const ROLE_CATEGORY_LABEL: Record<RoleCategory, string> = {
 
 export const IVROGNE_PRESENTATION = {
   name: 'Ivrogne',
-  imagePath: '/ivrogne-v3.webp',
+  imagePath: '/images/ivrogne-v3.webp',
   fallbackSymbol: '🍺',
   summary: 'Ce joueur croit posséder son rôle affiché, mais il est secrètement Ivrogne.',
 } as const

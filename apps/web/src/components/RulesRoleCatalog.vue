@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import '../../../../css/role-catalog.css'
+import '../styles/rules-catalog.css'
 
 import RulesRoleCard from './RulesRoleCard.vue'
 import {

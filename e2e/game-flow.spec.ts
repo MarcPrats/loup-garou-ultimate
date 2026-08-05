@@ -8,14 +8,14 @@ async function enterGame(page: Page, name: string): Promise<void> {
   await expect(page.getByRole('heading', { name: "Salle d'Attente" })).toBeVisible()
 }
 
-test('runs the complete production game flow with private views and legacy rules', async ({ browser, request }) => {
+test('runs the complete production game flow with private views and V3 rules', async ({ browser, request }) => {
   const contexts: BrowserContext[] = []
   try {
     const homeContext = await browser.newContext()
     contexts.push(homeContext)
     const home = await homeContext.newPage()
     await home.goto('/')
-    await expect(home.locator('.legacy-home-action')).toHaveText([
+    await expect(home.locator('.app-home-action')).toHaveText([
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '📚 Wiki des règles',
@@ -25,14 +25,14 @@ test('runs the complete production game flow with private views and legacy rules
     await expect(home.getByRole('link', { name: '📚 Wiki des règles' })).toHaveAttribute('href', 'https://wiki.bloodontheclocktower.com/Trouble_Brewing')
 
     const rules = await homeContext.newPage()
-    await rules.goto('/reference.html')
+    await rules.goto('/reference')
     await expect(rules).toHaveTitle(/Référence/)
     await expect(rules.getByText('Ordre de la première nuit')).toBeVisible()
     const rolePage = await homeContext.newPage()
-    await rolePage.goto('/role.html?role=voyante')
+    await rolePage.goto('/rules/role/voyante')
     await expect(rolePage).toHaveTitle(/Voyante — Loup Garou Ultime/)
     await expect(rolePage.getByRole('heading', { name: 'Voyante' })).toBeVisible()
-    for (const assetPath of ['/css/role-catalog.css', '/js/roles-data.js', '/js/reference-roles.js', '/js/role-detail.js', '/images/voyante.webp']) {
+    for (const assetPath of ['/images/voyante.webp']) {
       expect((await request.get(assetPath)).status(), assetPath).toBe(200)
     }
 
@@ -51,17 +51,17 @@ test('runs the complete production game flow with private views and legacy rules
       playerPages.push(page)
     }
 
-    await expect(host.locator('.legacy-player-card')).toHaveCount(6)
+    await expect(host.locator('.app-player-card')).toHaveCount(6)
     await expect(host.getByRole('button', { name: '🎮 Démarrer la Partie' })).toBeEnabled()
 
     await playerPages[0]!.reload()
     await expect(playerPages[0]!.getByRole('heading', { name: "Salle d'Attente" })).toBeVisible()
     await expect(playerPages[0]!.getByText('Joueur 1').first()).toBeVisible()
-    await expect(playerPages[0]!.locator('.legacy-player-card')).toHaveCount(6)
+    await expect(playerPages[0]!.locator('.app-player-card')).toHaveCount(6)
 
     await host.getByRole('button', { name: '🎮 Démarrer la Partie' }).click()
     await expect(host.getByRole('heading', { name: '👑 Maître du Jeu' })).toBeVisible()
-    await expect(host.locator('.legacy-gm-table tbody tr')).toHaveCount(5)
+    await expect(host.locator('.app-gm-table tbody tr')).toHaveCount(5)
     await expect(host.getByText("Vue d'ensemble de tous les rôles")).toBeVisible()
 
     for (const [index, page] of playerPages.entries()) {
@@ -69,8 +69,8 @@ test('runs the complete production game flow with private views and legacy rules
       await expect(page.getByRole('heading', { name: 'Votre Pouvoir', exact: true })).toBeVisible()
       await expect(page.getByRole('heading', { name: 'Autres Infos', exact: true })).toBeVisible()
       await expect(page.getByText("Vue d'ensemble de tous les rôles")).toHaveCount(0)
-      await expect(page.locator('.legacy-drunk-badge')).toHaveCount(0)
-      await expect(page.locator('.legacy-gm-detail-card.decoy')).toHaveCount(0)
+      await expect(page.locator('.app-drunk-badge')).toHaveCount(0)
+      await expect(page.locator('.app-gm-detail-card.decoy')).toHaveCount(0)
       await expect(page.getByLabel('Lien privé vers cette vue')).toHaveCount(0)
       await expect(page.locator('.sr-only')).toContainText(`Joueur ${index + 1}`)
     }

@@ -15,6 +15,7 @@ import LobbyView from '../views/LobbyView.vue'
 import PlayerRoleView from '../views/PlayerRoleView.vue'
 import RoleAccessView from '../views/RoleAccessView.vue'
 import RulesView from '../views/RulesView.vue'
+import RoleDetailView from '../views/RoleDetailView.vue'
 
 export function shouldRedirectToSimulator(
   simulatorOnly: boolean,
@@ -46,7 +47,7 @@ export function createAppRouter(pinia: Pinia) {
     },
     {
       path: ROUTE_PATH.ENTRY,
-      alias: ['/waiting_room/', '/waiting-room', '/waiting-room/'],
+      alias: ['/waiting_room/'],
       name: ROUTE_NAME.ENTRY,
       component: HomeView,
     },
@@ -76,9 +77,14 @@ export function createAppRouter(pinia: Pinia) {
     },
     {
       path: ROUTE_PATH.RULES,
-      alias: ['/reference.html'],
       name: ROUTE_NAME.RULES,
       component: RulesView,
+      meta: { public: true },
+    },
+    {
+      path: ROUTE_PATH.ROLE_DETAIL,
+      name: ROUTE_NAME.ROLE_DETAIL,
+      component: RoleDetailView,
       meta: { public: true },
     },
   ]

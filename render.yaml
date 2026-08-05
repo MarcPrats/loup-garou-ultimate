@@ -3,7 +3,7 @@ services:
     name: loup-garou-ultimate
     env: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build:v3
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
     startCommand: node apps/server/dist/index.js
     healthCheckPath: /api/health
     envVars:

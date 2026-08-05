@@ -1,15 +1,18 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
+
+import { ROUTE_NAME } from '../constants/app'
 import type { RulesRoleCatalogEntry } from '../constants/rules-page'
 
 defineProps<{ role: RulesRoleCatalogEntry }>()
 </script>
 
 <template>
-  <a
+  <RouterLink
     v-if="role.available"
     class="role-card role-card-link"
     :class="role.category"
-    :href="`/role.html?role=${encodeURIComponent(role.id)}`"
+    :to="{ name: ROUTE_NAME.ROLE_DETAIL, params: { roleId: role.id } }"
     :aria-label="`Voir les détails de ${role.name}`"
   >
     <img v-if="role.imagePath" class="role-icon" :src="role.imagePath" :alt="role.name">
@@ -20,7 +23,7 @@ defineProps<{ role: RulesRoleCatalogEntry }>()
       <p>{{ role.summary }}</p>
       <span class="role-card-cta">Voir le personnage →</span>
     </div>
-  </a>
+  </RouterLink>
 
   <article
     v-else

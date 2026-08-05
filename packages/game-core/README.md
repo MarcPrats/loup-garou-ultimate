@@ -12,7 +12,7 @@ The package has no dependency on Vue, Fastify, Socket.IO, browser APIs or proces
 - `player-assignments.ts`: role lookup and player-assignment helpers.
 - `special-information.ts`: Renard, Petite Fille and Voyante rules.
 - `bluffs.ts`: Loup Garou bluff roles and fake special information.
-- `assign-roles.ts`: short orchestration function preserving the legacy random-operation order.
+- `assign-roles.ts`: short orchestration function preserving the seeded random-operation order.
 - `random.ts`: injectable random selection and shuffling utilities.
 
 ## Current responsibility
@@ -25,4 +25,4 @@ The package has no dependency on Vue, Fastify, Socket.IO, browser APIs or proces
 - Assign unused bluff roles to Loups Garous.
 - Generate Renard and Petite Fille bluff information.
 
-The legacy server does not use this package yet. The compatibility test compares deterministic assignments with the pinned legacy algorithm until the server migration is complete.
+The V3 server uses this package directly. The deterministic assignment tests protect the seeded algorithm used by the shared game engine.

@@ -5,7 +5,6 @@ import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv, type Plugin, type ServerOptions } from 'vite'
 
-import { legacyStaticAssets } from './scripts/legacy-static-assets'
 
 
 export function backendProxy(simulatorOnly: boolean): NonNullable<ServerOptions['proxy']> {
@@ -46,13 +45,12 @@ export default defineConfig(({ command, mode }) => {
   )
 
   return {
-    publicDir: '../../images',
+    publicDir: 'public',
     define: {
       __SIMULATOR_ENABLED__: JSON.stringify(simulatorEnabled),
       __SIMULATOR_ONLY__: JSON.stringify(simulatorOnly),
     },
     plugins: [
-      legacyStaticAssets(resolve(process.cwd(), '../..')),
       vue(),
       tailwindcss(),
       simulatorBuildMarker(simulatorEnabled),

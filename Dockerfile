@@ -9,7 +9,7 @@ COPY packages/game-core/package.json packages/game-core/package.json
 COPY packages/game-projection/package.json packages/game-projection/package.json
 RUN pnpm install --frozen-lockfile
 COPY . .
-RUN pnpm build:v3
+RUN pnpm build
 
 FROM node:24-bookworm-slim AS runtime
 WORKDIR /app

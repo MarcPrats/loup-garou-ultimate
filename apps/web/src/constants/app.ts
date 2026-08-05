@@ -33,6 +33,7 @@ export const ROUTE_NAME = {
   PLAYER_ROLE: 'player-role',
   GAME_MASTER: 'game-master',
   ROLE_ACCESS: 'role-access',
+  ROLE_DETAIL: 'role-detail',
   RULES: 'rules',
   SIMULATOR: 'simulator',
 } as const
@@ -45,11 +46,11 @@ export const ROUTE_PATH = {
   PLAYER_ROLE: '/role',
   GAME_MASTER: '/game-master',
   ROLE_ACCESS: '/access',
+  ROLE_DETAIL: '/rules/role/:roleId',
   RULES: '/reference',
   SIMULATOR: '/simulator',
 } as const
 
-export const LEGACY_PAGE = {
-  RULES: '/reference',
+export const PUBLIC_LINK = {
   WIKI: 'https://wiki.bloodontheclocktower.com/Trouble_Brewing',
 } as const

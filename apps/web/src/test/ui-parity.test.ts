@@ -7,7 +7,7 @@ import { ROLE_ID } from '@lgu/game-core'
 
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
-import { LEGACY_PAGE, ROUTE_NAME } from '../constants/app'
+import { PUBLIC_LINK, ROUTE_NAME } from '../constants/app'
 import { createAppRouter } from '../router'
 import HomeView from '../views/HomeView.vue'
 import RulesView from '../views/RulesView.vue'
@@ -24,7 +24,7 @@ const assignment: PrivateAssignment = {
   },
 }
 
-describe('legacy UI parity', () => {
+describe('V3 UI parity', () => {
   beforeEach(() => setActivePinia(createPinia()))
 
   it('restores the three original home actions in their original order', async () => {
@@ -33,24 +33,24 @@ describe('legacy UI parity', () => {
     await router.push('/')
     await router.isReady()
     const wrapper = mount(HomeView, { global: { plugins: [pinia, router] } })
-    expect(wrapper.findAll('.legacy-home-action').map((item) => item.text())).toEqual([
+    expect(wrapper.findAll('.app-home-action').map((item) => item.text())).toEqual([
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '📚 Wiki des règles',
     ])
     expect(wrapper.get('#entry-btn').attributes('href')).toBe('/waiting_room')
     expect(wrapper.get('a[href="/reference"]')).toBeTruthy()
-    expect(wrapper.get(`a[href="${LEGACY_PAGE.WIKI}"]`).attributes('target')).toBe('_blank')
+    expect(wrapper.get(`a[href="${PUBLIC_LINK.WIKI}"]`).attributes('target')).toBe('_blank')
   })
 
-  it('keeps every legacy waiting-room URL as the name-entry route', () => {
+  it('keeps every entry URL as the name-entry route', () => {
     const router = createAppRouter(createPinia())
-    for (const path of ['/waiting_room', '/waiting_room/', '/waiting-room', '/waiting-room/']) {
+    for (const path of ['/waiting_room', '/waiting_room/']) {
       expect(router.resolve(path).name).toBe(ROUTE_NAME.ENTRY)
     }
   })
 
-  it('restores the complete legacy player role, bluff and clue content', () => {
+  it('restores the complete player role, bluff and clue content', () => {
     const wrapper = mount(PlayerAssignmentPanel, { props: { assignment } })
     const text = wrapper.text()
     expect(text).toContain('Votre Pouvoir')
@@ -69,7 +69,7 @@ describe('legacy UI parity', () => {
   })
 
 
-  it('restores the legacy game-master table while keeping hidden indicators private', () => {
+  it('restores the game-master table while keeping hidden indicators private', () => {
     const dashboard: HostDashboard = {
       playerCount: 1,
       werewolfCount: 0,
@@ -108,7 +108,7 @@ describe('legacy UI parity', () => {
     expect(text).not.toContain('Ce que vous devriez savoir')
   })
 
-  it('labels a real Renard clue as private information, not bluff information', () => {
+  it('hides private clue information for a real Renard', () => {
     const realRenard: PrivateAssignment = {
       ...assignment,
       role: { id: ROLE_ID.RENARD, team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
@@ -140,7 +140,8 @@ describe('Vue rules page', () => {
     expect(text).toContain('Bibliothécaire')
     expect(text).toContain('Bientôt disponible')
     expect(wrapper.findAll('.night-block')).toHaveLength(2)
-    expect(createAppRouter(createPinia()).resolve('/reference.html').name).toBe(ROUTE_NAME.RULES)
+    expect(createAppRouter(createPinia()).resolve('/reference').name).toBe(ROUTE_NAME.RULES)
     expect(wrapper.findAll('.role-card')).toHaveLength(22)
+    expect(createAppRouter(createPinia()).resolve('/rules/role/voyante').name).toBe(ROUTE_NAME.ROLE_DETAIL)
   })
 })

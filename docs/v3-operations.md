@@ -8,11 +8,9 @@
 | `pnpm build` | Build the V3 server and Vue application |
 | `pnpm start` | Start the built single-origin V3 production server |
 | `pnpm simulator` | Run the isolated local simulator without a backend |
-| `pnpm test` | Run legacy and V3 unit/integration suites |
+| `pnpm test` | Run the workspace unit and integration suites |
 | `pnpm test:e2e` | Run the production browser flow |
 | `pnpm test:e2e:simulator` | Run the standalone simulator browser flow |
-| `pnpm start:legacy` | Start the preserved legacy runtime |
-| `pnpm dev:legacy` | Start the preserved legacy runtime with nodemon |
 
 ## Environment variables
 
@@ -35,7 +33,7 @@ Copy `.env.example` when a platform supports environment files. Do not commit re
 
 `pnpm start` runs the Fastify server. It serves API and Socket.IO traffic first, then existing static files, then `index.html` for extensionless Vue SPA routes. Missing assets and unknown `/api` routes remain 404 responses and are never replaced by the SPA shell.
 
-The rules page is now the public Vue route `/reference`, composed from reusable rules components. The old `/reference.html` URL redirects to it. The preserved `role.html`, CSS, JavaScript, and `images/` files remain available for legacy character detail pages and assets.
+The rules page is the public Vue route `/reference`, composed from reusable rules components. Available character details use `/rules/role/:roleId`. V3-owned image assets are served from `/images/`.
 
 ## Graceful shutdown
 
@@ -60,7 +58,7 @@ The repository includes:
 - `nixpacks.toml` for pnpm-based Nixpacks builds.
 - `render.yaml` for Render deployment and `/api/health` checks.
 
-All deployment paths run `pnpm build:v3` before launching `node apps/server/dist/index.js` directly, so platform signals reach the V3 graceful-shutdown handlers. The legacy runtime and files remain in the image and repository but are not the default process.
+All deployment paths run `pnpm build` before launching `node apps/server/dist/index.js` directly, so platform signals reach the V3 graceful-shutdown handlers. The production image contains only the V3 runtime and its build output.
 
 ## Codespaces
 
