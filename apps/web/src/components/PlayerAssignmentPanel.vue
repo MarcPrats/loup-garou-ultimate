@@ -86,7 +86,7 @@ const clueRole = computed(() => props.assignment.specialInformation
       </section>
     </div>
 
-    <div v-if="assignment.specialInformation && showClueKnowledgeSection" class="legacy-role-description-container legacy-bluff-special-section">
+    <div v-if="assignment.specialInformation && assignment.bluffRoleId !== null && assignment.role.team === TEAM.WEREWOLVES" class="legacy-role-description-container legacy-bluff-special-section">
       <h3 class="legacy-clue-title">🔍 {{ clueIsBluff ? 'Informations du rôle de couverture (Bluff)' : 'Informations privées' }}</h3>
       <section class="legacy-description-section">
         <div v-if="showClueKnowledgeSection" class="legacy-section-header"><span class="legacy-section-icon">🎭</span><h4>Ce que vous devriez savoir</h4></div>
