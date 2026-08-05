@@ -10,8 +10,11 @@ import {
   type RoleId,
 } from '@lgu/game-core'
 
+export const IVROGNE_ROLE_ID = 'ivrogne' as const
+export type PresentationRoleId = RoleId | typeof IVROGNE_ROLE_ID
+
 export interface RolePresentation {
-  readonly id: RoleId
+  readonly id: PresentationRoleId
   readonly name: string
   readonly category: RoleCategory
   readonly imagePath: string
@@ -198,6 +201,18 @@ export const IVROGNE_PRESENTATION = {
   summary: 'Ce joueur croit posséder son rôle affiché, mais il est secrètement Ivrogne.',
 } as const
 
+const IVROGNE_ROLE_PRESENTATION: RolePresentation = {
+  id: IVROGNE_ROLE_ID,
+  name: IVROGNE_PRESENTATION.name,
+  category: ROLE_CATEGORY.OUTSIDER,
+  imagePath: IVROGNE_PRESENTATION.imagePath,
+  fallbackSymbol: IVROGNE_PRESENTATION.fallbackSymbol,
+  summary: IVROGNE_PRESENTATION.summary,
+  power: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un Villageois, mais ce n'est pas le cas.",
+  info: "Conseil: Pensez à consommer de l'alcool avec modération. L'abus d'alcool est dangereux pour la santé.",
+}
+
 export function getRolePresentation(roleId: string): RolePresentation | null {
+  if (roleId === IVROGNE_ROLE_ID) return IVROGNE_ROLE_PRESENTATION
   return ROLE_PRESENTATION_BY_ID[roleId as RoleId] ?? null
 }

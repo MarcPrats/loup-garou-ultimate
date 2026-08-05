@@ -10,6 +10,7 @@ defineProps<{ role: RulesRoleCatalogEntry }>()
 <template>
   <RouterLink
     v-if="role.available"
+    :id="`role-${role.id}`"
     class="role-card role-card-link"
     :class="role.category"
     :to="{ name: ROUTE_NAME.ROLE_DETAIL, params: { roleId: role.id } }"
@@ -27,6 +28,7 @@ defineProps<{ role: RulesRoleCatalogEntry }>()
 
   <article
     v-else
+    :id="`role-${role.id}`"
     class="role-card role-card-coming-soon"
     :class="role.category"
     :aria-label="`${role.name}, bientôt disponible`"

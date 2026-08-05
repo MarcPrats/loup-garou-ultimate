@@ -11,6 +11,10 @@ import { getRolePresentation } from '../constants/role-presentation'
 const route = useRoute()
 const roleId = computed(() => String(route.params.roleId ?? '') as RoleId)
 const presentation = computed(() => getRolePresentation(roleId.value))
+const rulesLink = computed(() => ({
+  name: ROUTE_NAME.RULES,
+  hash: `#role-${roleId.value}`,
+}))
 
 onMounted(() => {
   document.title = presentation.value
@@ -28,7 +32,7 @@ onBeforeUnmount(() => {
     <div class="mx-auto w-full max-w-5xl">
       <nav class="mb-8 flex flex-wrap gap-3" aria-label="Navigation du personnage">
         <RouterLink
-          :to="{ name: ROUTE_NAME.RULES }"
+          :to="rulesLink"
           class="rounded-xl border border-white/15 px-5 py-3 font-bold text-slate-200 hover:bg-white/10"
         >
           Retour aux règles
