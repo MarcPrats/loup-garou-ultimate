@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import { SPECIAL_INFORMATION_TYPE, TEAM, type HostDashboard } from '@lgu/contracts'
 
 import { ROUTE_PATH } from '../constants/app'
+import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
 
 const props = withDefaults(defineProps<{
@@ -63,6 +64,6 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
       </table>
     </div>
 
-    <a :href="ROUTE_PATH.RULES" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
+    <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
   </div>
 </template>

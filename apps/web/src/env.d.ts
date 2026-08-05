@@ -2,6 +2,7 @@
 
 interface ImportMetaEnv {
   readonly VITE_ENABLE_SIMULATOR?: string
+  readonly VITE_STATIC_MODE?: string
 }
 
 interface ImportMeta {

@@ -47,7 +47,7 @@ export const ROUTE_PATH = {
   GAME_MASTER: '/game-master',
   ROLE_ACCESS: '/access',
   ROLE_DETAIL: '/rules/role/:roleId',
-  RULES: '/reference',
+  RULES: '/rules',
   SIMULATOR: '/simulator',
 } as const
 

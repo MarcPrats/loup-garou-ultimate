@@ -8,9 +8,11 @@ import {
   PUBLIC_LINK,
   ROUTE_PATH,
 } from '../constants/app'
+import { appPath } from '../constants/paths'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
+const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const route = useRoute()
 const enteringName = ref(route.name === 'entry')
 const playerName = ref('')
@@ -28,7 +30,9 @@ async function submit(): Promise<void> {
   await lobby.enter(normalizedName.value)
 }
 
-onMounted(() => void lobby.initialize())
+onMounted(() => {
+  if (!staticMode) void lobby.initialize()
+})
 </script>
 
 <template>
@@ -76,10 +80,10 @@ onMounted(() => void lobby.initialize())
     <section v-else class="app-home-shell">
       <h1>Loup Garou Ultime</h1>
       <nav class="app-home-actions" aria-label="Actions principales">
-        <a id="entry-btn" :href="ROUTE_PATH.ENTRY" class="app-home-action app-home-action-primary">
+        <a v-if="!staticMode" id="entry-btn" :href="appPath(ROUTE_PATH.ENTRY)" class="app-home-action app-home-action-primary">
           🎮 Créer / Rejoindre la partie
         </a>
-        <a :href="ROUTE_PATH.RULES" class="app-home-action">📜 Règles</a>
+        <a :href="appPath(ROUTE_PATH.RULES)" class="app-home-action">📜 Règles</a>
         <a :href="PUBLIC_LINK.WIKI" class="app-home-action" target="_blank" rel="noopener noreferrer">
           📚 Wiki des règles
         </a>

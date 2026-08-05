@@ -1,6 +1,6 @@
 # Loup Garou Ultimate
 
-Loup Garou Ultimate is a Vue 3 and TypeScript application powered by Pinia, Fastify, Socket.IO, shared contracts, and a deterministic game engine.
+Loup Garou Ultimate is a Vue 3 and TypeScript application powered by Fastify, Socket.IO, shared contracts, and a deterministic game engine.
 
 ## Requirements
 
@@ -75,4 +75,10 @@ packages/
 e2e/                  Production and simulator browser tests
 ```
 
-The server remains the authority for sessions and assignments. Player projections never contain hidden Ivrogne or Voyante-decoy fields. MJ projections contain the complete hidden state. Private role links place bearer tokens in URL fragments and exchange them through `no-store`, credential-free API requests.
+The server remains the authority for sessions and assignments. MJ projections contain the complete hidden state. Private role links place bearer tokens in URL fragments and exchange them through `no-store`, credential-free API requests.
+
+## GitHub Pages static site
+
+The GitHub Pages workflow builds a static mode containing the home page, `/rules`, role details, and the external Wiki link. It hides the game entry button and does not initialize the API or Socket.IO client. The multiplayer game still requires the Fastify server.
+
+The workflow uses `VITE_BASE_PATH` for project-site assets and copies the Vue entry point to `404.html` so direct `/rules` and role-detail links work on GitHub Pages.

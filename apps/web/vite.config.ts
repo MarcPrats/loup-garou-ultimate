@@ -45,6 +45,7 @@ export default defineConfig(({ command, mode }) => {
   )
 
   return {
+    base: process.env.VITE_BASE_PATH ?? '/',
     publicDir: 'public',
     define: {
       __SIMULATOR_ENABLED__: JSON.stringify(simulatorEnabled),

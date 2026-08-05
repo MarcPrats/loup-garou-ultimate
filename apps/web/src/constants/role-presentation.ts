@@ -2,6 +2,8 @@ import {
   ROLE_CATEGORY,
   type RoleCategory,
 } from '@lgu/contracts'
+
+import { appAsset } from './paths'
 import {
   ROLE_DEFINITIONS,
   ROLE_ID,
@@ -92,77 +94,77 @@ const PRESENTATION_DETAILS: Record<
   Pick<RolePresentation, 'imagePath' | 'fallbackSymbol' | 'summary'>
 > = {
   [ROLE_ID.ULTIMATE_WEREWOLF]: {
-    imagePath: '/images/loupgarou.webp',
+    imagePath: appAsset('/images/loupgarou.webp'),
     fallbackSymbol: '🐺',
     summary: 'Chaque nuit, il choisit un joueur qui meurt. Il ne se réveille pas la première nuit.',
   },
   [ROLE_ID.INFECT_WEREWOLF]: {
-    imagePath: '/images/infectloup.webp',
+    imagePath: appAsset('/images/infectloup.webp'),
     fallbackSymbol: '🩸',
     summary: 'Chaque nuit, il choisit un joueur empoisonné pour la nuit et le jour suivants.',
   },
   [ROLE_ID.GRAND_WEREWOLF]: {
-    imagePath: '/images/grandloup.webp',
+    imagePath: appAsset('/images/grandloup.webp'),
     fallbackSymbol: '🌕',
     summary: 'Il devient le Loup Garou Ultime si celui-ci meurt alors qu’au moins cinq joueurs sont en vie.',
   },
   [ROLE_ID.PETITE_FILLE]: {
-    imagePath: '/images/petite-fille.webp',
+    imagePath: appAsset('/images/petite-fille.webp'),
     fallbackSymbol: '👧',
     summary: 'Lors de la première nuit, elle apprend qu’un Villageois se cache parmi deux joueurs.',
   },
   [ROLE_ID.RENARD]: {
-    imagePath: '/images/renard.webp',
+    imagePath: appAsset('/images/renard.webp'),
     fallbackSymbol: '🦊',
     summary: 'Lors de la première nuit, il apprend qu’un Loup Garou se cache parmi deux joueurs.',
   },
   [ROLE_ID.MONTREUR_DOURS]: {
-    imagePath: '/images/montreur-dours.webp',
+    imagePath: appAsset('/images/montreur-dours.webp'),
     fallbackSymbol: '🐻',
     summary: 'Lors de la première nuit, il découvre combien de loups-garous sont placés côte à côte.',
   },
   [ROLE_ID.CUPIDON]: {
-    imagePath: '/images/cupidon.webp',
+    imagePath: appAsset('/images/cupidon.webp'),
     fallbackSymbol: '💘',
     summary: 'Chaque nuit, il apprend combien de ses deux voisins vivants sont des loups-garous.',
   },
   [ROLE_ID.VOYANTE]: {
-    imagePath: '/images/voyante.webp',
+    imagePath: appAsset('/images/voyante.webp'),
     fallbackSymbol: '🔮',
     summary: 'Chaque nuit, elle choisit deux joueurs et apprend si l’un d’eux est le Loup Garou Ultime.',
   },
   [ROLE_ID.CHEVALIER]: {
-    imagePath: '/images/chevalier.webp',
+    imagePath: appAsset('/images/chevalier.webp'),
     fallbackSymbol: '🛡️',
     summary: 'Chaque nuit, sauf la première, il protège un autre joueur du Loup Garou Ultime.',
   },
   [ROLE_ID.CHASSEUR]: {
-    imagePath: '/images/chasseur.webp',
+    imagePath: appAsset('/images/chasseur.webp'),
     fallbackSymbol: '🏹',
     summary: 'Une fois par partie, pendant le jour, il désigne publiquement un joueur.',
   },
   [ROLE_ID.FLUTISTE]: {
-    imagePath: '/images/flute.webp',
+    imagePath: appAsset('/images/flute.webp'),
     fallbackSymbol: '🎵',
     summary: 'La première fois qu’il est nominé, son nominateur est exécuté si celui-ci est Villageois.',
   },
   [ROLE_ID.SORCIERE]: {
-    imagePath: '/images/sorciere.webp',
+    imagePath: appAsset('/images/sorciere.webp'),
     fallbackSymbol: '🧪',
     summary: 'Si elle meurt la nuit, elle choisit un joueur et découvre son personnage.',
   },
   [ROLE_ID.ANCIEN]: {
-    imagePath: '/images/ancien.webp',
+    imagePath: appAsset('/images/ancien.webp'),
     fallbackSymbol: '🧓',
     summary: 'Il est protégé du pouvoir du Loup Garou Ultime.',
   },
   [ROLE_ID.ENFANT_SAUVAGE]: {
-    imagePath: '/images/enfant.webp',
+    imagePath: appAsset('/images/enfant.webp'),
     fallbackSymbol: '🌿',
     summary: 'Chaque nuit, sauf la première, il apprend quel personnage a été exécuté pendant le jour.',
   },
   [ROLE_ID.ANGEL]: {
-    imagePath: '/images/ange.webp',
+    imagePath: appAsset('/images/ange.webp'),
     fallbackSymbol: '😇',
     summary: 'Si l’Ange meurt par exécution, son équipe perd immédiatement.',
   },
@@ -191,7 +193,7 @@ export const ROLE_CATEGORY_LABEL: Record<RoleCategory, string> = {
 
 export const IVROGNE_PRESENTATION = {
   name: 'Ivrogne',
-  imagePath: '/images/ivrogne-v3.webp',
+  imagePath: appAsset('/images/ivrogne-v3.webp'),
   fallbackSymbol: '🍺',
   summary: 'Ce joueur croit posséder son rôle affiché, mais il est secrètement Ivrogne.',
 } as const

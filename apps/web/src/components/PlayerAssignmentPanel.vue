@@ -8,6 +8,7 @@ import {
 } from '@lgu/contracts'
 
 import { ROUTE_PATH } from '../constants/app'
+import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
 import RoleInfoPanel from './RoleInfoPanel.vue'
 
@@ -59,6 +60,6 @@ const clueRole = computed(() => props.assignment.specialInformation
       </section>
     </div>
 
-    <a :href="ROUTE_PATH.RULES" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
+    <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
   </div>
 </template>

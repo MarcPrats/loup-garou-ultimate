@@ -9,6 +9,7 @@ import { routeNameForDestination } from './router'
 import { useLobbyStore } from './stores/lobby'
 
 const route = useRoute()
+const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const router = useRouter()
 const lobby = shallowRef<ReturnType<typeof useLobbyStore> | null>(null)
 const connectionState = computed(() => (
@@ -21,7 +22,7 @@ function requireLobbyStore(): ReturnType<typeof useLobbyStore> {
 }
 
 async function synchronizeRoute(): Promise<void> {
-  if (route.meta.roleAccess || route.meta.simulator || route.meta.public) return
+  if (staticMode || route.meta.roleAccess || route.meta.simulator || route.meta.public) return
   const store = lobby.value
   if (!store?.initialized) return
   if (!store.hasSession) {
@@ -40,7 +41,7 @@ async function synchronizeRoute(): Promise<void> {
 watch(
   () => route.meta.simulator,
   (simulator) => {
-    if (simulator) {
+    if (staticMode || simulator) {
       lobby.value?.suspendRealtime()
     } else {
       void requireLobbyStore().resumeRealtime()
@@ -66,13 +67,13 @@ onBeforeUnmount(() => lobby.value?.dispose())
 <template>
   <RouterView />
   <NoticeToast
-    v-if="lobby?.notice && !route.meta.simulator"
+    v-if="!staticMode && lobby?.notice && !route.meta.simulator"
     :key="lobby.notice.id"
     :level="lobby.notice.level"
     :message="lobby.notice.message"
   />
   <ConnectionStatus
-    v-if="!route.meta.simulator"
+    v-if="!staticMode && !route.meta.simulator"
     :state="connectionState"
   />
 </template>
