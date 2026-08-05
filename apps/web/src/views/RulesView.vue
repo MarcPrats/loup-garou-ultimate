@@ -174,42 +174,117 @@ onBeforeUnmount(() => {
 .rules-page .section-title.demons,
 .rules-page .section-title.loup-garou-ultime { border-color: #c0392b; }
 
+.distribution-section {
+  padding: 0 16px 4px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgb(255 255 255 / 5%), rgb(255 255 255 / 2%));
+  box-shadow: 0 12px 30px rgb(0 0 0 / 14%);
+}
+
+.distribution-section > .section-title { margin-top: 18px; }
+.distribution-table-desktop { display: block; }
+.distribution-cards { display: none; }
+
 .count-table {
   width: 100%;
   margin-bottom: 14px;
-  border-collapse: collapse;
-  border-radius: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--rules-border);
+  border-radius: 12px;
   overflow: hidden;
   background: rgb(255 255 255 / 3%);
 }
 
 .count-table th,
 .count-table td {
-  padding: 11px 14px;
-  border: 1px solid var(--rules-border);
-  font-size: .88rem;
+  padding: 12px 10px;
+  border-right: 1px solid var(--rules-border);
+  border-bottom: 1px solid var(--rules-border);
+  font-size: .84rem;
   text-align: center;
 }
 
+.count-table th:last-child,
+.count-table td:last-child { border-right: 0; }
+.count-table tbody tr:last-child td { border-bottom: 0; }
+
 .count-table thead th {
-  color: var(--rules-accent);
-  background: rgb(230 126 34 / 18%);
-  font-size: .78rem;
-  font-weight: 700;
-  letter-spacing: .05em;
+  color: #f8f9fa;
+  background: rgb(255 255 255 / 8%);
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .04em;
   text-transform: uppercase;
 }
 
+.count-table thead .distribution-heading-total { color: #f39c12; background: rgb(243 156 18 / 15%); }
+.count-table thead .distribution-heading-villagers { color: #58d68d; background: rgb(39 174 96 / 15%); }
+.count-table thead .distribution-heading-outsiders { color: #5dade2; background: rgb(52 152 219 / 15%); }
+.count-table thead .distribution-heading-werewolves { color: #ec7063; background: rgb(192 57 43 / 15%); }
+.count-table thead .distribution-heading-ultimate { color: #d7bde2; background: rgb(142 68 173 / 18%); }
+
 .count-table tbody tr:nth-child(even) { background: rgb(255 255 255 / 2%); }
 .count-table tbody tr:hover { background: rgb(255 255 255 / 6%); }
-.count-table td:first-child { color: #f8f9fa; font-weight: 700; }
+.count-table td:first-child { color: #f8f9fa; font-weight: 800; }
+
+.distribution-number {
+  display: inline-flex;
+  min-width: 2rem;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: .92rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.distribution-number-total { color: #ffd28a; background: rgb(243 156 18 / 20%); }
+.distribution-number-villagers { color: #a9f5c7; background: rgb(39 174 96 / 20%); }
+.distribution-number-outsiders { color: #b9e3ff; background: rgb(52 152 219 / 20%); }
+.distribution-number-werewolves { color: #ffc1ba; background: rgb(192 57 43 / 20%); }
+.distribution-number-ultimate { color: #efd7f7; background: rgb(142 68 173 / 24%); }
+
+.distribution-card {
+  padding: 14px;
+  border: 1px solid var(--rules-border);
+  border-radius: 14px;
+  background: rgb(255 255 255 / 4%);
+}
+
+.distribution-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+}
+
+.distribution-players { color: #f8f9fa; font-size: 1rem; font-weight: 800; }
+.distribution-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding-top: 12px; }
+.distribution-metric { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-radius: 10px; font-size: .76rem; font-weight: 700; }
+.distribution-metric span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.distribution-metric strong { font-size: 1rem; }
+.distribution-metric-villagers { color: #a9f5c7; background: rgb(39 174 96 / 15%); }
+.distribution-metric-outsiders { color: #b9e3ff; background: rgb(52 152 219 / 15%); }
+.distribution-metric-werewolves { color: #ffc1ba; background: rgb(192 57 43 / 15%); }
+.distribution-metric-ultimate { color: #efd7f7; background: rgb(142 68 173 / 18%); }
 
 .footnote {
-  margin: 6px 0 30px;
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 14px 0 24px;
   color: var(--rules-muted);
   font-size: .75rem;
   font-style: italic;
+  line-height: 1.5;
 }
+
+.footnote span { flex: 0 0 auto; font-style: normal; }
 
 .night-block {
   margin-bottom: 30px;
@@ -287,6 +362,8 @@ onBeforeUnmount(() => {
   .night-step { padding: 12px 14px; }
   .night-separator,
   .night-block-header { padding-left: 14px; padding-right: 14px; }
-  .count-table { display: block; overflow-x: auto; white-space: nowrap; }
+  .distribution-section { padding: 0 10px 2px; }
+  .distribution-table-desktop { display: none; }
+  .distribution-cards { display: grid; gap: 10px; }
 }
 </style>
