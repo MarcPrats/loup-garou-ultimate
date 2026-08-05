@@ -10,6 +10,7 @@ import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import { LEGACY_PAGE, ROUTE_NAME } from '../constants/app'
 import { createAppRouter } from '../router'
 import HomeView from '../views/HomeView.vue'
+import RulesView from '../views/RulesView.vue'
 
 const assignment: PrivateAssignment = {
   player: { id: 'player_1', name: 'Marc' },
@@ -38,7 +39,7 @@ describe('legacy UI parity', () => {
       '📚 Wiki des règles',
     ])
     expect(wrapper.get('#entry-btn').attributes('href')).toBe('/waiting_room')
-    expect(wrapper.get('a[href="/reference.html"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/reference"]')).toBeTruthy()
     expect(wrapper.get(`a[href="${LEGACY_PAGE.WIKI}"]`).attributes('target')).toBe('_blank')
   })
 
@@ -59,9 +60,10 @@ describe('legacy UI parity', () => {
     expect(text).toContain('Pouvoir (Bluff)')
     expect(text).toContain('Infos (Bluff)')
     expect(text).toContain('Info Renard (Bluff)')
+    expect(text).toContain('Ce que vous devriez savoir')
     expect(text).toContain('Infect Loup Garou')
     expect(text).toContain('Alice, Nora')
-    expect(wrapper.get('a[href="/reference.html"]').text()).toContain('Consulter les Règles')
+    expect(wrapper.get('a[href="/reference"]').text()).toContain('Consulter les Règles')
     expect(text).not.toContain('Ivrogne caché')
     expect(text).not.toContain('Leurre de la Voyante')
   })
@@ -89,6 +91,23 @@ describe('legacy UI parity', () => {
     expect(text).toContain('🔮 Leurre Voyante')
   })
 
+  it('does not show the bluff knowledge section for a real Petite Fille', () => {
+    const realPetiteFille: PrivateAssignment = {
+      ...assignment,
+      role: { id: ROLE_ID.PETITE_FILLE, team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
+      bluffRoleId: null,
+      specialInformation: {
+        type: 'petite-fille',
+        roleId: ROLE_ID.VOYANTE,
+        players: [{ id: 'player_2', name: 'Alice' }, { id: 'player_3', name: 'Nora' }],
+      },
+    }
+    const text = mount(PlayerAssignmentPanel, { props: { assignment: realPetiteFille, showAccessLink: false } }).text()
+    expect(text).not.toContain('Info Petite Fille')
+    expect(text).not.toContain('Informations privées')
+    expect(text).not.toContain('Ce que vous devriez savoir')
+  })
+
   it('labels a real Renard clue as private information, not bluff information', () => {
     const realRenard: PrivateAssignment = {
       ...assignment,
@@ -96,8 +115,32 @@ describe('legacy UI parity', () => {
       bluffRoleId: null,
     }
     const text = mount(PlayerAssignmentPanel, { props: { assignment: realRenard, showAccessLink: false } }).text()
-    expect(text).toContain('Informations privées')
-    expect(text).toContain('Info Renard')
+    expect(text).not.toContain('Informations privées')
+    expect(text).not.toContain('Info Renard')
     expect(text).not.toContain('Info Renard (Bluff)')
+  })
+})
+
+
+describe('Vue rules page', () => {
+  it('renders the complete rules page as composed Vue components', () => {
+    const wrapper = mount(RulesView, {
+      global: {
+        stubs: {
+          RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
+        },
+      },
+    })
+    const text = wrapper.text()
+
+    expect(text).toContain('🎭 Personnages')
+    expect(text).toContain('Répartition des personnages')
+    expect(text).toContain('Ordre de la première nuit')
+    expect(text).toContain('Ordre des nuits suivantes')
+    expect(text).toContain('Bibliothécaire')
+    expect(text).toContain('Bientôt disponible')
+    expect(wrapper.findAll('.night-block')).toHaveLength(2)
+    expect(createAppRouter(createPinia()).resolve('/reference.html').name).toBe(ROUTE_NAME.RULES)
+    expect(wrapper.findAll('.role-card')).toHaveLength(22)
   })
 })

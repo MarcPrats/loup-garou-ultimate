@@ -35,7 +35,7 @@ Copy `.env.example` when a platform supports environment files. Do not commit re
 
 `pnpm start` runs the Fastify server. It serves API and Socket.IO traffic first, then existing static files, then `index.html` for extensionless Vue SPA routes. Missing assets and unknown `/api` routes remain 404 responses and are never replaced by the SPA shell.
 
-The preserved `reference.html`, `role.html`, CSS, JavaScript, and `images/` files are included in the Vue production output.
+The rules page is now the public Vue route `/reference`, composed from reusable rules components. The old `/reference.html` URL redirects to it. The preserved `role.html`, CSS, JavaScript, and `images/` files remain available for legacy character detail pages and assets.
 
 ## Graceful shutdown
 

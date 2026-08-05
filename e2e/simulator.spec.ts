@@ -31,9 +31,9 @@ test('runs the simulator without API, Socket.IO or persistent browser state', as
   await expect(page.getByRole('heading', { name: 'Simulateur V3' })).toBeVisible()
   await expect(page.getByText('aucun socket, aucune session, aucun appel API')).toBeVisible()
 
-  await page.locator('#simulator-seed').fill('e2e-seed')
   await page.getByRole('button', { name: 'Générer', exact: true }).click()
-  await expect(page.getByText('e2e-seed', { exact: true })).toBeVisible()
+  await expect(page.getByText('Vue publique')).toHaveCount(0)
+  await expect(page.getByText('Seed reproductible')).toHaveCount(0)
   await page.getByRole('button', { name: 'Vue MJ' }).click()
   await expect(page.getByText("Vue d'ensemble de tous les rôles")).toBeVisible()
   const firstPlayerValue = await page.getByLabel('Choisir une vue joueur').locator('option').nth(1).getAttribute('value')

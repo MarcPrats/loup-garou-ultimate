@@ -22,13 +22,12 @@ async function createWebRoot(): Promise<string> {
   temporaryDirectories.push(root)
   await mkdir(join(root, 'assets'), { recursive: true })
   await writeFile(join(root, 'index.html'), '<!doctype html><div id="app">V3</div>')
-  await writeFile(join(root, 'reference.html'), '<!doctype html><h1>Règles</h1>')
   await writeFile(join(root, 'assets', 'app.js'), 'globalThis.LGU = true')
   return root
 }
 
 describe('V3 production runtime', () => {
-  it('serves built assets, preserved rules and SPA routes without masking APIs', async () => {
+  it('serves built assets and SPA routes without masking APIs', async () => {
     const webRoot = await createWebRoot()
     const app = createHttpApp({
       service: createServiceForTest(),
@@ -47,8 +46,8 @@ describe('V3 production runtime', () => {
     expect(spaRoute.body).toContain('<div id="app">V3</div>')
 
     const rules = await app.inject({ method: 'GET', url: '/reference.html' })
-    expect(rules.statusCode).toBe(200)
-    expect(rules.body).toContain('Règles')
+    expect(rules.statusCode).toBe(302)
+    expect(rules.headers.location).toBe('/reference')
 
     const asset = await app.inject({ method: 'GET', url: '/assets/app.js' })
     expect(asset.statusCode).toBe(200)

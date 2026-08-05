@@ -21,7 +21,7 @@ function requireLobbyStore(): ReturnType<typeof useLobbyStore> {
 }
 
 async function synchronizeRoute(): Promise<void> {
-  if (route.meta.roleAccess || route.meta.simulator) return
+  if (route.meta.roleAccess || route.meta.simulator || route.meta.public) return
   const store = lobby.value
   if (!store?.initialized) return
   if (!store.hasSession) {

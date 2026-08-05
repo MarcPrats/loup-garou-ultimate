@@ -4,7 +4,6 @@ import { copyFile, mkdir, readFile } from 'node:fs/promises'
 import { extname, resolve } from 'node:path'
 
 const STATIC_FILES = [
-  'reference.html',
   'role.html',
   'css/role-catalog.css',
   'js/roles-data.js',

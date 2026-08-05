@@ -32,6 +32,9 @@ const teamLabel = computed(() => props.assignment.role.team === TEAM.WEREWOLVES
   ? '🐺 Loup-Garou'
   : '👥 Villageois')
 const clueIsBluff = computed(() => props.assignment.bluffRoleId !== null)
+const showClueKnowledgeSection = computed(() => (
+  clueIsBluff.value && props.assignment.role.team === TEAM.WEREWOLVES
+))
 const clueTitle = computed(() => props.assignment.specialInformation?.type === SPECIAL_INFORMATION_TYPE.RENARD
   ? `🦊 Info Renard${clueIsBluff.value ? ' (Bluff)' : ''}`
   : `👧 Info Petite Fille${clueIsBluff.value ? ' (Bluff)' : ''}`)
@@ -83,10 +86,10 @@ const clueRole = computed(() => props.assignment.specialInformation
       </section>
     </div>
 
-    <div v-if="assignment.specialInformation" class="legacy-role-description-container legacy-bluff-special-section">
+    <div v-if="assignment.specialInformation && showClueKnowledgeSection" class="legacy-role-description-container legacy-bluff-special-section">
       <h3 class="legacy-clue-title">🔍 {{ clueIsBluff ? 'Informations du rôle de couverture (Bluff)' : 'Informations privées' }}</h3>
       <section class="legacy-description-section">
-        <div class="legacy-section-header"><span class="legacy-section-icon">🎭</span><h4>Ce que vous devriez savoir</h4></div>
+        <div v-if="showClueKnowledgeSection" class="legacy-section-header"><span class="legacy-section-icon">🎭</span><h4>Ce que vous devriez savoir</h4></div>
         <p class="legacy-section-text">
           <strong>{{ clueTitle }}</strong><br>
           {{ assignment.specialInformation.type === SPECIAL_INFORMATION_TYPE.RENARD ? 'Loup' : 'Villageois' }} : {{ clueRole?.name ?? assignment.specialInformation.roleId }}<br>

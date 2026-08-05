@@ -1,0 +1,9 @@
+diff a/apps/web/src/test/legacy-parity.test.ts b/apps/web/src/test/legacy-parity.test.ts	(rejected hunks)
+@@ -100,6 +117,7 @@ describe('legacy UI parity', () => {
+     expect(text).toContain('Informations privées')
+     expect(text).toContain('Info Renard')
+     expect(text).not.toContain('Info Renard (Bluff)')
++    expect(text).not.toContain('Ce que vous devriez savoir')
+  })
+ })
+

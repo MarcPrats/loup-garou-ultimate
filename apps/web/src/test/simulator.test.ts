@@ -68,7 +68,7 @@ describe('simulator engine', () => {
     }
   })
 
-  it('keeps the public preview free of every private field', () => {
+  it('keeps the room projection free of every private field', () => {
     const serialized = JSON.stringify(scenario().room)
 
     expect(serialized).not.toContain('roleId')
@@ -105,8 +105,10 @@ describe('simulator route isolation', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Vue publique')
-    expect(wrapper.text()).toContain('Cette projection ne contient aucun rôle')
+    expect(wrapper.text()).not.toContain('Vue publique')
+    expect(wrapper.text()).not.toContain('Seed reproductible')
+    expect(wrapper.text()).not.toContain('Modifier les noms des joueurs')
+    expect(wrapper.text()).toContain('Vue MJ')
     expect(fetchMock).not.toHaveBeenCalled()
     expect(storageWrite).not.toHaveBeenCalled()
 

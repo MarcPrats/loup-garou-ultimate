@@ -14,6 +14,7 @@ import HomeView from '../views/HomeView.vue'
 import LobbyView from '../views/LobbyView.vue'
 import PlayerRoleView from '../views/PlayerRoleView.vue'
 import RoleAccessView from '../views/RoleAccessView.vue'
+import RulesView from '../views/RulesView.vue'
 
 export function shouldRedirectToSimulator(
   simulatorOnly: boolean,
@@ -72,6 +73,13 @@ export function createAppRouter(pinia: Pinia) {
       name: ROUTE_NAME.ROLE_ACCESS,
       component: RoleAccessView,
       meta: { roleAccess: true },
+    },
+    {
+      path: ROUTE_PATH.RULES,
+      alias: ['/reference.html'],
+      name: ROUTE_NAME.RULES,
+      component: RulesView,
+      meta: { public: true },
     },
   ]
 
