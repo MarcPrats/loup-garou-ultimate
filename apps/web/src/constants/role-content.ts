@@ -45,7 +45,7 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
   },
   "flutiste": {
-    power: "Pendant la journée, si un joueur vous désigne pour une exécution et que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utilisé qu'une seule fois. ATTENTION : ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
+    power: "Pendant la journée, si un joueur vous désigne pour une exécution et que ce joueur est un villageois (à part si c'est un marginal), alors il est immédiatement exécuté. Ce pouvoir n'est utilisé qu'une seule fois. ATTENTION : ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
     info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations, donc n'hésitez pas à l'énoncer si on vous accuse à tort.",
   },
   "sorciere": {

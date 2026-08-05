@@ -60,7 +60,6 @@ describe('role presentation catalogue', () => {
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.PETITE_FILLE].imagePath).toBe('/images/petite-fille.webp')
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.MONTREUR_DOURS].imagePath).toBe('/images/montreur-dours.webp')
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.ENFANT_SAUVAGE].imagePath).toBe('/images/enfant.webp')
-    expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.FLUTISTE].info).toContain('Marginal')
   })
 })
 

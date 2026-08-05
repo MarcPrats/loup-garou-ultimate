@@ -16,12 +16,7 @@ const props = withDefaults(defineProps<{
 }>(), {
 })
 
-const bluffRole = computed(() => props.assignment.bluffRoleId
-  ? getRolePresentation(props.assignment.bluffRoleId)
-  : null)
-const bluffContent = computed(() => props.assignment.bluffRoleId
-  ? ROLE_CONTENT[props.assignment.bluffRoleId]
-  : null)
+
 const clueIsBluff = computed(() => props.assignment.bluffRoleId !== null)
 const showClueKnowledgeSection = computed(() => (
   clueIsBluff.value && props.assignment.role.team === TEAM.WEREWOLVES

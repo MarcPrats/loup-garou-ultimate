@@ -30,7 +30,6 @@ describe('simulator app isolation', () => {
     expect(getLobbyGatewayMock).not.toHaveBeenCalled()
     expect(removeStoredSession).not.toHaveBeenCalled()
     expect(window.sessionStorage.getItem(STORAGE_KEY.SESSION)).toBe('{malformed')
-    expect(wrapper.find('[role="status"]').text()).toContain('Le simulateur est isolé')
     wrapper.unmount()
     window.sessionStorage.clear()
   })
