@@ -11,6 +11,8 @@ import {
   FOLLOWING_NIGHT_SECTIONS,
 } from '../constants/rules-page'
 
+const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
+
 onMounted(() => {
   document.title = 'Référence — Loup Garou Ultimate'
 })
@@ -27,9 +29,12 @@ onBeforeUnmount(() => {
         <RouterLink :to="{ name: ROUTE_NAME.HOME }" class="rules-back-btn">
           🏠 Retour à l'écran principal
         </RouterLink>
-        <RouterLink :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
+        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
           🚪 Retour à la salle d'attente
         </RouterLink>
+        <span v-else class="rules-back-btn rules-back-btn-disabled" aria-disabled="true">
+          🚪 Retour à la salle d'attente
+        </span>
       </nav>
 
       <header class="rules-header">
@@ -54,9 +59,12 @@ onBeforeUnmount(() => {
         <RouterLink :to="{ name: ROUTE_NAME.HOME }" class="rules-back-btn">
           🏠 Retour à l'écran principal
         </RouterLink>
-        <RouterLink :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
+        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
           🚪 Retour à la salle d'attente
         </RouterLink>
+        <span v-else class="rules-back-btn rules-back-btn-disabled" aria-disabled="true">
+          🚪 Retour à la salle d'attente
+        </span>
       </nav>
     </div>
   </main>
@@ -109,6 +117,12 @@ onBeforeUnmount(() => {
 .rules-back-btn:hover,
 .rules-back-btn:focus-visible {
   background: rgb(255 255 255 / 13%);
+}
+
+.rules-back-btn-disabled {
+  cursor: not-allowed;
+  opacity: .45;
+  pointer-events: none;
 }
 
 .rules-header {
