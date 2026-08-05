@@ -4,7 +4,7 @@ import { RouterLink, useRoute } from 'vue-router'
 
 import type { RoleId } from '@lgu/contracts'
 
-import RoleCard from '../components/RoleCard.vue'
+import RoleInfoPanel from '../components/RoleInfoPanel.vue'
 import { ROUTE_NAME } from '../constants/app'
 import { getRolePresentation } from '../constants/role-presentation'
 
@@ -41,10 +41,12 @@ onBeforeUnmount(() => {
         </RouterLink>
       </nav>
 
-      <div v-if="presentation" class="app-role-reveal">
-        <h2>Fiche personnage</h2>
-        <RoleCard :role-id="roleId" eyebrow="Fiche personnage" />
-      </div>
+      <RoleInfoPanel
+        v-if="presentation"
+        :role-id="roleId"
+        power-title="Votre Pouvoir"
+        info-title="Autres Infos"
+      />
       <section v-else class="rounded-3xl border border-white/10 bg-white/5 p-8">
         <h1 class="font-display text-3xl font-bold">Personnage inconnu</h1>
         <p class="mt-3 text-slate-300">Le personnage demandé n'est pas disponible dans cette version.</p>

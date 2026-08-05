@@ -15,147 +15,156 @@ export interface RolePresentation {
   readonly imagePath: string
   readonly fallbackSymbol: string
   readonly summary: string
-  readonly instructions: readonly string[]
+  readonly power: string
+  readonly info: string
+}
+
+export interface RoleContent {
+  readonly power: string
+  readonly info: string
+}
+
+export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
+  "loup-garou-ultime": {
+    power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note : Vous pouvez choisir de vous tuer vous-même et l'infect loup-garou ou le grand loup jouera votre rôle.",
+    info: "Le Loup Garou Ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien.",
+  },
+  "infect-loup": {
+    power: "Chaque nuit, choisissez un joueur. Ce joueur est empoisonné et ne bénéficie plus de son pouvoir jusqu'au début de la prochaine nuit.",
+    info: "Le loup garou infect prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie. Le poison annule ou altère les pouvoirs des villageois. De bonnes cibles pour l'empoisonnement sont Cupidon, la voyante, l'ancien ou le chevalier dont les pouvoirs vous gêneront amplement.",
+  },
+  "grand-loup": {
+    power: "S'il y a toujours plus de 5 joueurs en vie et que le Loup Garou Ultime meurt, vous devenez le Loup Garou Ultime.",
+    info: "Le grand loup garou prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci.",
+  },
+  "petite-fille": {
+    power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de villageois puis pointera deux joueurs. L'un de ces deux joueurs est le villageois précédemment montré.",
+    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
+  },
+  "renard": {
+    power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de loup garou (sauf celui du Loup Garou Ultime) puis pointera deux joueurs. L'un de ces deux joueurs est le loup garou précédemment montré.",
+    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
+  },
+  "montreur-dours": {
+    power: "Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.",
+    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
+  },
+  "cupidon": {
+    power: "Chaque nuit, parmi les deux joueurs vivants qui vous entourent, vous apprenez combien de loup garous vous entourent (0, 1 ou 2).",
+    info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure.",
+  },
+  "voyante": {
+    power: "Chaque nuit, choisissez deux joueurs. Si au moins l'un d'eux est le Loup Garou Ultime, vous aurez l'information. ATTENTION : l'un des villageois est un leurre et vous apparaîtra comme le Loup Garou Ultime !",
+    info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure.",
+  },
+  "chevalier": {
+    power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du Loup Garou Ultime le temps d'une nuit.",
+    info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayez vite de les identifier afin de les protéger.",
+  },
+  "chasseur": {
+    power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le Loup Garou Ultime, il meurt.",
+    info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
+  },
+  "flutiste": {
+    power: "Pendant la journée, si un joueur vous désigne pour une exécution et que ce joueur est un villageois (à part si c'est l'ange ou s'il est bourré), alors il est immédiatement exécuté. Ce pouvoir n'est utilisé qu'une seule fois. ATTENTION : ne dites rien lorsque c'est le cas. Le maître du jeu interviendra à ce moment précis.",
+    info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations, donc n'hésitez pas à l'énoncer si on vous accuse à tort.",
+  },
+  "sorciere": {
+    power: "Si vous mourrez la nuit, vous choisissez un personnage et découvrez son identité.",
+    info: "Votre pouvoir se déclenche à votre mort. Donc n'hésitez pas à vous faire passer pour un personnage en possession d'informations afin d'attirer la morsure du loup garou. Si vous vous faites éliminer par le village, votre pouvoir ne se déclenchera pas.",
+  },
+  "ancien": {
+    power: "Le Loup Garou Ultime ne peut pas vous tuer.",
+    info: "Votre pouvoir vous permet d'annuler la morsure du Loup Garou Ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du Loup Garou Ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit.",
+  },
+  "enfant-sauvage": {
+    power: "Si un joueur est exécuté par le village durant la journée, vous découvrez son identité la nuit.",
+    info: "Votre pouvoir se déclenche uniquement après l'exécution du jour donc n'hésitez pas à déclencher des nominations/exécutions pour innocenter/accuser quelqu'un.",
+  },
+  "ange": {
+    power: "Si le village vous élimine, le village perd la partie.",
+    info: "Votre personnage peut vous protéger de fausses accusations en révélant votre rôle. Donc n'hésitez à l'énoncer pour vous protéger.",
+  },
 }
 
 const PRESENTATION_DETAILS: Record<
   RoleId,
-  Omit<RolePresentation, 'id' | 'name' | 'category'>
+  Pick<RolePresentation, 'imagePath' | 'fallbackSymbol' | 'summary'>
 > = {
   [ROLE_ID.ULTIMATE_WEREWOLF]: {
     imagePath: '/images/loupgarou.webp',
     fallbackSymbol: '🐺',
     summary: 'Chaque nuit, il choisit un joueur qui meurt. Il ne se réveille pas la première nuit.',
-    instructions: [
-      'Si vous vous ciblez vous-même, un autre loup-garou devient le Loup Garou Ultime.',
-      'Le village gagne dès que vous êtes exécuté.',
-    ],
   },
   [ROLE_ID.INFECT_WEREWOLF]: {
     imagePath: '/images/infectloup.webp',
     fallbackSymbol: '🩸',
     summary: 'Chaque nuit, il choisit un joueur empoisonné pour la nuit et le jour suivants.',
-    instructions: [
-      'Un joueur empoisonné ne peut utiliser aucun pouvoir.',
-      'Votre objectif reste de protéger le Loup Garou Ultime.',
-    ],
   },
   [ROLE_ID.GRAND_WEREWOLF]: {
     imagePath: '/images/grandloup.webp',
     fallbackSymbol: '🌕',
     summary: 'Il devient le Loup Garou Ultime si celui-ci meurt alors qu’au moins cinq joueurs sont en vie.',
-    instructions: [
-      'Tant que le Loup Garou Ultime vit, vous jouez comme soutien de la meute.',
-      'Si vous héritez du rôle ultime, annoncez-le uniquement au maître du jeu.',
-    ],
   },
   [ROLE_ID.PETITE_FILLE]: {
     imagePath: '/images/petite-fille.webp',
     fallbackSymbol: '👧',
     summary: 'Lors de la première nuit, elle apprend qu’un Villageois se cache parmi deux joueurs.',
-    instructions: [
-      'Votre indice privé montre les deux joueurs concernés et le rôle recherché.',
-      'Utilisez cette information sans révéler trop vite votre personnage.',
-    ],
   },
   [ROLE_ID.RENARD]: {
     imagePath: '/images/renard.webp',
     fallbackSymbol: '🦊',
     summary: 'Lors de la première nuit, il apprend qu’un Loup Garou se cache parmi deux joueurs.',
-    instructions: [
-      'Votre indice privé montre les deux joueurs concernés et le rôle recherché.',
-      'Servez-vous de cette piste pour orienter les nominations.',
-    ],
   },
   [ROLE_ID.MONTREUR_DOURS]: {
     imagePath: '/images/montreur-dours.webp',
     fallbackSymbol: '🐻',
     summary: 'Lors de la première nuit, il découvre combien de loups-garous sont placés côte à côte.',
-    instructions: [
-      'Le maître du jeu vous communique uniquement ce nombre.',
-      'Mémorisez l’ordre des joueurs autour de la table.',
-    ],
   },
   [ROLE_ID.CUPIDON]: {
     imagePath: '/images/cupidon.webp',
     fallbackSymbol: '💘',
     summary: 'Chaque nuit, il apprend combien de ses deux voisins vivants sont des loups-garous.',
-    instructions: [
-      'Vos voisins sont les joueurs vivants placés immédiatement à votre gauche et à votre droite.',
-      'Déduisez progressivement la position de la meute.',
-    ],
   },
   [ROLE_ID.VOYANTE]: {
     imagePath: '/images/voyante.webp',
     fallbackSymbol: '🔮',
     summary: 'Chaque nuit, elle choisit deux joueurs et apprend si l’un d’eux est le Loup Garou Ultime.',
-    instructions: [
-      'Un joueur gentil désigné au début de la partie apparaît comme Loup Garou Ultime.',
-      'Votre résultat peut donc contenir un leurre secret.',
-    ],
   },
   [ROLE_ID.CHEVALIER]: {
     imagePath: '/images/chevalier.webp',
     fallbackSymbol: '🛡️',
     summary: 'Chaque nuit, sauf la première, il protège un autre joueur du Loup Garou Ultime.',
-    instructions: [
-      'Vous ne pouvez pas vous protéger vous-même.',
-      'La protection concerne l’attaque du Loup Garou Ultime pendant cette nuit.',
-    ],
   },
   [ROLE_ID.CHASSEUR]: {
     imagePath: '/images/chasseur.webp',
     fallbackSymbol: '🏹',
     summary: 'Une fois par partie, pendant le jour, il désigne publiquement un joueur.',
-    instructions: [
-      'Si la cible est le Loup Garou Ultime, elle meurt immédiatement.',
-      'Sinon, rien ne se passe et votre pouvoir est consommé.',
-    ],
   },
   [ROLE_ID.FLUTISTE]: {
     imagePath: '/images/flute.webp',
     fallbackSymbol: '🎵',
     summary: 'La première fois qu’il est nominé, son nominateur est exécuté si celui-ci est Villageois.',
-    instructions: [
-      'Votre pouvoir ne se déclenche que lors de votre première nomination.',
-      'Il se déclenche uniquement si le nominateur est Villageois, jamais s’il est Loup Garou ou Marginal.',
-    ],
   },
   [ROLE_ID.SORCIERE]: {
     imagePath: '/images/sorciere.webp',
     fallbackSymbol: '🧪',
     summary: 'Si elle meurt la nuit, elle choisit un joueur et découvre son personnage.',
-    instructions: [
-      'Le pouvoir se déclenche uniquement après une mort pendant la nuit.',
-      'Communiquez votre choix discrètement au maître du jeu.',
-    ],
   },
   [ROLE_ID.ANCIEN]: {
     imagePath: '/images/ancien.webp',
     fallbackSymbol: '🧓',
     summary: 'Il est protégé du pouvoir du Loup Garou Ultime.',
-    instructions: [
-      'Si le Loup Garou Ultime vous cible, vous ne mourez pas.',
-      'Les autres causes de mort restent applicables.',
-    ],
   },
   [ROLE_ID.ENFANT_SAUVAGE]: {
     imagePath: '/images/enfant.webp',
     fallbackSymbol: '🌿',
     summary: 'Chaque nuit, sauf la première, il apprend quel personnage a été exécuté pendant le jour.',
-    instructions: [
-      'Le maître du jeu vous révèle le personnage, jamais l’identité cachée d’un autre joueur.',
-      'Utilisez l’historique des exécutions pour affiner vos déductions.',
-    ],
   },
   [ROLE_ID.ANGEL]: {
     imagePath: '/images/ange.webp',
     fallbackSymbol: '😇',
     summary: 'Si l’Ange meurt par exécution, son équipe perd immédiatement.',
-    instructions: [
-      'Évitez toute exécution publique.',
-      'Une mort causée autrement ne déclenche pas cette défaite immédiate.',
-    ],
   },
 }
 
@@ -167,6 +176,8 @@ export const ROLE_PRESENTATION_BY_ID = Object.fromEntries(
       name: role.name,
       category: role.category,
       ...PRESENTATION_DETAILS[role.id],
+      power: ROLE_CONTENT[role.id]?.power ?? '',
+      info: ROLE_CONTENT[role.id]?.info ?? '',
     },
   ]),
 ) as Record<RoleId, RolePresentation>

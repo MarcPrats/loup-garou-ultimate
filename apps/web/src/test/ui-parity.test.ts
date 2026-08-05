@@ -7,6 +7,7 @@ import { ROLE_ID } from '@lgu/game-core'
 
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import RoleInfoPanel from '../components/RoleInfoPanel.vue'
 import { PUBLIC_LINK, ROUTE_NAME } from '../constants/app'
 import { createAppRouter } from '../router'
 import HomeView from '../views/HomeView.vue'
@@ -144,6 +145,20 @@ describe('Vue rules page', () => {
     expect(createAppRouter(createPinia()).resolve('/reference').name).toBe(ROUTE_NAME.RULES)
     expect(wrapper.findAll('.role-card')).toHaveLength(22)
     expect(createAppRouter(createPinia()).resolve('/rules/role/voyante').name).toBe(ROUTE_NAME.ROLE_DETAIL)
+  })
+})
+
+describe('shared bluff role view', () => {
+  it('uses the same CSS structure and emojis for Reference and Bluff views', () => {
+    const wrapper = mount(RoleInfoPanel, {
+      props: { roleId: ROLE_ID.GRAND_WEREWOLF, powerTitle: 'Votre Pouvoir', infoTitle: 'Autres Infos' },
+    })
+    expect(wrapper.find('.app-bluff-section').exists()).toBe(true)
+    expect(wrapper.find('.app-power-section .app-section-icon').text()).toBe('⚡')
+    expect(wrapper.find('.app-info-section .app-section-icon').text()).toBe('💡')
+    expect(wrapper.text()).toContain('Votre Pouvoir')
+    expect(wrapper.text()).toContain('Autres Infos')
+    expect(wrapper.text()).toContain('Loup-garou')
   })
 })
 

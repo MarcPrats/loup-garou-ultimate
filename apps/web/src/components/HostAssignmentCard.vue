@@ -8,7 +8,7 @@ import {
   getRolePresentation,
 } from '../constants/role-presentation'
 import RoleArtwork from './RoleArtwork.vue'
-import RoleCard from './RoleCard.vue'
+import RoleInfoPanel from './RoleInfoPanel.vue'
 import SpecialInformationCard from './SpecialInformationCard.vue'
 
 const props = defineProps<{
@@ -95,16 +95,20 @@ const bluffName = computed(() => (
         </div>
       </section>
 
-      <RoleCard
+      <RoleInfoPanel
         :role-id="assignment.role.id"
-        :eyebrow="assignment.isDrunk ? 'Rôle montré au joueur' : 'Rôle véritable'"
+        :title="assignment.isDrunk ? 'Rôle montré au joueur' : 'Rôle véritable'"
+        power-title="Pouvoir"
+        info-title="Infos"
         compact
       />
 
-      <RoleCard
+      <RoleInfoPanel
         v-if="assignment.bluffRoleId"
         :role-id="assignment.bluffRoleId"
-        eyebrow="Couverture du loup-garou"
+        title="Couverture du loup-garou"
+        power-title="Pouvoir"
+        info-title="Infos"
         compact
       />
 

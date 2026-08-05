@@ -54,12 +54,13 @@ describe('role presentation catalogue', () => {
       const presentation = getRolePresentation(role.id)
       expect(presentation?.name).toBe(role.name)
       expect(presentation?.imagePath).toMatch(/^\/.+\.webp$/)
-      expect(presentation?.instructions.length).toBeGreaterThan(0)
+      expect(presentation?.power.length).toBeGreaterThan(0)
+      expect(presentation?.info.length).toBeGreaterThan(0)
     }
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.PETITE_FILLE].imagePath).toBe('/images/petite-fille.webp')
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.MONTREUR_DOURS].imagePath).toBe('/images/montreur-dours.webp')
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.ENFANT_SAUVAGE].imagePath).toBe('/images/enfant.webp')
-    expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.FLUTISTE].instructions.join(' ')).toContain('Marginal')
+    expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.FLUTISTE].info).toContain('Marginal')
   })
 })
 

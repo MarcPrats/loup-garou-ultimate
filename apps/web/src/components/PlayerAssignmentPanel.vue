@@ -8,9 +8,8 @@ import {
 } from '@lgu/contracts'
 
 import { ROUTE_PATH } from '../constants/app'
-import { ROLE_CONTENT } from '../constants/role-content'
 import { getRolePresentation } from '../constants/role-presentation'
-import RoleCard from './RoleCard.vue'
+import RoleInfoPanel from './RoleInfoPanel.vue'
 
 const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
@@ -38,24 +37,20 @@ const clueRole = computed(() => props.assignment.specialInformation
 <template>
   <div class="app-role-reveal">
     <span class="sr-only">{{ assignment.player.name }} · Votre couverture</span>
-    <h2>Votre Rôle</h2>
-    <RoleCard :role-id="assignment.role.id" eyebrow="Votre rôle" />
+    <RoleInfoPanel
+      :role-id="assignment.role.id"
+      title="🎭 Votre Rôle"
+      power-title="Votre Pouvoir"
+      info-title="Autres Infos"
+    />
 
-    <div v-if="bluffRole && bluffContent" class="app-role-description-container app-bluff-section">
-      <h3 class="app-bluff-title">🎭 Votre Rôle de Couverture</h3>
-      <div class="app-role-card">
-        <div class="app-role-image-container"><img :src="bluffRole.imagePath" :alt="bluffRole.name"></div>
-        <div class="app-role-info"><h4>{{ bluffRole.name }}</h4></div>
-      </div>
-      <section class="app-description-section app-power-section">
-        <div class="app-section-header"><span class="app-section-icon">⚡</span><h4>Pouvoir (Bluff)</h4></div>
-        <p class="app-section-text">{{ bluffContent.power }}</p>
-      </section>
-      <section class="app-description-section app-info-section">
-        <div class="app-section-header"><span class="app-section-icon">💡</span><h4>Infos (Bluff)</h4></div>
-        <p class="app-section-text">{{ bluffContent.info }}</p>
-      </section>
-    </div>
+    <RoleInfoPanel
+      v-if="assignment.bluffRoleId !== null"
+      :role-id="assignment.bluffRoleId"
+      title="🎭 Votre Rôle de Couverture"
+      power-title="Pouvoir (Bluff)"
+      info-title="Infos (Bluff)"
+    />
 
     <div v-if="assignment.specialInformation && assignment.bluffRoleId !== null && assignment.role.team === TEAM.WEREWOLVES" class="app-role-description-container app-bluff-special-section">
       <h3 class="app-clue-title">🔍 {{ clueIsBluff ? 'Informations du rôle de couverture (Bluff)' : 'Informations privées' }}</h3>

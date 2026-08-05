@@ -86,12 +86,6 @@ generate()
         </RouterLink>
       </header>
 
-      <FeedbackBanner
-        class="mt-6"
-        message="Le simulateur est isolé : aucun socket, aucune session, aucun appel API et aucune donnée persistée."
-        variant="warning"
-      />
-
       <section class="mt-8 rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl sm:p-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div class="flex-1 sm:max-w-xs">
