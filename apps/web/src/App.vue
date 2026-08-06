@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
+
+import { SESSION_DESTINATION } from '@lgu/contracts'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 
 import ConnectionStatus from './components/ConnectionStatus.vue'
@@ -22,15 +24,18 @@ function requireLobbyStore(): ReturnType<typeof useLobbyStore> {
 }
 
 async function synchronizeRoute(): Promise<void> {
-  if (staticMode || route.meta.roleAccess || route.meta.simulator || route.meta.public) return
+  if (staticMode || route.meta.roleAccess || route.meta.simulator) return
   const store = lobby.value
   if (!store?.initialized) return
   if (!store.hasSession) {
+    if (route.meta.public) return
     if (route.name !== ROUTE_NAME.HOME && route.name !== ROUTE_NAME.LOBBIES && !(route.name === ROUTE_NAME.LOBBY && route.params.lobbyId)) {
       await router.replace({ name: ROUTE_NAME.HOME })
     }
     return
   }
+
+  if (route.meta.public && store.destination === SESSION_DESTINATION.LOBBY) return
 
   const destinationRouteName = routeNameForDestination(store.destination)
   if (route.name !== destinationRouteName) {
