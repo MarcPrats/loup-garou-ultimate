@@ -102,7 +102,7 @@ button:disabled {
 .app-room-list-card strong, .app-room-list-card span { display: block; }
 .app-room-list-card strong { color: var(--app-text); }
 .app-room-list-card span, .app-room-empty, .app-room-invite-hint { color: var(--app-muted); font-size: .82rem; }
-.app-room-invite-hint { margin: 10px 0; }
+.app-room-invite-hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 12px; border: 1px solid rgb(230 126 34 / 35%); border-radius: 10px; background: rgb(230 126 34 / 8%); } .app-room-invite-hint p { margin: 0; }
 .app-room-empty { padding: 18px; border: 1px dashed var(--app-border); border-radius: 12px; }
 @media (max-width: 560px) { .app-room-list-card { align-items: stretch; flex-direction: column; } .app-room-list-card .app-btn { width: 100%; } }
 

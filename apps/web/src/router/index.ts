@@ -46,6 +46,11 @@ export function createAppRouter(pinia: Pinia) {
       component: HomeView,
     },
     {
+      path: ROUTE_PATH.ROOM_INVITE,
+      name: ROUTE_NAME.ROOM_INVITE,
+      component: HomeView,
+    },
+    {
       path: ROUTE_PATH.LOBBY,
       name: ROUTE_NAME.LOBBY,
       component: LobbyView,

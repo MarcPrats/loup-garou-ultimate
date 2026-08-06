@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
 import type { RoomSnapshot } from '@lgu/contracts'
@@ -8,6 +8,7 @@ import FeedbackBanner from '../components/FeedbackBanner.vue'
 import {
   CONNECTION_STATE,
   PUBLIC_LINK,
+  ROUTE_NAME,
   ROUTE_PATH,
 } from '../constants/app'
 import { appPath } from '../constants/paths'
@@ -16,14 +17,16 @@ import { useLobbyStore } from '../stores/lobby'
 const lobby = useLobbyStore()
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const route = useRoute()
-const enteringName = ref(route.name === 'entry')
+const enteringName = ref(route.name === 'entry' || route.name === ROUTE_NAME.ROOM_INVITE)
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
 const submitting = ref(false)
 const joiningRoomId = ref<string | null>(null)
-const inviteRoomId = computed(() => (
-  typeof route.query.room === 'string' ? route.query.room : null
-))
+const inviteRoomId = computed(() => {
+  if (typeof route.params.roomId === 'string') return route.params.roomId
+  if (typeof route.query.room === 'string') return route.query.room
+  return null
+})
 const canSubmit = computed(() => (
   normalizedName.value.length > 0
   && lobby.initialized
@@ -42,6 +45,16 @@ async function submit(): Promise<void> {
   }
 }
 
+async function joinInviteRoom(): Promise<void> {
+  if (!inviteRoomId.value || !canSubmit.value) return
+  joiningRoomId.value = inviteRoomId.value
+  try {
+    await lobby.joinRoom(inviteRoomId.value, normalizedName.value)
+  } finally {
+    joiningRoomId.value = null
+  }
+}
+
 async function joinRoom(room: RoomSnapshot): Promise<void> {
   if (!canSubmit.value) return
   joiningRoomId.value = room.id
@@ -52,11 +65,18 @@ async function joinRoom(room: RoomSnapshot): Promise<void> {
   }
 }
 
+let roomRefreshTimer: ReturnType<typeof setInterval> | null = null
+
 onMounted(async () => {
   if (!staticMode) {
     await lobby.initialize()
     await lobby.listRooms()
+    roomRefreshTimer = setInterval(() => { void lobby.listRooms() }, 10_000)
   }
+})
+
+onUnmounted(() => {
+  if (roomRefreshTimer) clearInterval(roomRefreshTimer)
 })
 </script>
 
@@ -105,9 +125,12 @@ onMounted(async () => {
         </button>
       </div>
 
-      <p v-if="inviteRoomId" class="app-room-invite-hint">
-        Vous avez reçu le lien de la salle <strong>{{ inviteRoomId }}</strong>.
-      </p>
+      <div v-if="inviteRoomId" class="app-room-invite-hint">
+        <p>Vous avez reçu le lien de la salle <strong>{{ inviteRoomId }}</strong>.</p>
+        <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinInviteRoom">
+          {{ joiningRoomId === inviteRoomId ? 'Connexion…' : 'Rejoindre cette salle' }}
+        </button>
+      </div>
       <p v-if="lobby.availableRooms.length === 0" class="app-room-empty">
         Aucune partie en attente. Créez la première.
       </p>
