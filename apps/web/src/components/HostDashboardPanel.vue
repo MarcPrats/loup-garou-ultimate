@@ -6,6 +6,7 @@ import { SPECIAL_INFORMATION_TYPE, TEAM, type HostDashboard } from '@lgu/contrac
 import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
+import HostNightOrderPanel from './HostNightOrderPanel.vue'
 
 const props = withDefaults(defineProps<{
   dashboard: HostDashboard
@@ -63,6 +64,8 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
         </tbody>
       </table>
     </div>
+
+    <HostNightOrderPanel :dashboard="dashboard" />
 
     <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
   </div>

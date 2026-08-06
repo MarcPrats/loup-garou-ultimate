@@ -27,6 +27,7 @@ export interface RulesDistributionRow {
 
 export interface RulesNightStepData {
   readonly title: string
+  readonly roleId?: string
   readonly imagePath?: string
   readonly imageAlt?: string
   readonly emoji?: string
@@ -39,7 +40,26 @@ export interface RulesNightStepData {
 
 export interface RulesNightSectionData {
   readonly label: string
+  readonly minimumPlayers?: number
   readonly steps: readonly RulesNightStepData[]
+}
+
+export function filterRulesNightSections(
+  sections: readonly RulesNightSectionData[],
+  presentRoleIds: readonly string[],
+  playerCount: number,
+): RulesNightSectionData[] {
+  const presentRoles = new Set(presentRoleIds)
+
+  return sections.flatMap((section) => {
+    if (section.minimumPlayers && playerCount < section.minimumPlayers) return []
+
+    const steps = section.steps.filter((step) => (
+      !step.roleId || presentRoles.has(step.roleId)
+    ))
+
+    return steps.length > 0 ? [{ ...section, steps }] : []
+  })
 }
 
 export const RULES_ROLE_CATEGORIES: readonly {
@@ -279,20 +299,21 @@ export const FIRST_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
   },
   {
     label: 'Info des Loups Garous (7 joueurs ou plus)',
+    minimumPlayers: 7,
     steps: [{ title: 'Info Loups Garous', emoji: '🐺', lines: [eye('Les Loups Garous ouvrent les yeux et se regardent. Pointez le Loup Garou Ultime.'), normal('😴')] }],
   },
   {
     label: 'Actions des rôles',
     steps: [
-      { title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [eye("L'Infect Loup Garou désigne un joueur — ce joueur est empoisonné."), normal('😴')] },
-      { title: 'Espion', emoji: '🕵️', lines: [eye("Montrez vos informations à l'espion aussi longtemps que nécessaire."), normal('😴')] },
-      { title: 'Petite Fille', imagePath: appAsset('/images/petite-fille.webp'), imageAlt: 'Petite Fille', lines: [eye("Montrez la carte d'un Villageois en jeu. Désignez 2 joueurs dont l'un est ce Villageois."), normal('😴')] },
-      { title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez le jeton d’un Marginal et désignez 2 joueurs dont l’un est ce Marginal. Sinon : signalez le chiffre « 0 ».') , normal('😴')] },
-      { title: 'Renard', imagePath: appAsset('/images/renard.webp'), imageAlt: 'Renard', lines: [eye("Montrez le jeton d'un Loup Garou en jeu. Désignez 2 joueurs dont l'un est ce Loup Garou."), normal('😴')] },
-      { title: "Montreur d'ours", imagePath: appAsset('/images/montreur-dours.webp'), imageAlt: "Montreur d'ours", lines: [eye('Signalez avec les doigts le nombre de Loups Garous voisins l\'un de l\'autre (0, 1, 2).'), normal('😴')] },
-      { title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loups Garous vivants voisins de Cupidon (0, 1 ou 2).'), normal('😴')] },
-      { title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
-      { title: 'Majordome', emoji: '🙏', lines: [eye('Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».'), normal('😴')] },
+      { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [eye("L'Infect Loup Garou désigne un joueur — ce joueur est empoisonné."), normal('😴')] },
+      { roleId: 'espion', title: 'Espion', emoji: '🕵️', lines: [eye("Montrez vos informations à l'espion aussi longtemps que nécessaire."), normal('😴')] },
+      { roleId: 'petite-fille', title: 'Petite Fille', imagePath: appAsset('/images/petite-fille.webp'), imageAlt: 'Petite Fille', lines: [eye("Montrez la carte d'un Villageois en jeu. Désignez 2 joueurs dont l'un est ce Villageois."), normal('😴')] },
+      { roleId: 'bibliothecaire', title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez le jeton d’un Marginal et désignez 2 joueurs dont l’un est ce Marginal. Sinon : signalez le chiffre « 0 ».') , normal('😴')] },
+      { roleId: 'renard', title: 'Renard', imagePath: appAsset('/images/renard.webp'), imageAlt: 'Renard', lines: [eye("Montrez le jeton d'un Loup Garou en jeu. Désignez 2 joueurs dont l'un est ce Loup Garou."), normal('😴')] },
+      { roleId: 'montreur-dours', title: "Montreur d'ours", imagePath: appAsset('/images/montreur-dours.webp'), imageAlt: "Montreur d'ours", lines: [eye('Signalez avec les doigts le nombre de Loups Garous voisins l\'un de l\'autre (0, 1, 2).'), normal('😴')] },
+      { roleId: 'cupidon', title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loups Garous vivants voisins de Cupidon (0, 1 ou 2).'), normal('😴')] },
+      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
+      { roleId: 'majordome', title: 'Majordome', emoji: '🙏', lines: [eye('Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».'), normal('😴')] },
     ],
   },
   {
@@ -309,15 +330,15 @@ export const FOLLOWING_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
   {
     label: 'Actions des rôles',
     steps: [
-      { title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [normal("Le joueur Empoisonné ne l'est plus."), eye("L'Infect Loup Garou désigne un nouveau joueur — ce joueur est empoisonné."), normal('😴')] },
-      { title: 'Chevalier', imagePath: appAsset('/images/chevalier.webp'), imageAlt: 'Chevalier', lines: [normal("Le joueur Protégé ne l'est plus."), eye('Le Chevalier désigne un joueur (pas lui-même) — ce joueur est « Protégé ».') , normal('😴')] },
-      { title: 'Espion', emoji: '🕵️', lines: [eye("Montrez vos informations à l'Espion aussi longtemps que nécessaire."), normal('😴')] },
-      { title: 'Loup Garou Ultime', imagePath: appAsset('/images/loupgarou.webp'), imageAlt: 'Loup Garou Ultime', lines: [eye('Le Loup Garou Ultime désigne un joueur — ce joueur meurt.'), normal('😴')] },
-      { title: 'Sorcière', imagePath: appAsset('/images/sorciere.webp'), imageAlt: 'Sorcière', condition: 'Uniquement si la Sorcière est morte cette nuit :', lines: [eye('La Sorcière désigne un joueur — montrez-lui la carte de ce joueur.'), normal('😴')] },
-      { title: 'Enfant Sauvage', imagePath: appAsset('/images/enfant.webp'), imageAlt: 'Enfant Sauvage', condition: "Uniquement si un joueur a été exécuté aujourd'hui :", lines: [eye("Montrez à l'Enfant Sauvage la carte de ce joueur."), normal('😴')] },
-      { title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loup Garous voisins vivants de Cupidon (0, 1 ou 2).'), normal('😴')] },
-      { title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
-      { title: 'Majordome', emoji: '🙏', lines: [eye('Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».'), normal('😴')] },
+      { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [normal("Le joueur Empoisonné ne l'est plus."), eye("L'Infect Loup Garou désigne un nouveau joueur — ce joueur est empoisonné."), normal('😴')] },
+      { roleId: 'chevalier', title: 'Chevalier', imagePath: appAsset('/images/chevalier.webp'), imageAlt: 'Chevalier', lines: [normal("Le joueur Protégé ne l'est plus."), eye('Le Chevalier désigne un joueur (pas lui-même) — ce joueur est « Protégé ».') , normal('😴')] },
+      { roleId: 'espion', title: 'Espion', emoji: '🕵️', lines: [eye("Montrez vos informations à l'Espion aussi longtemps que nécessaire."), normal('😴')] },
+      { roleId: 'loup-garou-ultime', title: 'Loup Garou Ultime', imagePath: appAsset('/images/loupgarou.webp'), imageAlt: 'Loup Garou Ultime', lines: [eye('Le Loup Garou Ultime désigne un joueur — ce joueur meurt.'), normal('😴')] },
+      { roleId: 'sorciere', title: 'Sorcière', imagePath: appAsset('/images/sorciere.webp'), imageAlt: 'Sorcière', condition: 'Uniquement si la Sorcière est morte cette nuit :', lines: [eye('La Sorcière désigne un joueur — montrez-lui la carte de ce joueur.'), normal('😴')] },
+      { roleId: 'enfant-sauvage', title: 'Enfant Sauvage', imagePath: appAsset('/images/enfant.webp'), imageAlt: 'Enfant Sauvage', condition: "Uniquement si un joueur a été exécuté aujourd'hui :", lines: [eye("Montrez à l'Enfant Sauvage la carte de ce joueur."), normal('😴')] },
+      { roleId: 'cupidon', title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loup Garous voisins vivants de Cupidon (0, 1 ou 2).'), normal('😴')] },
+      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
+      { roleId: 'majordome', title: 'Majordome', emoji: '🙏', lines: [eye('Le Majordome désigne un joueur — marquez ce joueur comme « Maître ».'), normal('😴')] },
     ],
   },
   {

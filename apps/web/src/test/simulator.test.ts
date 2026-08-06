@@ -117,6 +117,8 @@ describe('simulator route isolation', () => {
     )
     await hostButton?.trigger('click')
     expect(wrapper.text()).toContain("Vue d'ensemble de tous les rôles")
+    expect(wrapper.find('.app-gm-night-order').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Ordre des nuits')
     wrapper.unmount()
   })
 })
