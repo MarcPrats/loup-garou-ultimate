@@ -4,7 +4,6 @@ import { RouterLink } from 'vue-router'
 
 import {
   PLAYER_COUNT_LIMIT,
-  type PlayerId,
   type SimulatorScenario,
 } from '@lgu/contracts'
 
@@ -39,6 +38,15 @@ const activePlayerAssignment = computed(() => (
     (assignment) => assignment.player.id === activeView.value,
   ) ?? null
 ))
+const playerOptions = computed(() => (
+  scenario.value?.room.players.filter((player) => !player.isHost) ?? []
+))
+const selectedPlayerId = computed<string>({
+  get: () => activeView.value === SIMULATOR_VIEW.HOST ? '' : activeView.value,
+  set: (playerId) => {
+    activeView.value = playerId || SIMULATOR_VIEW.HOST
+  },
+})
 
 function generate(): void {
   errorMessage.value = null
@@ -54,10 +62,6 @@ function generate(): void {
       ? error.message
       : 'Impossible de générer ce scénario.'
   }
-}
-
-function selectPlayer(playerId: PlayerId): void {
-  activeView.value = playerId
 }
 
 generate()
@@ -127,16 +131,15 @@ generate()
               <select
                 aria-label="Choisir une vue joueur"
                 class="rounded-xl border border-white/10 bg-slate-800 px-4 py-2 font-bold text-white"
-                :value="activePlayerAssignment?.player.id ?? ''"
-                @change="selectPlayer(($event.target as HTMLSelectElement).value)"
+                v-model="selectedPlayerId"
               >
-                <option value="" disabled>Vue d’un joueur…</option>
+                <option value="">Vue d’un joueur…</option>
                 <option
-                  v-for="assignment in scenario.privateAssignments"
-                  :key="assignment.player.id"
-                  :value="assignment.player.id"
+                  v-for="player in playerOptions"
+                  :key="player.id"
+                  :value="player.id"
                 >
-                  {{ assignment.player.name }}
+                  {{ player.name }}
                 </option>
               </select>
             </div>
@@ -153,7 +156,7 @@ generate()
 
       <template v-if="scenario">
 
-        <div class="mt-8">
+        <div :key="activeView" class="mt-8">
           <HostDashboardPanel
             v-if="activeView === SIMULATOR_VIEW.HOST"
             :dashboard="scenario.hostDashboard"

@@ -112,13 +112,16 @@ describe('simulator route isolation', () => {
     expect(fetchMock).not.toHaveBeenCalled()
     expect(storageWrite).not.toHaveBeenCalled()
 
-    const hostButton = wrapper.findAll('button').find(
-      (button) => button.text() === 'Vue MJ',
-    )
-    await hostButton?.trigger('click')
     expect(wrapper.text()).toContain("Vue d'ensemble de tous les rôles")
     expect(wrapper.find('.app-gm-night-order').exists()).toBe(true)
     expect(wrapper.text()).toContain('Ordre des nuits')
+
+    const playerSelect = wrapper.get('select[aria-label="Choisir une vue joueur"]')
+    const firstPlayerOption = playerSelect.findAll('option')[1]
+    await playerSelect.setValue(firstPlayerOption.element.value)
+    expect(wrapper.text()).toContain(firstPlayerOption.text())
+    expect(wrapper.text()).toContain('Votre Rôle')
+    expect(wrapper.find('.app-gm-view').exists()).toBe(false)
     wrapper.unmount()
   })
 })
