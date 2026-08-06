@@ -118,6 +118,7 @@ describe('simulator route isolation', () => {
 
     const playerSelect = wrapper.get('select[aria-label="Choisir une vue joueur"]')
     const firstPlayerOption = playerSelect.findAll('option')[1]
+    if (!firstPlayerOption) throw new Error('Simulator player option is missing')
     await playerSelect.setValue(firstPlayerOption.element.value)
     expect(wrapper.text()).toContain(firstPlayerOption.text())
     expect(wrapper.text()).toContain('Votre Rôle')
