@@ -105,7 +105,7 @@ onUnmounted(() => {
   <main class="app-page app-home-page">
     <section v-if="enteringName && inviteMode" class="app-screen app-home-container app-lobby app-lobby-invite-only">
       <h2>Rejoindre la partie</h2>
-      <p class="app-subtitle">Entrez votre nom pour rejoindre la lobby invité.</p>
+      <p class="app-subtitle">Entrez votre nom pour rejoindre le lobby invité.</p>
       <p class="app-lobby-invite-hint">Lobby : <strong>{{ inviteLobbyId }}</strong></p>
 
       <form class="app-lobby-create-form" @submit.prevent="submit">
@@ -147,7 +147,7 @@ onUnmounted(() => {
 
     <section v-else-if="enteringName" class="app-screen app-home-container app-lobby">
       <h2>Rejoindre une partie</h2>
-      <p class="app-subtitle">Choisissez une lobby existant ou créez-en une nouvelle.</p>
+      <p class="app-subtitle">Choisissez un lobby existant ou créez-en un nouveau.</p>
 
       <form class="app-lobby-create-form" @submit.prevent="submit">
         <label for="player-name-input">Votre nom</label>
@@ -168,7 +168,7 @@ onUnmounted(() => {
 
       <div class="app-lobby-list-header">
         <h3>Parties disponibles</h3>
-        <button type="button" class="app-btn app-btn-back" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies">
+        <button type="button" class="app-btn app-btn-back app-btn-compact app-lobby-refresh" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies" aria-label="Actualiser la liste des lobbies">
           Actualiser
         </button>
       </div>
@@ -200,7 +200,7 @@ onUnmounted(() => {
       </div>
 
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-      <button type="button" class="app-btn app-btn-back" @click="enteringName = false">
+      <button type="button" class="app-btn app-btn-back app-btn-secondary-action" @click="enteringName = false">
         Retour
       </button>
     </section>
