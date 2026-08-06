@@ -14,7 +14,7 @@ export class LobbyRegistry {
   createLobby(): { lobbyId: LobbyId; service: LobbyService } {
     let lobbyId: LobbyId
     do {
-      lobbyId = `lobby_${randomUUID().replaceAll('-', '').slice(0, 12)}`
+      lobbyId = `loup_garou_${randomUUID().replaceAll('-', '').slice(0, 12)}`
     } while (this.lobbies.has(lobbyId))
 
     const service = this.factory()

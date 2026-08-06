@@ -45,6 +45,79 @@ onBeforeUnmount(() => {
       <RulesRoleCatalog />
       <RulesDistributionTable />
 
+      <section class="rules-overview" aria-labelledby="rules-overview-title">
+        <div class="rules-overview-heading">
+          <span class="rules-overview-icon" aria-hidden="true"><span class="rules-emoji">📖</span></span>
+          <div>
+            <p class="rules-overview-kicker">Le principe en un coup d’œil</p>
+            <h2 id="rules-overview-title">Comment jouer à Loup Garou Ultimate ?</h2>
+          </div>
+        </div>
+
+        <div class="rules-overview-grid">
+          <article class="rules-overview-card rules-overview-card-village">
+            <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🎭</span></span>
+            <h3>Un rôle secret</h3>
+            <p>Chaque joueur reçoit un personnage et une équipe. Votre identité ne sera révélée qu'à la fin de la partie. Vous être libre de dire ce que vous voulez.</p>
+          </article>
+
+          <article class="rules-overview-card rules-overview-card-day">
+            <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">☀️</span></span>
+            <h3>Le jour</h3>
+            <p>Discutez, observez les comportements et votez pour éliminer le joueur que vous soupçonnez.</p>
+          </article>
+
+          <article class="rules-overview-card rules-overview-card-night">
+            <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🌙</span></span>
+            <h3>La nuit</h3>
+            <p>Le Maître du Jeu réveille les rôles dans l’ordre. Les pouvoirs s’activent et les Loups choisissent leur cible.</p>
+          </article>
+
+          <article class="rules-overview-card rules-overview-card-goal">
+            <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🏆</span></span>
+            <h3>La victoire</h3>
+            <p>Le Village doit démasquer tous les Loups tandis que les Loups-garous doivent rester en vie jusqu'à la fin de la partie.</p>
+          </article>
+        </div>
+
+        <p class="rules-overview-tip"><span class="rules-emoji" aria-hidden="true">💡</span> Conseil : écoutez les autres, protégez vos informations et n’oubliez jamais qu’un bon bluff peut changer toute la partie.</p>
+      </section>
+
+      <section class="rules-practical-rules" aria-labelledby="practical-rules-title">
+        <h2 id="practical-rules-title" class="section-title">📜 Les règles essentielles</h2>
+
+        <div class="rules-practical-grid">
+          <article class="rules-practical-card rules-practical-card-day">
+            <h3><span class="rules-emoji">☀️</span> Pendant la journée</h3>
+            <ul>
+              <li><span class="rules-emoji">🗳️</span> Tout joueur <b>vivant</b> peut nominer un autre joueur vivant pour une exécution.</li>
+              <li><span class="rules-emoji">⚖️</span> Si <b>plus de la moitié des joueurs vivants</b> votent contre une personne nominée, son exécution est validée, <b>mais elle n’est pas réalisée immédiatement.</b></li>
+              <li><span class="rules-emoji">📝</span> D’<b>autres</b> nominations peuvent être proposées au cours de la même journée. Un joueur ne peut nominer qu’<b>une seule fois</b> durant la journée.</li>
+              <li><span class="rules-emoji">🚫</span> Une personne ne peut <b>être nominée qu’une seule fois</b> durant la journée.</li>
+              <li><span class="rules-emoji">🏛️</span> À la fin de la journée, la personne nominée ayant reçu le <b>plus de votes</b> est exécutée.</li>
+            </ul>
+          </article>
+
+          <article class="rules-practical-card rules-practical-card-ghost">
+            <h3><span class="rules-emoji">👻</span> Après une élimination</h3>
+            <p><span class="rules-emoji">🕯️</span> Une personne éliminée devient un fantôme. Elle peut <b>continuer à parler</b> et conserve <b>un seul vote</b> pour le reste de la partie. Elle <b>ne peut plus nominer ni être nominée</b>.</p>
+          </article>
+
+          <article class="rules-practical-card rules-practical-card-victory">
+            <h3><span class="rules-emoji">🏁</span> Conditions de victoire</h3>
+            <ul>
+              <li><span class="rules-emoji">🏡</span> Le Village gagne lorsqu’il n’y a plus <b>de Loup-garou en vie</b>. Les Villageois et les Marginaux gagnent ensemble.</li>
+              <li><span class="rules-emoji">🌲</span> Les Loups-garous gagnent lorsqu’il ne reste plus que <b>deux joueurs vivants</b>.</li>
+            </ul>
+          </article>
+
+          <article class="rules-practical-card rules-practical-card-night">
+            <h3><span class="rules-emoji">🌙</span> Pendant la nuit</h3>
+            <p><span class="rules-emoji">🙈</span> Les joueurs peuvent <b>parler pendant la nuit</b>. La seule règle est de <b>garder les yeux fermés</b> lorsque le Maître du Jeu le demande.</p>
+          </article>
+        </div>
+      </section>
+
       <section aria-labelledby="first-night-title">
         <h2 id="first-night-title" class="section-title">🌑 Ordre de la première nuit</h2>
         <RulesNightBlock title="🌑 Première Nuit" :sections="FIRST_NIGHT_SECTIONS" />
@@ -286,6 +359,140 @@ onBeforeUnmount(() => {
 
 .footnote span { flex: 0 0 auto; font-style: normal; }
 
+.rules-overview {
+  position: relative;
+  margin: 34px 0 8px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid rgb(230 126 34 / 28%);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgb(52 152 219 / 16%), transparent 38%),
+    linear-gradient(145deg, rgb(230 126 34 / 12%), rgb(255 255 255 / 3%));
+  box-shadow: 0 16px 34px rgb(0 0 0 / 16%);
+}
+
+.rules-overview-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.rules-overview-icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(230 126 34 / 42%);
+  border-radius: 14px;
+  background: rgb(230 126 34 / 15%);
+  font-size: 1.35rem;
+}
+
+.rules-emoji {
+  display: inline-block;
+  color: #f5b76f;
+  filter: drop-shadow(0 0 6px rgb(255 255 255 / 12%));
+}
+
+.rules-overview-kicker {
+  margin: 0 0 4px;
+  color: #f5b76f;
+  font-size: .74rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.rules-overview h2 {
+  margin: 0;
+  color: #f8f9fa;
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  line-height: 1.2;
+}
+
+.rules-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rules-overview-card {
+  padding: 16px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  background: rgb(0 0 0 / 13%);
+}
+
+.rules-overview-card-icon { display: block; margin-bottom: 8px; font-size: 1.35rem; }
+.rules-overview-card h3 { margin: 0 0 6px; color: #f8f9fa; font-size: 1rem; }
+.rules-overview-card p { margin: 0; color: var(--rules-muted); font-size: .86rem; line-height: 1.55; }
+.rules-overview-card-village { border-top: 3px solid #27ae60; }
+.rules-overview-card-day { border-top: 3px solid #f1c40f; }
+.rules-overview-card-night { border-top: 3px solid #3498db; }
+.rules-overview-card-goal { border-top: 3px solid #c0392b; }
+.rules-overview-card-village .rules-emoji { color: #58d68d; }
+.rules-overview-card-day .rules-emoji { color: #f1c40f; }
+.rules-overview-card-night .rules-emoji { color: #5dade2; }
+.rules-overview-card-goal .rules-emoji { color: #ec7063; }
+.rules-overview-card p b,
+.rules-overview-tip b {
+  color: #f8f9fa;
+  font-weight: 700;
+}
+.rules-overview-card-village p b { color: #58d68d; }
+.rules-overview-card-day p b { color: #f1c40f; }
+.rules-overview-card-night p b { color: #5dade2; }
+.rules-overview-card-goal p b { color: #ec7063; }
+
+.rules-overview-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 18px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  color: #d8dee4;
+  font-size: .86rem;
+  line-height: 1.5;
+}
+
+.rules-practical-rules { margin-top: 34px; }
+.rules-practical-rules .section-title { margin-top: 0; }
+.rules-practical-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.rules-practical-card { padding: 18px; border: 1px solid rgb(255 255 255 / 10%); border-radius: 14px; background: rgb(255 255 255 / 3%); }
+.rules-practical-card h3 { margin: 0 0 12px; color: #f8f9fa; font-size: 1rem; }
+.rules-practical-card-ghost h3 { color: #c7d2d9; }
+.rules-practical-card p,
+.rules-practical-card li { color: var(--rules-muted); font-size: .86rem; line-height: 1.55; }
+.rules-practical-card p { margin: 0; }
+.rules-practical-card ul { display: grid; gap: 9px; margin: 0; padding-left: 20px; }
+.rules-practical-card li::marker { color: var(--rules-accent); }
+.rules-practical-card-day { border-top: 3px solid #f1c40f; }
+.rules-practical-card-ghost { border-top: 3px solid #95a5a6; }
+.rules-practical-card-victory { border-top: 3px solid #27ae60; }
+.rules-practical-card-night { border-top: 3px solid #3498db; }
+.rules-practical-card-day .rules-emoji { color: #f1c40f; }
+.rules-practical-card-ghost .rules-emoji { color: #c7d2d9; }
+.rules-practical-card-victory .rules-emoji { color: #58d68d; }
+.rules-practical-card-night .rules-emoji { color: #5dade2; }
+.rules-practical-card p b,
+.rules-practical-card li b {
+  color: #f8f9fa;
+  font-weight: 700;
+}
+.rules-practical-card-day p b,
+.rules-practical-card-day li b { color: #f1c40f; }
+.rules-practical-card-ghost p b,
+.rules-practical-card-ghost li b { color: #c7d2d9; }
+.rules-practical-card-victory p b,
+.rules-practical-card-victory li b { color: #58d68d; }
+.rules-practical-card-night p b,
+.rules-practical-card-night li b { color: #5dade2; }
+
 .night-block {
   margin-bottom: 30px;
   overflow: hidden;
@@ -365,5 +572,10 @@ onBeforeUnmount(() => {
   .distribution-section { padding: 0 10px 2px; }
   .distribution-table-desktop { display: none; }
   .distribution-cards { display: grid; gap: 10px; }
+  .rules-overview { padding: 18px; }
+  .rules-overview-grid { grid-template-columns: 1fr; }
+  .rules-overview h2 { font-size: 1.25rem; }
+  .rules-practical-grid { grid-template-columns: 1fr; }
 }
+
 </style>
