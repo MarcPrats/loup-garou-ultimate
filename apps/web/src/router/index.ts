@@ -12,6 +12,7 @@ import { useLobbyStore } from '../stores/lobby'
 import GameMasterView from '../views/GameMasterView.vue'
 import HomeView from '../views/HomeView.vue'
 import LobbyView from '../views/LobbyView.vue'
+import LobbyRouteView from '../views/LobbyRouteView.vue'
 import PlayerRoleView from '../views/PlayerRoleView.vue'
 import RoleAccessView from '../views/RoleAccessView.vue'
 import RulesView from '../views/RulesView.vue'
@@ -46,15 +47,10 @@ export function createAppRouter(pinia: Pinia) {
       component: HomeView,
     },
     {
-      path: ROUTE_PATH.ROOM_INVITE,
-      name: ROUTE_NAME.ROOM_INVITE,
-      component: HomeView,
-    },
-    {
       path: ROUTE_PATH.LOBBY,
       name: ROUTE_NAME.LOBBY,
-      component: LobbyView,
-      meta: { requiresSession: true },
+      component: LobbyRouteView,
+      meta: { public: true },
     },
     {
       path: ROUTE_PATH.PLAYER_ROLE,

@@ -18,7 +18,7 @@ const lobby = useLobbyStore()
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const route = useRoute()
 const router = useRouter()
-const enteringName = ref(route.name === 'entry' || route.name === ROUTE_NAME.ROOM_INVITE)
+const enteringName = ref(route.name === 'entry' || typeof route.params.lobbyId === 'string')
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
 const roomPlayerCount = (room: RoomSnapshot): number => (
@@ -28,7 +28,7 @@ const submitting = ref(false)
 const joiningRoomId = ref<string | null>(null)
 const inviteMode = computed(() => Boolean(inviteRoomId.value))
 const inviteRoomId = computed(() => {
-  if (typeof route.params.roomId === 'string') return route.params.roomId
+  if (typeof route.params.lobbyId === 'string') return route.params.lobbyId
   if (typeof route.query.room === 'string') return route.query.room
   return null
 })

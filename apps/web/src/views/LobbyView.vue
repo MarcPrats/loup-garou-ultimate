@@ -16,7 +16,7 @@ const copying = ref(false)
 const copyError = ref(false)
 const inviteUrl = computed(() => {
   if (typeof window === 'undefined' || !lobby.room?.id) return ''
-  return `${window.location.origin}${appPath(`/room/${lobby.room.id}`)}`
+  return `${window.location.origin}${appPath(`/lobby/${lobby.room.id}`)}`
 })
 
 async function copyInvite(): Promise<void> {

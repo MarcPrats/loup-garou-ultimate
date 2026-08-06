@@ -26,7 +26,7 @@ async function synchronizeRoute(): Promise<void> {
   const store = lobby.value
   if (!store?.initialized) return
   if (!store.hasSession) {
-    if (route.name !== ROUTE_NAME.HOME && route.name !== ROUTE_NAME.ENTRY) {
+    if (route.name !== ROUTE_NAME.HOME && route.name !== ROUTE_NAME.ENTRY && !(route.name === ROUTE_NAME.LOBBY && route.params.lobbyId)) {
       await router.replace({ name: ROUTE_NAME.HOME })
     }
     return
