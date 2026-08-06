@@ -54,11 +54,6 @@ async function submit(): Promise<void> {
   }
 }
 
-async function copyRoomLink(room: RoomSnapshot): Promise<void> {
-  const link = `${window.location.origin}${appPath(`/room/${room.id}`)}`
-  await navigator.clipboard?.writeText(link)
-}
-
 async function joinInviteRoom(): Promise<void> {
   if (!inviteRoomId.value || !canSubmit.value) return
   joiningRoomId.value = inviteRoomId.value
@@ -186,14 +181,9 @@ onUnmounted(() => {
             <strong>{{ room.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
             <span>{{ roomPlayerCount(room) }} / {{ room.maximumPlayers }} joueurs</span>
           </div>
-          <div class="app-room-card-actions">
-            <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
-              {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
-            </button>
-            <button type="button" class="app-btn app-btn-back" @click="copyRoomLink(room)">
-              Copier le lien
-            </button>
-          </div>
+          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
+            {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
+          </button>
         </article>
       </div>
 
