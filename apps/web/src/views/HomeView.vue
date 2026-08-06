@@ -21,6 +21,9 @@ const router = useRouter()
 const enteringName = ref(route.name === 'entry' || route.name === ROUTE_NAME.ROOM_INVITE)
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
+const roomPlayerCount = (room: RoomSnapshot): number => (
+  room.players.filter((player) => !player.isHost).length
+)
 const submitting = ref(false)
 const joiningRoomId = ref<string | null>(null)
 const inviteMode = computed(() => Boolean(inviteRoomId.value))
@@ -181,7 +184,7 @@ onUnmounted(() => {
         >
           <div>
             <strong>{{ room.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
-            <span>{{ room.players.length }} / {{ room.maximumPlayers }} joueurs</span>
+            <span>{{ roomPlayerCount(room) }} / {{ room.maximumPlayers }} joueurs</span>
           </div>
           <div class="app-room-card-actions">
             <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">

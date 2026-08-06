@@ -14,7 +14,10 @@ const pendingKick = ref<PublicPlayer | null>(null)
 const confirmingLeave = ref(false)
 const copying = ref(false)
 const copyError = ref(false)
-const inviteUrl = computed(() => typeof window === 'undefined' ? '' : `${window.location.origin}/waiting_room`)
+const inviteUrl = computed(() => {
+  if (typeof window === 'undefined' || !lobby.room?.id) return ''
+  return `${window.location.origin}${appPath(`/room/${lobby.room.id}`)}`
+})
 
 async function copyInvite(): Promise<void> {
   copying.value = true
