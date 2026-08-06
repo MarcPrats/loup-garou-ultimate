@@ -88,11 +88,14 @@ describe('V3 UI parity', () => {
         specialInformation: null,
       }],
     }
-    const text = mount(HostDashboardPanel, { props: { dashboard } }).text()
+    const wrapper = mount(HostDashboardPanel, { props: { dashboard } })
+    const text = wrapper.text()
     expect(text).toContain("Vue d'ensemble de tous les rôles")
     expect(text).toContain('JoueurRôleÉquipeDétails')
     expect(text).toContain('🍺 Bourré')
     expect(text).toContain('🔮 Leurre Voyante')
+    expect(wrapper.find('.app-gm-mobile-cards').exists()).toBe(true)
+    expect(wrapper.findAll('.app-gm-mobile-card')).not.toHaveLength(0)
   })
 
   it('does not show the bluff knowledge section for a real Petite Fille', () => {

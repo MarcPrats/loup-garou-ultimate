@@ -7,6 +7,7 @@ import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
 import HostNightOrderPanel from './HostNightOrderPanel.vue'
+import HostMobileAssignmentCard from './HostMobileAssignmentCard.vue'
 
 const props = withDefaults(defineProps<{
   dashboard: HostDashboard
@@ -63,6 +64,14 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="app-gm-mobile-cards" aria-label="Détails des joueurs">
+      <HostMobileAssignmentCard
+        v-for="assignment in assignments"
+        :key="`mobile-${assignment.player.id}`"
+        :assignment="assignment"
+      />
     </div>
 
     <HostNightOrderPanel :dashboard="dashboard" />

@@ -301,6 +301,22 @@ button:disabled {
 .app-gm-team-stat.werewolf { background: linear-gradient(135deg, #e74c3c, #c0392b); }
 .app-gm-team-stat.villager { background: linear-gradient(135deg, #27ae60, #2ecc71); }
 .app-gm-table-container { width: 100%; overflow-x: auto; border: 1px solid var(--app-border); border-radius: 12px; }
+.app-gm-mobile-cards { display: none; gap: 12px; }
+.app-gm-mobile-card { padding: 16px; border: 1px solid var(--app-border); border-radius: 12px; background: rgb(255 255 255 / 4%); }
+.app-gm-mobile-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--app-border); }
+.app-gm-mobile-player { min-width: 0; }
+.app-gm-mobile-player .app-gm-player-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.app-gm-mobile-connection { display: inline-block; margin-top: 5px; padding: 3px 8px; border-radius: 12px; font-size: .7rem; font-weight: 700; }
+.app-gm-mobile-connection.connected { color: #8af0b0; background: rgb(39 174 96 / 18%); }
+.app-gm-mobile-connection.disconnected { color: var(--app-muted); background: rgb(255 255 255 / 8%); }
+.app-gm-mobile-role { display: flex; align-items: center; gap: 12px; padding: 14px 0; }
+.app-gm-mobile-role .app-gm-role-image { width: 48px; height: 48px; flex: 0 0 48px; }
+.app-gm-mobile-role strong { display: block; color: var(--app-text); font-size: 1.05rem; }
+.app-gm-mobile-label { display: block; margin-bottom: 3px; color: var(--app-muted); font-size: .7rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.app-gm-mobile-badges { display: flex; flex-wrap: wrap; gap: 7px; }
+.app-gm-mobile-details { display: grid; gap: 8px; margin-top: 12px; }
+.app-gm-mobile-details .app-gm-detail-card { display: grid; gap: 3px; }
+.app-gm-mobile-no-details { color: var(--app-muted); font-size: .8rem; font-style: italic; }
 .app-gm-table { width: 100%; min-width: 700px; border-collapse: collapse; background: rgb(255 255 255 / 4%); text-align: left; }
 .app-gm-table th { padding: 14px; color: var(--app-muted); background: rgb(0 0 0 / 22%); font-size: .82rem; letter-spacing: .06em; text-transform: uppercase; }
 .app-gm-table td { padding: 12px 14px; border-top: 1px solid var(--app-border); vertical-align: middle; }
@@ -316,4 +332,8 @@ button:disabled {
 .app-gm-detail-card.clue { border: 1px solid #2196f3; background: #e3f2fd; }
 .app-gm-detail-card.bluff { border: 1px solid #9c27b0; background: #f3e5f5; }
 .app-gm-detail-card.decoy { border: 1px solid #ffc107; background: #fff3cd; }
-@media (max-width: 600px) { .app-gm-container { max-width: 100%; } }
+@media (max-width: 700px) {
+  .app-gm-container { max-width: 100%; }
+  .app-gm-table-container { display: none; }
+  .app-gm-mobile-cards { display: grid; }
+}
