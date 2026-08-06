@@ -2,6 +2,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 
+import type { RoomSnapshot } from '@lgu/contracts'
+
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import {
   CONNECTION_STATE,
@@ -17,21 +19,44 @@ const route = useRoute()
 const enteringName = ref(route.name === 'entry')
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
+const submitting = ref(false)
+const joiningRoomId = ref<string | null>(null)
+const inviteRoomId = computed(() => (
+  typeof route.query.room === 'string' ? route.query.room : null
+))
 const canSubmit = computed(() => (
   normalizedName.value.length > 0
   && lobby.initialized
   && !lobby.hasStoredSession
-  && !lobby.entering
+  && !submitting.value
   && lobby.connectionState === CONNECTION_STATE.ONLINE
 ))
 
 async function submit(): Promise<void> {
   if (!canSubmit.value) return
-  await lobby.enter(normalizedName.value)
+  submitting.value = true
+  try {
+    await lobby.createRoom(normalizedName.value)
+  } finally {
+    submitting.value = false
+  }
 }
 
-onMounted(() => {
-  if (!staticMode) void lobby.initialize()
+async function joinRoom(room: RoomSnapshot): Promise<void> {
+  if (!canSubmit.value) return
+  joiningRoomId.value = room.id
+  try {
+    await lobby.joinRoom(room.id, normalizedName.value)
+  } finally {
+    joiningRoomId.value = null
+  }
+}
+
+onMounted(async () => {
+  if (!staticMode) {
+    await lobby.initialize()
+    await lobby.listRooms()
+  }
 })
 </script>
 
@@ -52,9 +77,12 @@ onMounted(() => {
       </div>
     </section>
 
-    <section v-else-if="enteringName" class="app-screen app-home-container">
-      <h2>Entrez votre nom</h2>
-      <form @submit.prevent="submit">
+    <section v-else-if="enteringName" class="app-screen app-home-container app-room-lobby">
+      <h2>Rejoindre une partie</h2>
+      <p class="app-subtitle">Choisissez une salle existante ou créez-en une nouvelle.</p>
+
+      <form class="app-room-create-form" @submit.prevent="submit">
+        <label for="player-name-input">Votre nom</label>
         <input
           id="player-name-input"
           v-model="playerName"
@@ -65,16 +93,45 @@ onMounted(() => {
           class="app-text-input"
           autofocus
         >
-        <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-        <div class="app-button-group">
-          <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit">
-            {{ lobby.entering ? 'Connexion…' : 'Continuer' }}
-          </button>
-          <button type="button" class="app-btn app-btn-back" @click="enteringName = false">
-            Retour
-          </button>
-        </div>
+        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit">
+          {{ submitting ? 'Création…' : '➕ Créer une partie' }}
+        </button>
       </form>
+
+      <div class="app-room-list-header">
+        <h3>Parties disponibles</h3>
+        <button type="button" class="app-btn app-btn-back" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listRooms">
+          Actualiser
+        </button>
+      </div>
+
+      <p v-if="inviteRoomId" class="app-room-invite-hint">
+        Vous avez reçu le lien de la salle <strong>{{ inviteRoomId }}</strong>.
+      </p>
+      <p v-if="lobby.availableRooms.length === 0" class="app-room-empty">
+        Aucune partie en attente. Créez la première.
+      </p>
+      <div v-else class="app-room-list">
+        <article
+          v-for="room in lobby.availableRooms"
+          :key="room.id"
+          class="app-room-list-card"
+          :class="{ highlighted: room.id === inviteRoomId }"
+        >
+          <div>
+            <strong>{{ room.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
+            <span>{{ room.players.length }} / {{ room.maximumPlayers }} joueurs</span>
+          </div>
+          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
+            {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
+          </button>
+        </article>
+      </div>
+
+      <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
+      <button type="button" class="app-btn app-btn-back" @click="enteringName = false">
+        Retour
+      </button>
     </section>
 
     <section v-else class="app-home-shell">

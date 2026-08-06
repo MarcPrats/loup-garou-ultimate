@@ -10,6 +10,7 @@ import {
   privateAssignmentSchema,
   roomClosedEventSchema,
   roomEntryResponseSchema,
+  roomListResponseSchema,
   roomSnapshotSchema,
   sessionEndedEventSchema,
   sessionResumeResponseSchema,
@@ -24,6 +25,7 @@ import {
   type PrivateAssignment,
   type RoomClosedEvent,
   type RoomEntryResponse,
+  type RoomListResponse,
   type RoomSnapshot,
   type SessionEndedEvent,
   type SessionResumeResponse,
@@ -64,7 +66,10 @@ export interface LobbyGateway {
   disconnect(): void
   subscribe(handlers: LobbyGatewayHandlers): () => void
   enter(playerName: string): Promise<Ack<RoomEntryResponse>>
-  resume(sessionToken: SessionToken): Promise<Ack<SessionResumeResponse>>
+  listRooms(): Promise<Ack<RoomListResponse>>
+  createRoom(playerName: string): Promise<Ack<RoomEntryResponse>>
+  joinRoom(roomId: string, playerName: string): Promise<Ack<RoomEntryResponse>>
+  resume(sessionToken: SessionToken, roomId?: string): Promise<Ack<SessionResumeResponse>>
   leave(): Promise<Ack<EmptyResponse>>
   kick(playerId: PlayerId): Promise<Ack<RoomSnapshot>>
   start(): Promise<Ack<EmptyResponse>>
@@ -231,13 +236,37 @@ export class SocketLobbyGateway implements LobbyGateway {
     }
   }
 
-  resume(sessionToken: SessionToken): Promise<Ack<SessionResumeResponse>> {
+  listRooms(): Promise<Ack<RoomListResponse>> {
+    return this.send(
+      'room list',
+      createAckSchema(roomListResponseSchema),
+      (callback) => this.socket.emit(SOCKET_EVENT.ROOM_LIST, {}, callback),
+    )
+  }
+
+  createRoom(playerName: string): Promise<Ack<RoomEntryResponse>> {
+    return this.send(
+      'room create',
+      roomEntryAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.ROOM_CREATE, { playerName }, callback),
+    )
+  }
+
+  joinRoom(roomId: string, playerName: string): Promise<Ack<RoomEntryResponse>> {
+    return this.send(
+      'room join',
+      roomEntryAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.ROOM_JOIN, { roomId, playerName }, callback),
+    )
+  }
+
+  resume(sessionToken: SessionToken, roomId = 'main'): Promise<Ack<SessionResumeResponse>> {
     return this.send(
       'session resume',
       sessionResumeAckSchema,
       (callback) => this.socket.emit(
         SOCKET_EVENT.SESSION_RESUME,
-        { sessionToken },
+        { roomId, sessionToken },
         callback,
       ),
     )

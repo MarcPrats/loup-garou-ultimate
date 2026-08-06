@@ -2,7 +2,9 @@ import type { AckCallback, EmptyResponse } from './acknowledgements'
 import type {
   EmptyCommand,
   HostKickCommand,
+  RoomCreateCommand,
   RoomEnterCommand,
+  RoomJoinCommand,
   SessionResumeCommand,
 } from './commands'
 import { SOCKET_EVENT } from './constants'
@@ -17,6 +19,7 @@ import type {
 import type { PrivateAssignment } from './roles'
 import type {
   RoomEntryResponse,
+  RoomListResponse,
   RoomSnapshot,
   SessionResumeResponse,
 } from './room'
@@ -33,6 +36,18 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
+  [SOCKET_EVENT.ROOM_LIST]: (
+    command: EmptyCommand,
+    callback: AckCallback<RoomListResponse>,
+  ) => void
+  [SOCKET_EVENT.ROOM_CREATE]: (
+    command: RoomCreateCommand,
+    callback: AckCallback<RoomEntryResponse>,
+  ) => void
+  [SOCKET_EVENT.ROOM_JOIN]: (
+    command: RoomJoinCommand,
+    callback: AckCallback<RoomEntryResponse>,
+  ) => void
   [SOCKET_EVENT.ROOM_ENTER]: (
     command: RoomEnterCommand,
     callback: AckCallback<RoomEntryResponse>,

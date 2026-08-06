@@ -90,6 +90,7 @@ export const ERROR_CODE = {
   GAME_ALREADY_STARTED: 'game-already-started',
   GAME_NOT_STARTED: 'game-not-started',
   SESSION_NOT_FOUND: 'session-not-found',
+  ROOM_NOT_FOUND: 'room-not-found',
   PLAYER_NOT_FOUND: 'player-not-found',
   NOT_GAME_MASTER: 'not-game-master',
   NOT_ENOUGH_PLAYERS: 'not-enough-players',
@@ -104,6 +105,9 @@ export type ErrorCode = ValueOf<typeof ERROR_CODE>
 export const SOCKET_EVENT = {
   SYSTEM_READY: 'system:ready',
   ROOM_ENTER: 'room:enter',
+  ROOM_CREATE: 'room:create',
+  ROOM_JOIN: 'room:join',
+  ROOM_LIST: 'room:list',
   SESSION_RESUME: 'session:resume',
   PLAYER_LEAVE: 'player:leave',
   HOST_KICK: 'host:kick',

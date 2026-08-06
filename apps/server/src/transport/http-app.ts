@@ -9,7 +9,11 @@ import {
   roleAccessResponseSchema,
 } from '@lgu/contracts'
 
-import type { LobbyService } from '../application/lobby-service'
+import type { RoleAccessResponse } from '@lgu/contracts'
+
+export interface RoleAccessService {
+  accessRole(roleAccessToken: string): Promise<RoleAccessResponse>
+}
 import { registerStaticWeb } from './static-web'
 import {
   getHttpStatus,
@@ -17,7 +21,7 @@ import {
 } from '../application/public-error-mapper'
 
 export interface HttpAppOptions {
-  readonly service: LobbyService
+  readonly service: RoleAccessService
   readonly webOrigin: string
   readonly logger?: boolean
   readonly webRoot?: string

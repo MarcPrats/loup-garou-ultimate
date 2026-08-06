@@ -40,11 +40,13 @@ const MESSAGE = {
   SESSION_RESTORED: 'Session restaurée.',
   LINK_COPIED: 'Lien d’invitation copié.',
   PROTOCOL_ERROR: 'Le serveur a envoyé une réponse invalide. Reconnexion en cours.',
+  ROOM_UNAVAILABLE: 'Cette partie n’est plus disponible. Choisissez une autre salle.',
 } as const
 
 const TERMINAL_SESSION_ERRORS = new Set<ErrorCode>([
   ERROR_CODE.SESSION_NOT_FOUND,
   ERROR_CODE.ROOM_CLOSED,
+  ERROR_CODE.ROOM_NOT_FOUND,
 ])
 
 export interface LobbyNotice {
@@ -69,6 +71,7 @@ export function createLobbyStoreDefinition(
       dependencies.storage.load(),
     )
     const room = ref<RoomSnapshot | null>(null)
+    const availableRooms = ref<RoomSnapshot[]>([])
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
     const hostDashboard = ref<HostDashboard | null>(null)
@@ -208,7 +211,9 @@ export function createLobbyStoreDefinition(
     }
 
     function handleAckError(publicError: PublicError): void {
-      error.value = publicError
+      error.value = TERMINAL_SESSION_ERRORS.has(publicError.code)
+        ? { ...publicError, message: MESSAGE.ROOM_UNAVAILABLE }
+        : publicError
       if (TERMINAL_SESSION_ERRORS.has(publicError.code)) clearSession()
     }
 
@@ -225,10 +230,11 @@ export function createLobbyStoreDefinition(
       const expectedEpoch = sessionEpoch
       const expectedRealtimeEpoch = realtimeEpoch
       const expectedToken = credentials.value.sessionToken
+      const expectedRoomId = credentials.value.roomId ?? 'main'
       restoringSession.value = true
       resumePromise = (async () => {
         try {
-          const response = await getGateway().resume(expectedToken)
+          const response = await getGateway().resume(expectedToken, expectedRoomId)
           if (
             realtimeSuspended
             || realtimeEpoch !== expectedRealtimeEpoch
@@ -368,6 +374,54 @@ export function createLobbyStoreDefinition(
       })()
 
       return initializePromise
+    }
+
+    async function listRooms(): Promise<boolean> {
+      clearError()
+      try {
+        const response = await getGateway().listRooms()
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        availableRooms.value = response.data
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function createRoom(playerName: string): Promise<boolean> {
+      clearError()
+      try {
+        const response = await getGateway().createRoom(playerName)
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        saveSession(response.data.session, response.data.room, response.data.destination)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function joinRoom(roomId: string, playerName: string): Promise<boolean> {
+      clearError()
+      try {
+        const response = await getGateway().joinRoom(roomId, playerName)
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        saveSession(response.data.session, response.data.room, response.data.destination)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
     }
 
     async function enter(playerName: string): Promise<boolean> {
@@ -539,7 +593,7 @@ export function createLobbyStoreDefinition(
 
         if (!leaveResponse?.ok) {
           await getGateway().reconnect()
-          const resumeResponse = await getGateway().resume(session.sessionToken)
+          const resumeResponse = await getGateway().resume(session.sessionToken, session.roomId)
           if (resumeResponse.ok) {
             leaveResponse = await getGateway().leave()
             if (!leaveResponse.ok) throw new Error(leaveResponse.error.message)
@@ -605,6 +659,7 @@ export function createLobbyStoreDefinition(
       initialized,
       credentials,
       room,
+      availableRooms,
       destination,
       privateAssignment,
       hostDashboard,
@@ -625,6 +680,9 @@ export function createLobbyStoreDefinition(
       isLobby,
       initialize,
       enter,
+      listRooms,
+      createRoom,
+      joinRoom,
       leave,
       kick,
       start,

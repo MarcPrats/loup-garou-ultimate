@@ -18,7 +18,7 @@ export const clientRequestIdSchema = z
 export type ClientRequestId = z.infer<typeof clientRequestIdSchema>
 
 export const playerNameSchema = z.string().trim().min(1).max(40)
-export const roomIdSchema = z.literal(ROOM_ID.MAIN)
+export const roomIdSchema = z.string().trim().min(6).max(32).regex(SAFE_IDENTIFIER_PATTERN)
 export const timestampSchema = z.number().int().nonnegative()
 export const revisionSchema = z.number().int().nonnegative()
 

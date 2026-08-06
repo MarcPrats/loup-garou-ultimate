@@ -223,6 +223,7 @@ function toEntryResponse(
 ): RoomEntryResponse {
   return {
     session: {
+      roomId: room.id,
       playerId: player.id,
       sessionToken: player.sessionToken,
     },
@@ -263,7 +264,7 @@ export class LobbyService {
           this.dependencies.sessionTokenGenerator,
         )
         const createdRoom: LobbyRoomState = {
-          id: ROOM_ID.MAIN,
+          id: command.roomId ?? ROOM_ID.MAIN,
           phase: ROOM_PHASE.LOBBY,
           revision: 1,
           players: [host],

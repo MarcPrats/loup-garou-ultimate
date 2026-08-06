@@ -19,6 +19,7 @@ import type { GameSocket } from '../services/socket'
 
 const ENTRY: RoomEntryResponse = {
   session: {
+    roomId: ROOM_ID.MAIN,
     playerId: 'player_1',
     sessionToken: 'session_00000000000000000000000000000001',
   },

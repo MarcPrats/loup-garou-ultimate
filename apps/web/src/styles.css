@@ -91,6 +91,21 @@ button:disabled {
   background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
 }
 
+.app-room-lobby { max-width: 720px; }
+.app-room-create-form { display: grid; gap: 8px; margin: 18px 0 24px; text-align: left; }
+.app-room-create-form label { color: var(--app-muted); font-size: .8rem; font-weight: 700; }
+.app-room-list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 10px; }
+.app-room-list-header h3 { margin: 0; color: var(--app-text); font-size: 1rem; }
+.app-room-list { display: grid; gap: 10px; width: 100%; }
+.app-room-list-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--app-border); border-radius: 12px; background: rgb(255 255 255 / 4%); text-align: left; }
+.app-room-list-card.highlighted { border-color: var(--app-accent); box-shadow: 0 0 0 2px rgb(230 126 34 / 18%); }
+.app-room-list-card strong, .app-room-list-card span { display: block; }
+.app-room-list-card strong { color: var(--app-text); }
+.app-room-list-card span, .app-room-empty, .app-room-invite-hint { color: var(--app-muted); font-size: .82rem; }
+.app-room-invite-hint { margin: 10px 0; }
+.app-room-empty { padding: 18px; border: 1px dashed var(--app-border); border-radius: 12px; }
+@media (max-width: 560px) { .app-room-list-card { align-items: stretch; flex-direction: column; } .app-room-list-card .app-btn { width: 100%; } }
+
 .app-home-page {
   background:
     radial-gradient(circle at 20% 50%, rgb(255 107 53 / 10%) 0%, transparent 50%),

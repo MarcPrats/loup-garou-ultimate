@@ -12,11 +12,15 @@ export {
 export {
   emptyCommandSchema,
   hostKickCommandSchema,
+  roomCreateCommandSchema,
   roomEnterCommandSchema,
+  roomJoinCommandSchema,
   sessionResumeCommandSchema,
   type EmptyCommand,
   type HostKickCommand,
+  type RoomCreateCommand,
   type RoomEnterCommand,
+  type RoomJoinCommand,
   type SessionResumeCommand,
 } from './commands'
 export {
@@ -110,6 +114,7 @@ export {
 export {
   publicPlayerSchema,
   roomEntryResponseSchema,
+  roomListResponseSchema,
   roomPhaseSchema,
   roomSnapshotSchema,
   sessionCredentialsSchema,
@@ -117,6 +122,7 @@ export {
   sessionResumeResponseSchema,
   type PublicPlayer,
   type RoomEntryResponse,
+  type RoomListResponse,
   type RoomSnapshot,
   type SessionCredentials,
   type SessionResumeResponse,

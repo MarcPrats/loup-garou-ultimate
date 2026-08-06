@@ -1,6 +1,7 @@
 import type {
   PlayerId,
   PlayerName,
+  RoomId,
   RoleAccessToken,
   RoleAccessView,
   RoomClosedReason,
@@ -41,7 +42,7 @@ export interface StoredGameState {
 }
 
 export interface LobbyRoomState {
-  readonly id: 'main'
+  readonly id: RoomId
   phase: RoomPhase
   revision: number
   players: LobbyPlayerState[]
@@ -89,6 +90,7 @@ export interface ResumeSessionCommand {
 }
 
 export interface EnterRoomCommand {
+  readonly roomId?: RoomId
   readonly playerName: string
   readonly connectionId: ConnectionId
 }

@@ -12,6 +12,7 @@ import {
   type EmptyResponse,
   type PlayerId,
   type RoomEntryResponse,
+  type RoomListResponse,
   type RoomSnapshot,
   type SessionCredentials,
   type SessionResumeResponse,
@@ -27,6 +28,7 @@ import type { SessionStorage } from '../services/session-storage'
 import { createLobbyStoreDefinition } from '../stores/lobby'
 
 const SESSION: SessionCredentials = {
+  roomId: ROOM_ID.MAIN,
   playerId: 'player_1',
   sessionToken: 'session_00000000000000000000000000000001',
 }
@@ -86,6 +88,9 @@ class FakeGateway implements LobbyGateway {
   readonly disconnect = vi.fn(() => undefined)
   readonly resume = vi.fn(async (_token: SessionToken) => this.resumeResponse)
   readonly enter = vi.fn(async (_name: string) => this.enterResponse)
+  readonly listRooms = vi.fn(async (): Promise<Ack<RoomListResponse>> => ackSuccess([]))
+  readonly createRoom = vi.fn(async (_name: string) => this.enterResponse)
+  readonly joinRoom = vi.fn(async (_roomId: string, _name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createRoom(2)))
   readonly start = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))

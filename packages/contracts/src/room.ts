@@ -58,9 +58,12 @@ export const roomSnapshotSchema = z.object({
 })
 
 export const sessionCredentialsSchema = z.object({
+  roomId: roomIdSchema.default('main'),
   playerId: playerIdSchema,
   sessionToken: sessionTokenSchema,
 }).strict()
+
+export const roomListResponseSchema = z.array(roomSnapshotSchema)
 
 export const roomEntryResponseSchema = z.object({
   session: sessionCredentialsSchema,
@@ -72,6 +75,7 @@ export const sessionResumeResponseSchema = roomEntryResponseSchema
 
 export type PublicPlayer = z.infer<typeof publicPlayerSchema>
 export type RoomSnapshot = z.infer<typeof roomSnapshotSchema>
+export type RoomListResponse = z.infer<typeof roomListResponseSchema>
 export type SessionCredentials = z.infer<typeof sessionCredentialsSchema>
 export type RoomEntryResponse = z.infer<typeof roomEntryResponseSchema>
 export type SessionResumeResponse = z.infer<typeof sessionResumeResponseSchema>
