@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import RulesDistributionTable from '../components/RulesDistributionTable.vue'
@@ -12,6 +12,9 @@ import {
 } from '../constants/rules-page'
 
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
+
+type RulesTab = 'roles' | 'distribution' | 'rules' | 'night'
+const activeTab = ref<RulesTab>('roles')
 
 onMounted(() => {
   document.title = 'Référence — Loup Garou Ultimate'
@@ -42,10 +45,71 @@ onBeforeUnmount(() => {
         <p>Fiche de référence — Personnages, répartition &amp; ordre des nuits</p>
       </header>
 
-      <RulesRoleCatalog />
-      <RulesDistributionTable />
+      <nav class="rules-tabs" role="tablist" aria-label="Sections des règles">
+        <button
+          id="rules-tab-roles"
+          class="rules-tab"
+          :class="{ 'rules-tab-active': activeTab === 'roles' }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'roles'"
+          aria-controls="rules-panel-roles"
+          @click="activeTab = 'roles'"
+        >
+          <span aria-hidden="true">🎭</span>
+          <span>Rôles</span>
+        </button>
+        <button
+          id="rules-tab-distribution"
+          class="rules-tab"
+          :class="{ 'rules-tab-active': activeTab === 'distribution' }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'distribution'"
+          aria-controls="rules-panel-distribution"
+          @click="activeTab = 'distribution'"
+        >
+          <span aria-hidden="true">👥</span>
+          <span>Répartition</span>
+        </button>
+        <button
+          id="rules-tab-rules"
+          class="rules-tab"
+          :class="{ 'rules-tab-active': activeTab === 'rules' }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'rules'"
+          aria-controls="rules-panel-rules"
+          @click="activeTab = 'rules'"
+        >
+          <span aria-hidden="true">📜</span>
+          <span>Règles</span>
+        </button>
+        <button
+          id="rules-tab-night"
+          class="rules-tab"
+          :class="{ 'rules-tab-active': activeTab === 'night' }"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'night'"
+          aria-controls="rules-panel-night"
+          @click="activeTab = 'night'"
+        >
+          <span aria-hidden="true">🌙</span>
+          <span>Nuit</span>
+        </button>
+      </nav>
 
-      <section class="rules-overview" aria-labelledby="rules-overview-title">
+      <section v-if="activeTab === 'roles'" id="rules-panel-roles" role="tabpanel" aria-labelledby="rules-tab-roles">
+        <RulesRoleCatalog />
+      </section>
+
+      <section v-else-if="activeTab === 'distribution'" id="rules-panel-distribution" role="tabpanel" aria-labelledby="rules-tab-distribution">
+        <RulesDistributionTable />
+      </section>
+
+      <section v-else-if="activeTab === 'rules'" id="rules-panel-rules" role="tabpanel" aria-labelledby="rules-tab-rules">
+        <section class="rules-overview" aria-labelledby="rules-overview-title">
         <div class="rules-overview-heading">
           <span class="rules-overview-icon" aria-hidden="true"><span class="rules-emoji">📖</span></span>
           <div>
@@ -76,7 +140,7 @@ onBeforeUnmount(() => {
           <article class="rules-overview-card rules-overview-card-goal">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🏆</span></span>
             <h3>La victoire</h3>
-            <p>Le Village doit démasquer tous les Loups tandis que les Loups-garous doivent rester en vie jusqu'à la fin de la partie.</p>
+            <p>Le Village doit démasquer tous les Loups tandis que ces derniers doivent rester en vie jusqu'à la fin de la partie.</p>
           </article>
         </div>
 
@@ -117,8 +181,10 @@ onBeforeUnmount(() => {
           </article>
         </div>
       </section>
+      </section>
 
-      <section aria-labelledby="first-night-title">
+      <section v-else-if="activeTab === 'night'" id="rules-panel-night" role="tabpanel" aria-labelledby="rules-tab-night">
+        <section aria-labelledby="first-night-title">
         <h2 id="first-night-title" class="section-title">🌑 Ordre de la première nuit</h2>
         <RulesNightBlock title="🌑 Première Nuit" :sections="FIRST_NIGHT_SECTIONS" />
       </section>
@@ -126,6 +192,7 @@ onBeforeUnmount(() => {
       <section aria-labelledby="following-nights-title">
         <h2 id="following-nights-title" class="section-title">🌒 Ordre des nuits suivantes</h2>
         <RulesNightBlock title="🌒 Nuits Suivantes" :sections="FOLLOWING_NIGHT_SECTIONS" />
+        </section>
       </section>
 
       <nav class="rules-back-bar rules-bottom-back" aria-label="Navigation secondaire des règles">
@@ -359,6 +426,46 @@ onBeforeUnmount(() => {
 
 .footnote span { flex: 0 0 auto; font-style: normal; }
 
+.rules-tabs {
+  position: sticky;
+  top: 12px;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 26px;
+  padding: 8px;
+  overflow-x: auto;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 14px;
+  background: rgb(26 26 26 / 92%);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 18%);
+  backdrop-filter: blur(12px);
+}
+
+.rules-tab {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: var(--rules-muted);
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: .88rem;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: color .2s, background .2s, border-color .2s;
+}
+
+.rules-tab:hover { color: #f8f9fa; background: rgb(255 255 255 / 7%); }
+.rules-tab:focus-visible { outline: 2px solid var(--rules-accent); outline-offset: 2px; }
+.rules-tab-active { color: #fff; border-color: rgb(230 126 34 / 55%); background: linear-gradient(135deg, rgb(230 126 34 / 30%), rgb(52 152 219 / 20%)); }
+
 .rules-overview {
   position: relative;
   margin: 34px 0 8px;
@@ -572,6 +679,15 @@ onBeforeUnmount(() => {
   .distribution-section { padding: 0 10px 2px; }
   .distribution-table-desktop { display: none; }
   .distribution-cards { display: grid; gap: 10px; }
+  .rules-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin: 0 0 22px;
+    padding: 6px;
+    overflow: visible;
+  }
+  .rules-tab { min-height: 50px; padding: 10px 8px; }
   .rules-overview { padding: 18px; }
   .rules-overview-grid { grid-template-columns: 1fr; }
   .rules-overview h2 { font-size: 1.25rem; }
