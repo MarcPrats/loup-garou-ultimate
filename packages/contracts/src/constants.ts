@@ -12,7 +12,7 @@ export const API_ROUTE = {
 } as const
 
 export const LOBBY_ID = {
-  MAIN: 'main',
+  MAIN: 'main-lobby',
 } as const
 
 export const PLAYER_COUNT_LIMIT = {
