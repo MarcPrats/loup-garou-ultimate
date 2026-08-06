@@ -9,7 +9,6 @@
   },
   "scripts": {
     "start": "pnpm --filter @lgu/server start",
-    "simulator": "pnpm --filter @lgu/web dev --mode simulator --host 0.0.0.0 --port 5174 --open /simulator",
     "dev": "pnpm --parallel --filter @lgu/web --filter @lgu/server run dev",
     "build": "pnpm --filter @lgu/contracts build && pnpm --filter @lgu/game-core build && pnpm --filter @lgu/game-projection build && pnpm --filter @lgu/web build && pnpm --filter @lgu/server build",
     "typecheck": "pnpm -r --if-present run typecheck",

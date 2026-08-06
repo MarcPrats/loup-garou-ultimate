@@ -38,10 +38,12 @@ describe('V3 UI parity', () => {
     expect(wrapper.findAll('.app-home-action').map((item) => item.text())).toEqual([
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
+      '🧪 Simulateur',
       '📚 Wiki des règles',
     ])
     expect(wrapper.get('#entry-btn').attributes('href')).toBe('/waiting_room')
     expect(wrapper.get('a[href="/reference"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/simulator"]')).toBeTruthy()
     expect(wrapper.get(`a[href="${PUBLIC_LINK.WIKI}"]`).attributes('target')).toBe('_blank')
   })
 

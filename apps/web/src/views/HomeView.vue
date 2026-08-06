@@ -84,6 +84,7 @@ onMounted(() => {
           🎮 Créer / Rejoindre la partie
         </a>
         <a :href="appPath(ROUTE_PATH.RULES)" class="app-home-action">📜 Règles</a>
+        <a :href="appPath(ROUTE_PATH.SIMULATOR)" class="app-home-action">🧪 Simulateur</a>
         <a :href="PUBLIC_LINK.WIKI" class="app-home-action" target="_blank" rel="noopener noreferrer">
           📚 Wiki des règles
         </a>

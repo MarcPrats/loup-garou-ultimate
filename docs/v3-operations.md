@@ -7,10 +7,9 @@
 | `pnpm dev` | Run V3 server and Vite development application |
 | `pnpm build` | Build the V3 server and Vue application |
 | `pnpm start` | Start the built single-origin V3 production server |
-| `pnpm simulator` | Run the isolated local simulator without a backend |
 | `pnpm test` | Run the workspace unit and integration suites |
 | `pnpm test:e2e` | Run the production browser flow |
-| `pnpm test:e2e:simulator` | Run the standalone simulator browser flow |
+| `pnpm test:e2e:simulator` | Run the simulator browser flow |
 
 ## Environment variables
 
@@ -20,7 +19,6 @@
 | `PORT` | `3001` | V3 server port |
 | `WEB_ORIGIN` | `http://localhost:5173` | Allowed browser origin for split development. In single-origin production, set it to the public HTTPS origin. |
 | `WEB_ROOT` | `apps/web/dist` | Optional absolute override for the built Vue directory |
-| `VITE_ENABLE_SIMULATOR` | unset | Explicitly include `/simulator` in a non-development web build |
 
 Copy `.env.example` when a platform supports environment files. Do not commit real secrets or private role tokens.
 
@@ -33,7 +31,7 @@ Copy `.env.example` when a platform supports environment files. Do not commit re
 
 `pnpm start` runs the Fastify server. It serves API and Socket.IO traffic first, then existing static files, then `index.html` for extensionless Vue SPA routes. Missing assets and unknown `/api` routes remain 404 responses and are never replaced by the SPA shell.
 
-The rules page is the public Vue route `/reference`, composed from reusable rules components. Available character details use `/rules/role/:roleId`. V3-owned image assets are served from `/images/`.
+The rules page is the public Vue route `/rules`, composed from reusable rules components. Available character details use `/rules/role/:roleId`. V3-owned image assets are served from `/images/`.
 
 ## Graceful shutdown
 
@@ -66,9 +64,8 @@ All deployment paths run `pnpm build` before launching `node apps/server/dist/in
 
 - `3001`, V3 backend or production server
 - `5173`, Vite development application
-- `5174`, standalone simulator test server
 
-Run `pnpm dev` in the Codespaces terminal. Port `5173` opens as a preview. For the simulator, run `pnpm simulator` and open the forwarded simulator port.
+Run `pnpm dev` in the Codespaces terminal. Port `5173` opens as a preview. The simulator is available at `/simulator` on the same port.
 
 ## Browser tests
 

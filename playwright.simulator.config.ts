@@ -7,14 +7,14 @@ export default defineConfig({
   retries: 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
-    baseURL: 'http://127.0.0.1:5174',
+    baseURL: 'http://127.0.0.1:5173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm --filter @lgu/web dev --mode simulator --host 127.0.0.1 --port 5174',
-    url: 'http://127.0.0.1:5174/simulator',
+    command: 'pnpm --filter @lgu/web dev --host 127.0.0.1 --port 5173',
+    url: 'http://127.0.0.1:5173/simulator',
     timeout: 60_000,
     reuseExistingServer: false,
   },

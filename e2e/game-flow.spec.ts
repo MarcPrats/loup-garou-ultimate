@@ -18,6 +18,7 @@ test('runs the complete production game flow with private views and V3 rules', a
     await expect(home.locator('.app-home-action')).toHaveText([
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
+      '🧪 Simulateur',
       '📚 Wiki des règles',
     ])
     await expect(home.locator('#entry-btn')).toHaveAttribute('href', '/waiting_room')

@@ -88,7 +88,7 @@ describe('simulator engine', () => {
 })
 
 describe('simulator route isolation', () => {
-  it('registers the lazy route in the development test build', () => {
+  it('registers the public simulator route in every build', () => {
     const router = createAppRouter(createPinia())
 
     expect(router.hasRoute(ROUTE_NAME.SIMULATOR)).toBe(true)

@@ -16,13 +16,7 @@ import PlayerRoleView from '../views/PlayerRoleView.vue'
 import RoleAccessView from '../views/RoleAccessView.vue'
 import RulesView from '../views/RulesView.vue'
 import RoleDetailView from '../views/RoleDetailView.vue'
-
-export function shouldRedirectToSimulator(
-  simulatorOnly: boolean,
-  routeName: unknown,
-): boolean {
-  return simulatorOnly && routeName !== ROUTE_NAME.SIMULATOR
-}
+import SimulatorView from '../features/simulator/SimulatorView.vue'
 
 export function routeNameForDestination(
   destination: SessionDestination | null,
@@ -87,18 +81,13 @@ export function createAppRouter(pinia: Pinia) {
       component: RoleDetailView,
       meta: { public: true },
     },
-  ]
-
-  if (__SIMULATOR_ENABLED__) {
-    routes.push({
+    {
       path: ROUTE_PATH.SIMULATOR,
       name: ROUTE_NAME.SIMULATOR,
-      component: () => import(
-        '../features/simulator/SimulatorView.vue'
-      ),
-      meta: { simulator: true },
-    })
-  }
+      component: SimulatorView,
+      meta: { simulator: true, public: true },
+    },
+  ]
 
   const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -111,9 +100,6 @@ export function createAppRouter(pinia: Pinia) {
   })
 
   router.beforeEach(async (to) => {
-    if (shouldRedirectToSimulator(__SIMULATOR_ONLY__, to.name)) {
-      return { name: ROUTE_NAME.SIMULATOR }
-    }
     if (!to.meta.requiresSession) return true
 
     const lobby = useLobbyStore(pinia)

@@ -23,6 +23,6 @@
 
 ## Automated acceptance
 
-The Vitest suites validate contracts, assignment rules, projections, server transport, token access, session recovery, race handling, UI components, production simulator exclusion, static routing, and shutdown.
+The Vitest suites validate contracts, assignment rules, projections, server transport, token access, session recovery, race handling, UI components, simulator route isolation, static routing, and shutdown.
 
 Playwright validates the production build with six separate browser contexts, full room progression, reload restoration, private fragment access, API response headers, absence of hidden fields from player JSON, rules/character pages, and simulator network/storage isolation.

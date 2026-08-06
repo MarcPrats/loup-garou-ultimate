@@ -69,7 +69,7 @@ generate()
       <header class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p class="text-sm font-black uppercase tracking-[0.24em] text-lgu-orange">
-            Outil de développement local
+            Outil de simulation
           </p>
           <h1 class="mt-2 font-display text-4xl font-bold sm:text-6xl">
             Simulateur V3
@@ -87,29 +87,60 @@ generate()
       </header>
 
       <section class="mt-8 rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl sm:p-8">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
-          <div class="flex-1 sm:max-w-xs">
-            <label for="simulator-player-count" class="text-sm font-bold text-slate-300">
-              Nombre de joueurs
-            </label>
-            <select
-              id="simulator-player-count"
-              v-model.number="playerCount"
-              class="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white"
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div class="sm:w-64">
+              <label for="simulator-player-count" class="text-sm font-bold text-slate-300">
+                Nombre de joueurs
+              </label>
+              <select
+                id="simulator-player-count"
+                v-model.number="playerCount"
+                class="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white"
+              >
+                <option v-for="count in playerCountOptions" :key="count" :value="count">
+                  {{ count }} joueurs
+                </option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              class="rounded-xl bg-gradient-to-r from-lgu-orange to-lgu-blue px-6 py-3 font-black text-white hover:brightness-110"
+              @click="generate"
             >
-              <option v-for="count in playerCountOptions" :key="count" :value="count">
-                {{ count }} joueurs
-              </option>
-            </select>
+              Générer
+            </button>
           </div>
 
-          <button
-            type="button"
-            class="rounded-xl bg-gradient-to-r from-lgu-orange to-lgu-blue px-6 py-3 font-black text-white hover:brightness-110"
-            @click="generate"
-          >
-            Générer
-          </button>
+          <div v-if="scenario" class="flex flex-col gap-2 lg:items-end">
+            <span class="text-sm font-bold text-slate-300">Vue à afficher</span>
+            <div class="flex flex-col gap-2 sm:flex-row">
+              <button
+                type="button"
+                class="rounded-xl px-4 py-2 font-bold"
+                :class="activeView === SIMULATOR_VIEW.HOST ? 'bg-lgu-orange text-white' : 'bg-white/10 text-slate-200'"
+                @click="activeView = SIMULATOR_VIEW.HOST"
+              >
+                Vue MJ
+              </button>
+              <select
+                aria-label="Choisir une vue joueur"
+                class="rounded-xl border border-white/10 bg-slate-800 px-4 py-2 font-bold text-white"
+                :value="activePlayerAssignment?.player.id ?? ''"
+                @change="selectPlayer(($event.target as HTMLSelectElement).value)"
+              >
+                <option value="" disabled>Vue d’un joueur…</option>
+                <option
+                  v-for="assignment in scenario.privateAssignments"
+                  :key="assignment.player.id"
+                  :value="assignment.player.id"
+                >
+                  {{ assignment.player.name }}
+                </option>
+              </select>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -121,33 +152,6 @@ generate()
       />
 
       <template v-if="scenario">
-        <section class="mt-8 rounded-3xl border border-white/10 bg-slate-900/70 p-5 sm:p-6">
-          <div class="flex flex-wrap items-center justify-end gap-2">
-            <button
-              type="button"
-              class="rounded-xl px-4 py-2 font-bold"
-              :class="activeView === SIMULATOR_VIEW.HOST ? 'bg-lgu-orange text-white' : 'bg-white/10 text-slate-200'"
-              @click="activeView = SIMULATOR_VIEW.HOST"
-            >
-              Vue MJ
-            </button>
-            <select
-              aria-label="Choisir une vue joueur"
-              class="rounded-xl border border-white/10 bg-slate-800 px-4 py-2 font-bold text-white"
-              :value="activePlayerAssignment?.player.id ?? ''"
-              @change="selectPlayer(($event.target as HTMLSelectElement).value)"
-            >
-              <option value="" disabled>Vue d’un joueur…</option>
-              <option
-                v-for="assignment in scenario.privateAssignments"
-                :key="assignment.player.id"
-                :value="assignment.player.id"
-              >
-                {{ assignment.player.name }}
-              </option>
-            </select>
-          </div>
-        </section>
 
         <div class="mt-8">
           <HostDashboardPanel

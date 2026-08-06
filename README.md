@@ -25,13 +25,13 @@ pnpm dev
 - API and Socket.IO server: `http://localhost:3001`
 - Health endpoint: `http://localhost:3001/api/health`
 
-The isolated simulator runs without a backend:
+The simulator is available as a normal public route during development and production:
 
-```bash
-pnpm simulator
+```text
+http://localhost:5173/simulator
 ```
 
-It opens `http://localhost:5174/simulator` in a Vite mode without API or Socket.IO proxies.
+It uses synthetic local data and does not initialize a session, API, or Socket.IO connection. A link is also available from the home page.
 
 ## Production
 
