@@ -1,11 +1,11 @@
 import type {
   PlayerId,
   PlayerName,
-  RoomId,
+  LobbyId,
   RoleAccessToken,
   RoleAccessView,
-  RoomClosedReason,
-  RoomPhase,
+  LobbyClosedReason,
+  LobbyPhase,
   SessionToken,
 } from '@lgu/contracts'
 import type {
@@ -41,15 +41,15 @@ export interface StoredGameState {
   readonly startedAt: number
 }
 
-export interface LobbyRoomState {
-  readonly id: RoomId
-  phase: RoomPhase
+export interface LobbyState {
+  readonly id: LobbyId
+  phase: LobbyPhase
   revision: number
   players: LobbyPlayerState[]
   readonly createdAt: number
   lastActivityAt: number
   closedAt: number | null
-  closeReason: RoomClosedReason | null
+  closeReason: LobbyClosedReason | null
   game: StoredGameState | null
 }
 
@@ -65,17 +65,17 @@ export interface ValueGenerator {
   next(): string
 }
 
-export interface RoomMutation<T> {
-  readonly room: LobbyRoomState | null
+export interface LobbyMutation<T> {
+  readonly lobby: LobbyState | null
   readonly result: T
 }
 
-export interface RoomRepository {
-  read(): Promise<LobbyRoomState | null>
+export interface LobbyRepository {
+  read(): Promise<LobbyState | null>
   mutate<T>(
     operation: (
-      room: LobbyRoomState | null,
-    ) => RoomMutation<T> | Promise<RoomMutation<T>>,
+      lobby: LobbyState | null,
+    ) => LobbyMutation<T> | Promise<LobbyMutation<T>>,
   ): Promise<T>
 }
 
@@ -89,8 +89,8 @@ export interface ResumeSessionCommand {
   readonly connectionId: ConnectionId
 }
 
-export interface EnterRoomCommand {
-  readonly roomId?: RoomId
+export interface EnterLobbyCommand {
+  readonly lobbyId?: LobbyId
   readonly playerName: string
   readonly connectionId: ConnectionId
 }

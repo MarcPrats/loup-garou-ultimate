@@ -41,9 +41,9 @@ export function createAppRouter(pinia: Pinia) {
       component: HomeView,
     },
     {
-      path: ROUTE_PATH.ENTRY,
-      alias: ['/waiting_room/'],
-      name: ROUTE_NAME.ENTRY,
+      path: ROUTE_PATH.LOBBIES,
+      alias: ['/lobbies/'],
+      name: ROUTE_NAME.LOBBIES,
       component: HomeView,
     },
     {

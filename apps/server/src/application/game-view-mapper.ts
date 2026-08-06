@@ -12,33 +12,33 @@ import {
 } from '@lgu/game-projection'
 
 import type {
-  LobbyRoomState,
+  LobbyState,
   RoleAccessGrant,
 } from '../domain/lobby-types'
 
-function toProjectionState(room: LobbyRoomState): GameProjectionState {
-  if (!room.game) throw new Error('Started room has no stored game state')
+function toProjectionState(lobby: LobbyState): GameProjectionState {
+  if (!lobby.game) throw new Error('Started lobby has no stored game state')
   return {
-    players: room.players,
-    assignment: room.game.assignment,
-    roleAccessGrants: room.game.roleAccessGrants,
+    players: lobby.players,
+    assignment: lobby.game.assignment,
+    roleAccessGrants: lobby.game.roleAccessGrants,
   }
 }
 
 export function toPrivateAssignment(
-  room: LobbyRoomState,
+  lobby: LobbyState,
   playerId: PlayerId,
 ): PrivateAssignment {
-  return projectPrivateAssignment(toProjectionState(room), playerId)
+  return projectPrivateAssignment(toProjectionState(lobby), playerId)
 }
 
-export function toHostDashboard(room: LobbyRoomState): HostDashboard {
-  return projectHostDashboard(toProjectionState(room))
+export function toHostDashboard(lobby: LobbyState): HostDashboard {
+  return projectHostDashboard(toProjectionState(lobby))
 }
 
 export function toRoleAccessResponse(
-  room: LobbyRoomState,
+  lobby: LobbyState,
   grant: RoleAccessGrant,
 ): RoleAccessResponse {
-  return projectRoleAccessResponse(toProjectionState(room), grant)
+  return projectRoleAccessResponse(toProjectionState(lobby), grant)
 }

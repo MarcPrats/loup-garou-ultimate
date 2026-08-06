@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { RoomSnapshot } from '@lgu/contracts'
+import type { LobbySnapshot } from '@lgu/contracts'
 
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import {
@@ -18,80 +18,119 @@ const lobby = useLobbyStore()
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const route = useRoute()
 const router = useRouter()
-const enteringName = ref(route.name === 'entry' || typeof route.params.lobbyId === 'string')
+const enteringName = ref(route.name === ROUTE_NAME.LOBBIES || typeof route.params.lobbyId === 'string')
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
-const roomPlayerCount = (room: RoomSnapshot): number => (
-  room.players.filter((player) => !player.isHost).length
+const lobbyPlayerCount = (lobby: LobbySnapshot): number => (
+  lobby.players.filter((player) => !player.isHost).length
 )
 const submitting = ref(false)
-const joiningRoomId = ref<string | null>(null)
-const inviteMode = computed(() => Boolean(inviteRoomId.value))
-const inviteRoomId = computed(() => {
+const preparingInvite = ref(false)
+const joiningLobbyId = ref<string | null>(null)
+const inviteLobbyId = computed(() => {
   if (typeof route.params.lobbyId === 'string') return route.params.lobbyId
-  if (typeof route.query.room === 'string') return route.query.room
+  if (typeof route.query.lobby === 'string') return route.query.lobby
   return null
 })
+const inviteMode = computed(() => Boolean(inviteLobbyId.value))
 const canSubmit = computed(() => (
   normalizedName.value.length > 0
   && lobby.initialized
   && !lobby.hasStoredSession
   && !submitting.value
+  && !preparingInvite.value
   && lobby.connectionState === CONNECTION_STATE.ONLINE
 ))
 
 async function submit(): Promise<void> {
   if (inviteMode.value) {
-    await joinInviteRoom()
+    await joinInviteLobby()
     return
   }
   if (!canSubmit.value) return
   submitting.value = true
   try {
-    await lobby.createRoom(normalizedName.value)
+    await lobby.createLobby(normalizedName.value)
   } finally {
     submitting.value = false
   }
 }
 
-async function joinInviteRoom(): Promise<void> {
-  if (!inviteRoomId.value || !canSubmit.value) return
-  joiningRoomId.value = inviteRoomId.value
+async function joinInviteLobby(): Promise<void> {
+  if (!inviteLobbyId.value || !canSubmit.value) return
+  joiningLobbyId.value = inviteLobbyId.value
   try {
-    await lobby.joinRoom(inviteRoomId.value, normalizedName.value)
+    await lobby.joinLobby(inviteLobbyId.value, normalizedName.value)
   } finally {
-    joiningRoomId.value = null
+    joiningLobbyId.value = null
   }
 }
 
-async function joinRoom(room: RoomSnapshot): Promise<void> {
+async function joinLobby(availableLobby: LobbySnapshot): Promise<void> {
   if (!canSubmit.value) return
-  joiningRoomId.value = room.id
+  joiningLobbyId.value = availableLobby.id
   try {
-    await lobby.joinRoom(room.id, normalizedName.value)
+    await lobby.joinLobby(availableLobby.id, normalizedName.value)
   } finally {
-    joiningRoomId.value = null
+    joiningLobbyId.value = null
   }
 }
 
-let roomRefreshTimer: ReturnType<typeof setInterval> | null = null
+let lobbyRefreshTimer: ReturnType<typeof setInterval> | null = null
 
 onMounted(async () => {
-  if (!staticMode) {
+  if (staticMode) return
+
+  preparingInvite.value = inviteMode.value
+  try {
     await lobby.initialize()
-    await lobby.listRooms()
-    roomRefreshTimer = setInterval(() => { void lobby.listRooms() }, 10_000)
+    if (inviteMode.value) {
+      // A lobby link wins over a previously persisted session.
+      if (lobby.hasStoredSession) await lobby.startNewSession()
+      return
+    }
+    await lobby.listLobbies()
+    lobbyRefreshTimer = setInterval(() => { void lobby.listLobbies() }, 10_000)
+  } finally {
+    preparingInvite.value = false
   }
 })
 
 onUnmounted(() => {
-  if (roomRefreshTimer) clearInterval(roomRefreshTimer)
+  if (lobbyRefreshTimer) clearInterval(lobbyRefreshTimer)
 })
 </script>
 
 <template>
   <main class="app-page app-home-page">
-    <section v-if="lobby.hasStoredSession && !lobby.hasSession" class="app-screen app-home-container" aria-live="polite">
+    <section v-if="enteringName && inviteMode" class="app-screen app-home-container app-lobby app-lobby-invite-only">
+      <h2>Rejoindre la partie</h2>
+      <p class="app-subtitle">Entrez votre nom pour rejoindre la lobby invité.</p>
+      <p class="app-lobby-invite-hint">Lobby : <strong>{{ inviteLobbyId }}</strong></p>
+
+      <form class="app-lobby-create-form" @submit.prevent="submit">
+        <label for="player-name-input">Votre nom</label>
+        <input
+          id="player-name-input"
+          v-model="playerName"
+          type="text"
+          maxlength="20"
+          autocomplete="off"
+          placeholder="Votre nom..."
+          class="app-text-input"
+          autofocus
+        >
+        <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
+        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null">
+          {{ joiningLobbyId ? 'Connexion…' : 'Rejoindre la partie' }}
+        </button>
+      </form>
+      <button type="button" class="app-btn app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
+        Retour
+      </button>
+    </section>
+
+    <section v-else-if="lobby.hasStoredSession && !lobby.hasSession" class="app-screen app-home-container" aria-live="polite">
       <h1>Loup Garou Ultime</h1>
       <h2>Restauration de votre session</h2>
       <p class="app-subtitle">Nous essayons de retrouver votre place dans la partie.</p>
@@ -106,38 +145,11 @@ onUnmounted(() => {
       </div>
     </section>
 
-    <section v-else-if="enteringName && inviteMode" class="app-screen app-home-container app-room-lobby app-room-invite-only">
-      <h2>Rejoindre la partie</h2>
-      <p class="app-subtitle">Entrez votre nom pour rejoindre la salle invitée.</p>
-      <p class="app-room-invite-hint">Salle : <strong>{{ inviteRoomId }}</strong></p>
-
-      <form class="app-room-create-form" @submit.prevent="submit">
-        <label for="player-name-input">Votre nom</label>
-        <input
-          id="player-name-input"
-          v-model="playerName"
-          type="text"
-          maxlength="20"
-          autocomplete="off"
-          placeholder="Votre nom..."
-          class="app-text-input"
-          autofocus
-        >
-        <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null">
-          {{ joiningRoomId ? 'Connexion…' : 'Rejoindre la partie' }}
-        </button>
-      </form>
-      <button type="button" class="app-btn app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
-        Retour
-      </button>
-    </section>
-
-    <section v-else-if="enteringName" class="app-screen app-home-container app-room-lobby">
+    <section v-else-if="enteringName" class="app-screen app-home-container app-lobby">
       <h2>Rejoindre une partie</h2>
-      <p class="app-subtitle">Choisissez une salle existante ou créez-en une nouvelle.</p>
+      <p class="app-subtitle">Choisissez une lobby existant ou créez-en une nouvelle.</p>
 
-      <form class="app-room-create-form" @submit.prevent="submit">
+      <form class="app-lobby-create-form" @submit.prevent="submit">
         <label for="player-name-input">Votre nom</label>
         <input
           id="player-name-input"
@@ -154,35 +166,35 @@ onUnmounted(() => {
         </button>
       </form>
 
-      <div class="app-room-list-header">
+      <div class="app-lobby-list-header">
         <h3>Parties disponibles</h3>
-        <button type="button" class="app-btn app-btn-back" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listRooms">
+        <button type="button" class="app-btn app-btn-back" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies">
           Actualiser
         </button>
       </div>
 
-      <div v-if="inviteRoomId" class="app-room-invite-hint">
-        <p>Vous avez reçu le lien de la salle <strong>{{ inviteRoomId }}</strong>.</p>
-        <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinInviteRoom">
-          {{ joiningRoomId === inviteRoomId ? 'Connexion…' : 'Rejoindre cette salle' }}
+      <div v-if="inviteLobbyId" class="app-lobby-invite-hint">
+        <p>Vous avez reçu le lien du lobby <strong>{{ inviteLobbyId }}</strong>.</p>
+        <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null" @click="joinInviteLobby">
+          {{ joiningLobbyId === inviteLobbyId ? 'Connexion…' : 'Rejoindre ce lobby' }}
         </button>
       </div>
-      <p v-if="lobby.availableRooms.length === 0" class="app-room-empty">
+      <p v-if="lobby.availableLobbies.length === 0" class="app-lobby-empty">
         Aucune partie en attente. Créez la première.
       </p>
-      <div v-else class="app-room-list">
+      <div v-else class="app-lobby-list">
         <article
-          v-for="room in lobby.availableRooms"
-          :key="room.id"
-          class="app-room-list-card"
-          :class="{ highlighted: room.id === inviteRoomId }"
+          v-for="availableLobby in lobby.availableLobbies"
+          :key="availableLobby.id"
+          class="app-lobby-list-card"
+          :class="{ highlighted: availableLobby.id === inviteLobbyId }"
         >
           <div>
-            <strong>{{ room.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
-            <span>{{ roomPlayerCount(room) }} / {{ room.maximumPlayers }} joueurs</span>
+            <strong>{{ availableLobby.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
+            <span>{{ lobbyPlayerCount(availableLobby) }} / {{ availableLobby.maximumPlayers }} joueurs</span>
           </div>
-          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
-            {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
+          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null" @click="joinLobby(availableLobby)">
+            {{ joiningLobbyId === availableLobby.id ? 'Connexion…' : 'Rejoindre' }}
           </button>
         </article>
       </div>
@@ -196,7 +208,7 @@ onUnmounted(() => {
     <section v-else class="app-home-shell">
       <h1>Loup Garou Ultime</h1>
       <nav class="app-home-actions" aria-label="Actions principales">
-        <a v-if="!staticMode" id="entry-btn" :href="appPath(ROUTE_PATH.ENTRY)" class="app-home-action app-home-action-primary">
+        <a v-if="!staticMode" id="lobbies-btn" :href="appPath(ROUTE_PATH.LOBBIES)" class="app-home-action app-home-action-primary">
           🎮 Créer / Rejoindre la partie
         </a>
         <a :href="appPath(ROUTE_PATH.RULES)" class="app-home-action">📜 Règles</a>

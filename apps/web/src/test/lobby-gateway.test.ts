@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  ROOM_ID,
-  ROOM_PHASE,
+  LOBBY_ID,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
   SOCKET_EVENT,
   ackSuccess,
-  type RoomEntryResponse,
+  type LobbyEntryResponse,
 } from '@lgu/contracts'
 
 import { CLIENT_TIMING, CONNECTION_STATE } from '../constants/app'
@@ -17,15 +17,15 @@ import {
 } from '../services/lobby-gateway'
 import type { GameSocket } from '../services/socket'
 
-const ENTRY: RoomEntryResponse = {
+const ENTRY: LobbyEntryResponse = {
   session: {
-    roomId: ROOM_ID.MAIN,
+    lobbyId: LOBBY_ID.MAIN,
     playerId: 'player_1',
     sessionToken: 'session_00000000000000000000000000000001',
   },
-  room: {
-    id: ROOM_ID.MAIN,
-    phase: ROOM_PHASE.LOBBY,
+  lobby: {
+    id: LOBBY_ID.MAIN,
+    phase: LOBBY_PHASE.LOBBY,
     revision: 1,
     players: [{
       id: 'player_1',
@@ -98,11 +98,11 @@ function createHandlers(): LobbyGatewayHandlers {
   return {
     onConnectionState: vi.fn(),
     onSystemReady: vi.fn(),
-    onRoomSnapshot: vi.fn(),
+    onLobbySnapshot: vi.fn(),
     onGameStarted: vi.fn(),
     onPrivateAssignment: vi.fn(),
     onHostDashboard: vi.fn(),
-    onRoomClosed: vi.fn(),
+    onLobbyClosed: vi.fn(),
     onSessionEnded: vi.fn(),
     onNotification: vi.fn(),
     onProtocolError: vi.fn(),
@@ -117,7 +117,7 @@ describe('SocketLobbyGateway', () => {
   it('validates typed acknowledgements', async () => {
     const socket = new FakeSocket()
     socket.emitImplementation = (event, args) => {
-      expect(event).toBe(SOCKET_EVENT.ROOM_ENTER)
+      expect(event).toBe(SOCKET_EVENT.LOBBY_ENTER)
       const callback = args.at(-1) as (value: unknown) => void
       callback(ackSuccess(ENTRY))
     }

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ERROR_CODE,
-  ROOM_CLOSED_REASON,
+  LOBBY_CLOSED_REASON,
   ROLE_ACCESS_VIEW,
-  ROOM_PHASE,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
 } from '@lgu/contracts'
 import { PLAYER_COUNT } from '@lgu/game-core'
@@ -12,7 +12,7 @@ import { PLAYER_COUNT } from '@lgu/game-core'
 import { LobbyService } from '../src/application/lobby-service'
 import { LOBBY_TIME_LIMIT } from '../src/config/lobby-constants'
 import { LobbyError } from '../src/domain/lobby-error'
-import { InMemoryRoomRepository } from '../src/infrastructure/in-memory-room-repository'
+import { InMemoryLobbyRepository } from '../src/infrastructure/in-memory-lobby-repository'
 import {
   DeterministicAssignmentGenerator,
   FakeClock,
@@ -26,7 +26,7 @@ function createFixture(
   assignmentGenerator = new DeterministicAssignmentGenerator(),
 ) {
   const clock = new FakeClock()
-  const repository = new InMemoryRoomRepository()
+  const repository = new InMemoryLobbyRepository()
   const service = new LobbyService({
     repository,
     clock,
@@ -77,23 +77,23 @@ describe('LobbyService', () => {
     })
 
     expect(host.destination).toBe(SESSION_DESTINATION.LOBBY)
-    expect(host.room.players[0]).toMatchObject({
+    expect(host.lobby.players[0]).toMatchObject({
       id: host.session.playerId,
       name: 'Le MJ',
       isHost: true,
       connected: true,
     })
-    expect(player.room.revision).toBe(2)
-    expect(player.room.players[1]).toMatchObject({
+    expect(player.lobby.revision).toBe(2)
+    expect(player.lobby.players[1]).toMatchObject({
       id: player.session.playerId,
       name: 'Marc',
       isHost: false,
     })
-    expect(JSON.stringify(player.room)).not.toContain(player.session.sessionToken)
-    expect(JSON.stringify(player.room)).not.toContain('connection-player')
+    expect(JSON.stringify(player.lobby)).not.toContain(player.session.sessionToken)
+    expect(JSON.stringify(player.lobby)).not.toContain('connection-player')
 
-    const internalRoom = await repository.read()
-    expect(internalRoom?.players[1]?.sessionToken).toBe(player.session.sessionToken)
+    const internalLobby = await repository.read()
+    expect(internalLobby?.players[1]?.sessionToken).toBe(player.session.sessionToken)
   })
 
   it('rejects duplicate names and serializes concurrent joins at capacity', async () => {
@@ -119,7 +119,7 @@ describe('LobbyService', () => {
     )
     expect(results.filter((result) => result.status === 'rejected')).toHaveLength(5)
 
-    const snapshot = await service.getRoomSnapshot()
+    const snapshot = await service.getLobbySnapshot()
     expect(snapshot?.players).toHaveLength(PLAYER_COUNT.MAXIMUM + 1)
   })
 
@@ -133,8 +133,8 @@ describe('LobbyService', () => {
 
     const disconnected = await service.disconnect('player-old')
     expect(disconnected.changed).toBe(true)
-    expect(disconnected.room?.revision).toBe(3)
-    expect(disconnected.room?.players[1]?.connected).toBe(false)
+    expect(disconnected.lobby?.revision).toBe(3)
+    expect(disconnected.lobby?.players[1]?.connected).toBe(false)
 
     const resumed = await service.resume({
       sessionToken: joined.session.sessionToken,
@@ -142,8 +142,8 @@ describe('LobbyService', () => {
     })
     expect(resumed.replacedConnectionId).toBeNull()
     expect(resumed.publicStateChanged).toBe(true)
-    expect(resumed.response.room.revision).toBe(4)
-    expect(resumed.response.room.players[1]?.connected).toBe(true)
+    expect(resumed.response.lobby.revision).toBe(4)
+    expect(resumed.response.lobby.players[1]?.connected).toBe(true)
 
     const replaced = await service.resume({
       sessionToken: joined.session.sessionToken,
@@ -151,7 +151,7 @@ describe('LobbyService', () => {
     })
     expect(replaced.replacedConnectionId).toBe('player-new')
     expect(replaced.publicStateChanged).toBe(false)
-    expect(replaced.response.room.revision).toBe(4)
+    expect(replaced.response.lobby.revision).toBe(4)
 
     const staleDisconnect = await service.disconnect('player-new')
     expect(staleDisconnect.changed).toBe(false)
@@ -176,7 +176,7 @@ describe('LobbyService', () => {
       }),
       ERROR_CODE.INVALID_PAYLOAD,
     )
-    expect((await service.getRoomSnapshot())?.players).toHaveLength(2)
+    expect((await service.getLobbySnapshot())?.players).toHaveLength(2)
   })
 
   it('starts only for the host with five connected regular players', async () => {
@@ -216,8 +216,8 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect(started.room.phase).toBe(ROOM_PHASE.STARTED)
-    expect(started.room.canStart).toBe(false)
+    expect(started.lobby.phase).toBe(LOBBY_PHASE.STARTED)
+    expect(started.lobby.canStart).toBe(false)
     expect(started.privateAssignments).toHaveLength(PLAYER_COUNT.MINIMUM)
     expect(started.hostDashboard.connectionId).toBe('host')
   })
@@ -233,12 +233,12 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect(result.room?.players.find((player) => player.id === playerOne.session.playerId)).toMatchObject({
+    expect(result.lobby?.players.find((player) => player.id === playerOne.session.playerId)).toMatchObject({
       isHost: true,
     })
   })
 
-  it('closes a started room when the host explicitly leaves', async () => {
+  it('closes a started lobby when the host explicitly leaves', async () => {
     const { repository, service } = createFixture()
     const host = await service.enter({ playerName: 'Le MJ', connectionId: 'host' })
     for (let index = 1; index <= PLAYER_COUNT.MINIMUM; index += 1) {
@@ -257,9 +257,9 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect(result.room?.phase).toBe(ROOM_PHASE.CLOSED)
-    expect(result.roomClosedReason).toBe(ROOM_CLOSED_REASON.HOST_LEFT)
-    expect((await repository.read())?.closeReason).toBe(ROOM_CLOSED_REASON.HOST_LEFT)
+    expect(result.lobby?.phase).toBe(LOBBY_PHASE.CLOSED)
+    expect(result.lobbyClosedReason).toBe(LOBBY_CLOSED_REASON.HOST_LEFT)
+    expect((await repository.read())?.closeReason).toBe(LOBBY_CLOSED_REASON.HOST_LEFT)
   })
 
   it('keeps a revoked player as a disconnected game tombstone', async () => {
@@ -283,16 +283,16 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect(result.room?.players).toHaveLength(PLAYER_COUNT.MINIMUM + 1)
-    expect(result.room?.players.find(
+    expect(result.lobby?.players).toHaveLength(PLAYER_COUNT.MINIMUM + 1)
+    expect(result.lobby?.players.find(
       (player) => player.id === players[0]!.session.playerId,
     )?.connected).toBe(false)
     expect(dashboard.players).toHaveLength(PLAYER_COUNT.MINIMUM)
-    const internalRoom = await repository.read()
-    expect(internalRoom?.players.find(
+    const internalLobby = await repository.read()
+    expect(internalLobby?.players.find(
       (player) => player.id === players[0]!.session.playerId,
     )?.sessionRevoked).toBe(true)
-    expect(internalRoom?.game?.roleAccessGrants.some(
+    expect(internalLobby?.game?.roleAccessGrants.some(
       (grant) => grant.playerId === players[0]!.session.playerId,
     )).toBe(false)
     await expectLobbyError(
@@ -333,7 +333,7 @@ describe('LobbyService', () => {
       secondPlayer.session.playerId,
     )
     expect(kicked.playerId).toBe(secondPlayer.session.playerId)
-    expect(kicked.room?.players).toHaveLength(2)
+    expect(kicked.lobby?.players).toHaveLength(2)
   })
 
   it('expires disconnected lobby sessions and transfers the host', async () => {
@@ -346,7 +346,7 @@ describe('LobbyService', () => {
     const cleanup = await service.cleanup()
 
     expect(cleanup.removedPlayerIds).toHaveLength(1)
-    expect(cleanup.room?.players).toEqual([
+    expect(cleanup.lobby?.players).toEqual([
       expect.objectContaining({
         id: player.session.playerId,
         isHost: true,
@@ -354,19 +354,19 @@ describe('LobbyService', () => {
     ])
   })
 
-  it('expires and later purges old rooms', async () => {
+  it('expires and later purges old lobbys', async () => {
     const { clock, service } = createFixture()
     await service.enter({ playerName: 'Le MJ', connectionId: 'host' })
 
-    clock.advance(LOBBY_TIME_LIMIT.ROOM_MAX_AGE_MS)
+    clock.advance(LOBBY_TIME_LIMIT.LOBBY_MAX_AGE_MS)
     const expired = await service.cleanup()
-    expect(expired.roomExpired).toBe(true)
-    expect(expired.room?.phase).toBe(ROOM_PHASE.CLOSED)
+    expect(expired.lobbyExpired).toBe(true)
+    expect(expired.lobby?.phase).toBe(LOBBY_PHASE.CLOSED)
 
-    clock.advance(LOBBY_TIME_LIMIT.CLOSED_ROOM_RETENTION_MS)
+    clock.advance(LOBBY_TIME_LIMIT.CLOSED_LOBBY_RETENTION_MS)
     const purged = await service.cleanup()
-    expect(purged.roomPurged).toBe(true)
-    expect(purged.room).toBeNull()
+    expect(purged.lobbyPurged).toBe(true)
+    expect(purged.lobby).toBeNull()
   })
 
   it('does not increment public revision for keep-alive messages', async () => {
@@ -378,7 +378,7 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    expect((await service.getRoomSnapshot())?.revision).toBe(1)
+    expect((await service.getLobbySnapshot())?.revision).toBe(1)
   })
 
   it('persists one generated game and maps separate private and host views', async () => {
@@ -389,7 +389,7 @@ describe('LobbyService', () => {
       sessionToken: host.session.sessionToken,
       connectionId: 'host',
     })
-    const internalRoom = await repository.read()
+    const internalLobby = await repository.read()
     const privateAssignment = await service.getPrivateAssignment({
       sessionToken: players[0]!.session.sessionToken,
       connectionId: 'player-1',
@@ -400,14 +400,14 @@ describe('LobbyService', () => {
     })
 
     expect(assignmentGenerator.calls).toBe(1)
-    expect(internalRoom?.game?.assignment.assignments).toHaveLength(
+    expect(internalLobby?.game?.assignment.assignments).toHaveLength(
       PLAYER_COUNT.MINIMUM,
     )
-    expect(internalRoom?.game?.roleAccessGrants).toHaveLength(
+    expect(internalLobby?.game?.roleAccessGrants).toHaveLength(
       PLAYER_COUNT.MINIMUM + 1,
     )
-    expect(JSON.stringify(started.room)).not.toContain('assignment')
-    expect(JSON.stringify(started.room)).not.toContain('role_')
+    expect(JSON.stringify(started.lobby)).not.toContain('assignment')
+    expect(JSON.stringify(started.lobby)).not.toContain('role_')
     expect(started.privateAssignments).toHaveLength(PLAYER_COUNT.MINIMUM)
     expect(started.hostDashboard.dashboard).toEqual(dashboard)
     expect(privateAssignment.player.id).toBe(players[0]!.session.playerId)
@@ -441,11 +441,11 @@ describe('LobbyService', () => {
       connectionId: 'host',
     })
 
-    const room = await repository.read()
-    const hostGrant = room?.game?.roleAccessGrants.find(
+    const lobby = await repository.read()
+    const hostGrant = lobby?.game?.roleAccessGrants.find(
       (grant) => grant.view === ROLE_ACCESS_VIEW.GAME_MASTER,
     )
-    const playerGrant = room?.game?.roleAccessGrants.find(
+    const playerGrant = lobby?.game?.roleAccessGrants.find(
       (grant) => grant.playerId === players[0]!.session.playerId,
     )
     expect(hostGrant).toBeDefined()
@@ -481,7 +481,7 @@ describe('LobbyService', () => {
     const afterFailure = await repository.read()
     expect(generator.calls).toBe(1)
     expect(afterFailure).toEqual(beforeStart)
-    expect(afterFailure?.phase).toBe(ROOM_PHASE.LOBBY)
+    expect(afterFailure?.phase).toBe(LOBBY_PHASE.LOBBY)
     expect(afterFailure?.game).toBeNull()
   })
 

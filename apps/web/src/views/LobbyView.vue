@@ -15,8 +15,8 @@ const confirmingLeave = ref(false)
 const copying = ref(false)
 const copyError = ref(false)
 const inviteUrl = computed(() => {
-  if (typeof window === 'undefined' || !lobby.room?.id) return ''
-  return `${window.location.origin}${appPath(`/lobby/${lobby.room.id}`)}`
+  if (typeof window === 'undefined' || !lobby.lobby?.id) return ''
+  return `${window.location.origin}${appPath(`/lobby/${lobby.lobby.id}`)}`
 })
 
 async function copyInvite(): Promise<void> {
@@ -58,9 +58,9 @@ async function confirmLeave(): Promise<void> {
 <template>
   <main class="app-page">
     <section class="app-screen app-game-container">
-      <header class="app-room-header">
-        <h2>Salle d'Attente</h2>
-        <p class="app-room-limit-hint">Jusqu'à 12 joueurs peuvent rejoindre la salle (hors maître du jeu).</p>
+      <header class="app-lobby-header">
+        <h2>Lobby</h2>
+        <p class="app-lobby-limit-hint">Jusqu'à 12 joueurs peuvent rejoindre le lobby (hors maître du jeu).</p>
         <div class="app-invitation-container">
           <p class="app-invitation-label">🔗 Lien d'invitation</p>
           <div class="app-invitation-group">
@@ -94,7 +94,7 @@ async function confirmLeave(): Promise<void> {
 
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
       <div class="app-waiting-actions">
-        <button v-if="lobby.isHost" type="button" class="app-btn app-btn-primary" :disabled="!lobby.room?.canStart || lobby.starting" @click="lobby.start">
+        <button v-if="lobby.isHost" type="button" class="app-btn app-btn-primary" :disabled="!lobby.lobby?.canStart || lobby.starting" @click="lobby.start">
           {{ lobby.starting ? 'Lancement…' : '🎮 Démarrer la Partie' }}
         </button>
         <p v-else class="app-waiting-text">En attente du lancement par l'hôte...</p>

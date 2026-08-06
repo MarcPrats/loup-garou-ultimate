@@ -6,7 +6,7 @@ import {
 import type {
   GameAssignmentGenerator,
   LobbyPlayerState,
-  LobbyRoomState,
+  LobbyState,
   RoleAccessGrant,
   StoredGameState,
   ValueGenerator,
@@ -14,8 +14,8 @@ import type {
 
 const ROLE_ACCESS_TOKEN_MAX_ATTEMPTS = 5
 
-function getPlayersInJoinOrder(room: LobbyRoomState): LobbyPlayerState[] {
-  return [...room.players].sort(
+function getPlayersInJoinOrder(lobby: LobbyState): LobbyPlayerState[] {
+  return [...lobby.players].sort(
     (left, right) => left.joinOrder - right.joinOrder,
   )
 }
@@ -50,12 +50,12 @@ function createRoleAccessGrants(
 }
 
 export function createStoredGameState(
-  room: LobbyRoomState,
+  lobby: LobbyState,
   assignmentGenerator: GameAssignmentGenerator,
   roleAccessTokenGenerator: ValueGenerator,
   startedAt: number,
 ): StoredGameState {
-  const players = getPlayersInJoinOrder(room)
+  const players = getPlayersInJoinOrder(lobby)
   const assignablePlayers = players
     .filter((player) => !player.isHost)
     .map((player) => ({ id: player.id, name: player.name }))

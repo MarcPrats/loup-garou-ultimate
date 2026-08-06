@@ -11,7 +11,7 @@ export const API_ROUTE = {
   SIMULATOR: '/api/test/simulator',
 } as const
 
-export const ROOM_ID = {
+export const LOBBY_ID = {
   MAIN: 'main',
 } as const
 
@@ -20,12 +20,12 @@ export const PLAYER_COUNT_LIMIT = {
   MAXIMUM: 12,
 } as const
 
-export const ROOM_PHASE = {
+export const LOBBY_PHASE = {
   LOBBY: 'lobby',
   STARTED: 'started',
   CLOSED: 'closed',
 } as const
-export type RoomPhase = ValueOf<typeof ROOM_PHASE>
+export type LobbyPhase = ValueOf<typeof LOBBY_PHASE>
 
 export const ROLE_ACCESS_VIEW = {
   PLAYER: 'player',
@@ -68,12 +68,12 @@ export const NOTIFICATION_LEVEL = {
 } as const
 export type NotificationLevel = ValueOf<typeof NOTIFICATION_LEVEL>
 
-export const ROOM_CLOSED_REASON = {
+export const LOBBY_CLOSED_REASON = {
   HOST_LEFT: 'host-left',
   EXPIRED: 'expired',
   RESET: 'reset',
 } as const
-export type RoomClosedReason = ValueOf<typeof ROOM_CLOSED_REASON>
+export type LobbyClosedReason = ValueOf<typeof LOBBY_CLOSED_REASON>
 
 export const SESSION_ENDED_REASON = {
   LEFT: 'left',
@@ -85,12 +85,12 @@ export type SessionEndedReason = ValueOf<typeof SESSION_ENDED_REASON>
 export const ERROR_CODE = {
   INVALID_PAYLOAD: 'invalid-payload',
   INVALID_PLAYER_NAME: 'invalid-player-name',
-  ROOM_FULL: 'room-full',
-  ROOM_CLOSED: 'room-closed',
+  LOBBY_FULL: 'lobby-full',
+  LOBBY_CLOSED: 'lobby-closed',
   GAME_ALREADY_STARTED: 'game-already-started',
   GAME_NOT_STARTED: 'game-not-started',
   SESSION_NOT_FOUND: 'session-not-found',
-  ROOM_NOT_FOUND: 'room-not-found',
+  LOBBY_NOT_FOUND: 'lobby-not-found',
   PLAYER_NOT_FOUND: 'player-not-found',
   NOT_GAME_MASTER: 'not-game-master',
   NOT_ENOUGH_PLAYERS: 'not-enough-players',
@@ -104,20 +104,20 @@ export type ErrorCode = ValueOf<typeof ERROR_CODE>
 
 export const SOCKET_EVENT = {
   SYSTEM_READY: 'system:ready',
-  ROOM_ENTER: 'room:enter',
-  ROOM_CREATE: 'room:create',
-  ROOM_JOIN: 'room:join',
-  ROOM_LIST: 'room:list',
+  LOBBY_ENTER: 'lobby:enter',
+  LOBBY_CREATE: 'lobby:create',
+  LOBBY_JOIN: 'lobby:join',
+  LOBBY_LIST: 'lobby:list',
   SESSION_RESUME: 'session:resume',
   PLAYER_LEAVE: 'player:leave',
   HOST_KICK: 'host:kick',
   GAME_START: 'game:start',
   KEEP_ALIVE: 'session:keep-alive',
-  ROOM_SNAPSHOT: 'room:snapshot',
+  LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',
   PRIVATE_ASSIGNMENT: 'assignment:private',
   HOST_DASHBOARD: 'host:dashboard',
-  ROOM_CLOSED: 'room:closed',
+  LOBBY_CLOSED: 'lobby:closed',
   SESSION_ENDED: 'session:ended',
   NOTIFICATION: 'notification',
 } as const

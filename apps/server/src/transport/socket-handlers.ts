@@ -2,8 +2,8 @@ import { type ZodType } from 'zod'
 
 import {
   ERROR_CODE,
-  ROOM_CLOSED_REASON,
-  ROOM_ID,
+  LOBBY_CLOSED_REASON,
+  LOBBY_ID,
   SESSION_DESTINATION,
   SESSION_ENDED_REASON,
   SOCKET_EVENT,
@@ -12,11 +12,11 @@ import {
   emptyCommandSchema,
   gameStartedEventSchema,
   hostKickCommandSchema,
-  roomClosedEventSchema,
-  roomCreateCommandSchema,
-  roomEnterCommandSchema,
-  roomJoinCommandSchema,
-  roomListResponseSchema,
+  lobbyClosedEventSchema,
+  lobbyCreateCommandSchema,
+  lobbyEnterCommandSchema,
+  lobbyJoinCommandSchema,
+  lobbyListResponseSchema,
   sessionEndedEventSchema,
   sessionResumeCommandSchema,
   systemReadyEventSchema,
@@ -24,14 +24,14 @@ import {
   type ClientRequestId,
   type EmptyResponse,
   type PlayerName,
-  type RoomEntryResponse,
-  type RoomId,
-  type RoomSnapshot,
+  type LobbyEntryResponse,
+  type LobbyId,
+  type LobbySnapshot,
   type SessionCredentials,
 } from '@lgu/contracts'
 
 import type { LobbyService } from '../application/lobby-service'
-import { RoomRegistry } from '../application/room-registry'
+import { LobbyRegistry } from '../application/lobby-registry'
 import { invalidPayloadError, toPublicError } from '../application/public-error-mapper'
 import { LobbyError } from '../domain/lobby-error'
 import type { SessionCommand } from '../domain/lobby-types'
@@ -43,15 +43,15 @@ const MESSAGE = {
   KICKED: 'Vous avez été expulsé de la partie.',
   EXPIRED: 'Votre session a expiré.',
   HOST_LEFT: 'Le maître du jeu a quitté la partie.',
-  ROOM_EXPIRED: 'La partie a expiré.',
+  LOBBY_EXPIRED: 'La partie a expiré.',
 } as const
 
 const ENTER_REQUEST_TTL_MS = 5 * 60 * 1_000
 
 interface CachedEnterRequest {
   readonly playerName: PlayerName
-  readonly pending: Promise<RoomEntryResponse>
-  response: RoomEntryResponse | null
+  readonly pending: Promise<LobbyEntryResponse>
+  response: LobbyEntryResponse | null
   expiresAt: number
 }
 
@@ -98,20 +98,20 @@ function assertUnboundSocket(socket: GameSocket): void {
 }
 
 function bindSession(socket: GameSocket, credentials: SessionCredentials): void {
-  socket.data.roomId = credentials.roomId ?? ROOM_ID.MAIN
+  socket.data.lobbyId = credentials.lobbyId ?? LOBBY_ID.MAIN
   socket.data.playerId = credentials.playerId
   socket.data.sessionToken = credentials.sessionToken
 }
 
 function clearSession(data: AuthenticatedSocketData): void {
-  delete data.roomId
+  delete data.lobbyId
   delete data.playerId
   delete data.sessionToken
 }
 
-function getRoomId(socket: GameSocket): RoomId {
-  if (!socket.data.roomId) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
-  return socket.data.roomId
+function getLobbyId(socket: GameSocket): LobbyId {
+  if (!socket.data.lobbyId) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+  return socket.data.lobbyId
 }
 
 function getSessionCommand(socket: GameSocket): SessionCommand {
@@ -119,8 +119,8 @@ function getSessionCommand(socket: GameSocket): SessionCommand {
   return { sessionToken: socket.data.sessionToken, connectionId: socket.id }
 }
 
-function broadcastSnapshot(io: GameSocketServer, room: RoomSnapshot | null): void {
-  if (room) io.to(room.id).emit(SOCKET_EVENT.ROOM_SNAPSHOT, room)
+function broadcastSnapshot(io: GameSocketServer, lobby: LobbySnapshot | null): void {
+  if (lobby) io.to(lobby.id).emit(SOCKET_EVENT.LOBBY_SNAPSHOT, lobby)
 }
 
 async function emitResumedPrivateView(socket: GameSocket, service: LobbyService, destination: string): Promise<void> {
@@ -131,41 +131,41 @@ async function emitResumedPrivateView(socket: GameSocket, service: LobbyService,
   }
 }
 
-export function registerSocketHandlers(io: GameSocketServer, source: LobbyService | RoomRegistry, options: SocketHandlerOptions = {}): void {
+export function registerSocketHandlers(io: GameSocketServer, source: LobbyService | LobbyRegistry, options: SocketHandlerOptions = {}): void {
   const onUnexpectedError = options.onUnexpectedError ?? (() => undefined)
-  const registry = source instanceof RoomRegistry ? source : new RoomRegistry(() => source)
-  if (!(source instanceof RoomRegistry)) registry.register(ROOM_ID.MAIN, source)
+  const registry = source instanceof LobbyRegistry ? source : new LobbyRegistry(() => source)
+  if (!(source instanceof LobbyRegistry)) registry.register(LOBBY_ID.MAIN, source)
   const enterRequests = new Map<ClientRequestId, CachedEnterRequest>()
 
   const serviceFor = (socket: GameSocket): LobbyService => {
-    const service = registry.get(getRoomId(socket))
-    if (!service) throw new LobbyError(ERROR_CODE.ROOM_NOT_FOUND, 'Cette salle n’existe plus.')
+    const service = registry.get(getLobbyId(socket))
+    if (!service) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Ce lobby n’existe plus.')
     return service
   }
 
-  const completeEntry = async (socket: GameSocket, response: RoomEntryResponse): Promise<RoomEntryResponse> => {
+  const completeEntry = async (socket: GameSocket, response: LobbyEntryResponse): Promise<LobbyEntryResponse> => {
     bindSession(socket, response.session)
-    await socket.join(response.room.id)
-    broadcastSnapshot(io, response.room)
+    await socket.join(response.lobby.id)
+    broadcastSnapshot(io, response.lobby)
     return response
   }
 
   io.on('connection', (socket) => {
     socket.emit(SOCKET_EVENT.SYSTEM_READY, systemReadyEventSchema.parse({ message: MESSAGE.READY }))
 
-    socket.on(SOCKET_EVENT.ROOM_LIST, (rawCommand, callback) => {
+    socket.on(SOCKET_EVENT.LOBBY_LIST, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
         parseCommand(emptyCommandSchema, rawCommand)
-        return roomListResponseSchema.parse(await registry.list())
+        return lobbyListResponseSchema.parse(await registry.list())
       }, onUnexpectedError)
     })
 
-    const createRoom = async (playerName: PlayerName, clientRequestId?: ClientRequestId): Promise<RoomEntryResponse> => {
+    const createLobby = async (playerName: PlayerName, clientRequestId?: ClientRequestId): Promise<LobbyEntryResponse> => {
       const cached = clientRequestId ? enterRequests.get(clientRequestId) : null
       if (cached) return cached.response ?? cached.pending
       assertUnboundSocket(socket)
-      const { roomId, service } = registry.createRoom()
-      const pending = service.enter({ roomId, playerName, connectionId: socket.id })
+      const { lobbyId, service } = registry.createLobby()
+      const pending = service.enter({ lobbyId, playerName, connectionId: socket.id })
       if (clientRequestId) enterRequests.set(clientRequestId, { playerName, pending, response: null, expiresAt: Number.POSITIVE_INFINITY })
       try {
         const response = await pending
@@ -176,32 +176,32 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         return completeEntry(socket, response)
       } catch (error) {
         if (clientRequestId) enterRequests.delete(clientRequestId)
-        registry.removeIfEmpty(roomId)
+        registry.removeIfEmpty(lobbyId)
         throw error
       }
     }
 
-    socket.on(SOCKET_EVENT.ROOM_CREATE, (rawCommand, callback) => {
+    socket.on(SOCKET_EVENT.LOBBY_CREATE, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
-        const command = parseCommand(roomCreateCommandSchema, rawCommand)
-        return createRoom(command.playerName, command.clientRequestId)
+        const command = parseCommand(lobbyCreateCommandSchema, rawCommand)
+        return createLobby(command.playerName, command.clientRequestId)
       }, onUnexpectedError)
     })
 
-    socket.on(SOCKET_EVENT.ROOM_ENTER, (rawCommand, callback) => {
+    socket.on(SOCKET_EVENT.LOBBY_ENTER, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
-        const command = parseCommand(roomEnterCommandSchema, rawCommand)
-        return createRoom(command.playerName, command.clientRequestId)
+        const command = parseCommand(lobbyEnterCommandSchema, rawCommand)
+        return createLobby(command.playerName, command.clientRequestId)
       }, onUnexpectedError)
     })
 
-    socket.on(SOCKET_EVENT.ROOM_JOIN, (rawCommand, callback) => {
+    socket.on(SOCKET_EVENT.LOBBY_JOIN, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
-        const command = parseCommand(roomJoinCommandSchema, rawCommand)
+        const command = parseCommand(lobbyJoinCommandSchema, rawCommand)
         assertUnboundSocket(socket)
-        const service = registry.get(command.roomId)
-        if (!service) throw new LobbyError(ERROR_CODE.ROOM_NOT_FOUND, 'Cette salle n’existe plus.')
-        const response = await service.enter({ roomId: command.roomId, playerName: command.playerName, connectionId: socket.id })
+        const service = registry.get(command.lobbyId)
+        if (!service) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Ce lobby n’existe plus.')
+        const response = await service.enter({ lobbyId: command.lobbyId, playerName: command.playerName, connectionId: socket.id })
         return completeEntry(socket, response)
       }, onUnexpectedError)
     })
@@ -210,14 +210,14 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
       dispatchAcknowledged(callback, async () => {
         assertUnboundSocket(socket)
         const command = parseCommand(sessionResumeCommandSchema, rawCommand)
-        const roomId = command.roomId ?? ROOM_ID.MAIN
-        const service = registry.get(roomId)
-        if (!service) throw new LobbyError(ERROR_CODE.ROOM_NOT_FOUND, 'Cette salle n’existe plus.')
+        const lobbyId = command.lobbyId ?? LOBBY_ID.MAIN
+        const service = registry.get(lobbyId)
+        if (!service) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Ce lobby n’existe plus.')
         const result = await service.resume({ sessionToken: command.sessionToken, connectionId: socket.id })
         bindSession(socket, result.response.session)
-        await socket.join(roomId)
+        await socket.join(lobbyId)
         if (result.replacedConnectionId) io.in(result.replacedConnectionId).disconnectSockets(true)
-        if (result.publicStateChanged) broadcastSnapshot(io, result.response.room)
+        if (result.publicStateChanged) broadcastSnapshot(io, result.response.lobby)
         await emitResumedPrivateView(socket, service, result.response.destination)
         return result.response
       }, onUnexpectedError)
@@ -226,17 +226,17 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
     socket.on(SOCKET_EVENT.PLAYER_LEAVE, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
         parseCommand(emptyCommandSchema, rawCommand)
-        const roomId = getRoomId(socket)
+        const lobbyId = getLobbyId(socket)
         const result = await serviceFor(socket).leave(getSessionCommand(socket))
         socket.emit(SOCKET_EVENT.SESSION_ENDED, sessionEndedEventSchema.parse({ reason: SESSION_ENDED_REASON.LEFT, message: MESSAGE.LEFT }))
         clearSession(socket.data)
-        await socket.leave(roomId)
-        broadcastSnapshot(io, result.room)
-        if (result.roomClosedReason === ROOM_CLOSED_REASON.HOST_LEFT) {
-          io.to(roomId).emit(SOCKET_EVENT.ROOM_CLOSED, roomClosedEventSchema.parse({ reason: ROOM_CLOSED_REASON.HOST_LEFT, message: MESSAGE.HOST_LEFT }))
-          io.in(roomId).disconnectSockets(true)
+        await socket.leave(lobbyId)
+        broadcastSnapshot(io, result.lobby)
+        if (result.lobbyClosedReason === LOBBY_CLOSED_REASON.HOST_LEFT) {
+          io.to(lobbyId).emit(SOCKET_EVENT.LOBBY_CLOSED, lobbyClosedEventSchema.parse({ reason: LOBBY_CLOSED_REASON.HOST_LEFT, message: MESSAGE.HOST_LEFT }))
+          io.in(lobbyId).disconnectSockets(true)
         }
-        await registry.removeIfEmpty(roomId)
+        await registry.removeIfEmpty(lobbyId)
         return {}
       }, onUnexpectedError)
     })
@@ -248,19 +248,19 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
           io.to(result.connectionId).emit(SOCKET_EVENT.SESSION_ENDED, sessionEndedEventSchema.parse({ reason: SESSION_ENDED_REASON.KICKED, message: MESSAGE.KICKED }))
           io.in(result.connectionId).disconnectSockets(true)
         }
-        broadcastSnapshot(io, result.room)
-        if (!result.room) throw new Error('Kick removed the room')
-        return result.room
+        broadcastSnapshot(io, result.lobby)
+        if (!result.lobby) throw new Error('Kick removed the lobby')
+        return result.lobby
       }, onUnexpectedError)
     })
 
     socket.on(SOCKET_EVENT.GAME_START, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
         parseCommand(emptyCommandSchema, rawCommand)
-        const roomId = getRoomId(socket)
+        const lobbyId = getLobbyId(socket)
         const result = await serviceFor(socket).start(getSessionCommand(socket))
-        broadcastSnapshot(io, result.room)
-        io.to(roomId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ roomRevision: result.room.revision, startedAt: result.startedAt }))
+        broadcastSnapshot(io, result.lobby)
+        io.to(lobbyId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ lobbyRevision: result.lobby.revision, startedAt: result.startedAt }))
         for (const delivery of result.privateAssignments) io.to(delivery.connectionId).emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, delivery.assignment)
         io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
         return {}
@@ -276,35 +276,35 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
     })
 
     socket.on('disconnect', () => {
-      const roomId = socket.data.roomId
-      if (!roomId) return
-      const service = registry.get(roomId)
+      const lobbyId = socket.data.lobbyId
+      if (!lobbyId) return
+      const service = registry.get(lobbyId)
       if (!service) return
       void service.disconnect(socket.id).then((result) => {
-        if (result.changed) broadcastSnapshot(io, result.room)
-        return registry.removeIfEmpty(roomId)
+        if (result.changed) broadcastSnapshot(io, result.lobby)
+        return registry.removeIfEmpty(lobbyId)
       }).catch((error) => reportUnexpectedError(onUnexpectedError, error))
     })
   })
 }
 
-export async function runCleanup(io: GameSocketServer, registry: RoomRegistry): Promise<void> {
-  for (const roomId of await registry.allRoomIds()) {
-    const service = registry.get(roomId)
+export async function runCleanup(io: GameSocketServer, registry: LobbyRegistry): Promise<void> {
+  for (const lobbyId of await registry.allLobbyIds()) {
+    const service = registry.get(lobbyId)
     if (!service) continue
     const result = await service.cleanup()
     if (result.removedPlayerIds.length > 0) {
       const removedIds = new Set(result.removedPlayerIds)
       const sockets = await io.fetchSockets()
       for (const socket of sockets) {
-        if (socket.data.roomId === roomId && socket.data.playerId && removedIds.has(socket.data.playerId)) {
+        if (socket.data.lobbyId === lobbyId && socket.data.playerId && removedIds.has(socket.data.playerId)) {
           socket.emit(SOCKET_EVENT.SESSION_ENDED, sessionEndedEventSchema.parse({ reason: SESSION_ENDED_REASON.EXPIRED, message: MESSAGE.EXPIRED }))
           socket.disconnect(true)
         }
       }
-      broadcastSnapshot(io, result.room)
+      broadcastSnapshot(io, result.lobby)
     }
-    await registry.removeIfEmpty(roomId)
+    await registry.removeIfEmpty(lobbyId)
   }
   await registry.cleanup()
 }

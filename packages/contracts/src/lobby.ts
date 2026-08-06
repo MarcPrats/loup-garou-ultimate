@@ -1,27 +1,28 @@
 import { z } from 'zod'
 
 import {
-  ROOM_PHASE,
+  LOBBY_ID,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
-  type RoomPhase,
+  type LobbyPhase,
   type SessionDestination,
 } from './constants'
 import {
   playerIdSchema,
   playerNameSchema,
   revisionSchema,
-  roomIdSchema,
+  lobbyIdSchema,
   sessionTokenSchema,
   timestampSchema,
 } from './identifiers'
 
-const roomPhaseValues = Object.values(ROOM_PHASE) as [RoomPhase, ...RoomPhase[]]
+const lobbyPhaseValues = Object.values(LOBBY_PHASE) as [LobbyPhase, ...LobbyPhase[]]
 const sessionDestinationValues = Object.values(SESSION_DESTINATION) as [
   SessionDestination,
   ...SessionDestination[],
 ]
 
-export const roomPhaseSchema = z.enum(roomPhaseValues)
+export const lobbyPhaseSchema = z.enum(lobbyPhaseValues)
 export const sessionDestinationSchema = z.enum(sessionDestinationValues)
 
 export const publicPlayerSchema = z.object({
@@ -31,51 +32,51 @@ export const publicPlayerSchema = z.object({
   connected: z.boolean(),
 }).strict()
 
-export const roomSnapshotSchema = z.object({
-  id: roomIdSchema,
-  phase: roomPhaseSchema,
+export const lobbySnapshotSchema = z.object({
+  id: lobbyIdSchema,
+  phase: lobbyPhaseSchema,
   revision: revisionSchema,
   players: z.array(publicPlayerSchema),
   minimumPlayers: z.number().int().positive(),
   maximumPlayers: z.number().int().positive(),
   canStart: z.boolean(),
   createdAt: timestampSchema,
-}).strict().superRefine((room, context) => {
-  if (room.minimumPlayers > room.maximumPlayers) {
+}).strict().superRefine((lobby, context) => {
+  if (lobby.minimumPlayers > lobby.maximumPlayers) {
     context.addIssue({
       code: 'custom',
       message: 'minimumPlayers cannot exceed maximumPlayers',
       path: ['minimumPlayers'],
     })
   }
-  if (room.players.length > room.maximumPlayers + 1) {
+  if (lobby.players.length > lobby.maximumPlayers + 1) {
     context.addIssue({
       code: 'custom',
-      message: 'Room contains more players than its configured maximum',
+      message: 'Lobby contains more players than its configured maximum',
       path: ['players'],
     })
   }
 })
 
 export const sessionCredentialsSchema = z.object({
-  roomId: roomIdSchema.default('main'),
+  lobbyId: lobbyIdSchema.default(LOBBY_ID.MAIN),
   playerId: playerIdSchema,
   sessionToken: sessionTokenSchema,
 }).strict()
 
-export const roomListResponseSchema = z.array(roomSnapshotSchema)
+export const lobbyListResponseSchema = z.array(lobbySnapshotSchema)
 
-export const roomEntryResponseSchema = z.object({
+export const lobbyEntryResponseSchema = z.object({
   session: sessionCredentialsSchema,
-  room: roomSnapshotSchema,
+  lobby: lobbySnapshotSchema,
   destination: sessionDestinationSchema,
 }).strict()
 
-export const sessionResumeResponseSchema = roomEntryResponseSchema
+export const sessionResumeResponseSchema = lobbyEntryResponseSchema
 
 export type PublicPlayer = z.infer<typeof publicPlayerSchema>
-export type RoomSnapshot = z.infer<typeof roomSnapshotSchema>
-export type RoomListResponse = z.infer<typeof roomListResponseSchema>
+export type LobbySnapshot = z.infer<typeof lobbySnapshotSchema>
+export type LobbyListResponse = z.infer<typeof lobbyListResponseSchema>
 export type SessionCredentials = z.infer<typeof sessionCredentialsSchema>
-export type RoomEntryResponse = z.infer<typeof roomEntryResponseSchema>
+export type LobbyEntryResponse = z.infer<typeof lobbyEntryResponseSchema>
 export type SessionResumeResponse = z.infer<typeof sessionResumeResponseSchema>

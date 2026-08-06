@@ -29,7 +29,7 @@ onBeforeUnmount(() => {
         <RouterLink :to="{ name: ROUTE_NAME.HOME }" class="rules-back-btn">
           🏠 Retour à l'écran principal
         </RouterLink>
-        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
+        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.LOBBIES }" class="rules-back-btn">
           🚪 Retour à la salle d'attente
         </RouterLink>
         <span v-else class="rules-back-btn rules-back-btn-disabled" aria-disabled="true">
@@ -59,7 +59,7 @@ onBeforeUnmount(() => {
         <RouterLink :to="{ name: ROUTE_NAME.HOME }" class="rules-back-btn">
           🏠 Retour à l'écran principal
         </RouterLink>
-        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.ENTRY }" class="rules-back-btn">
+        <RouterLink v-if="!staticMode" :to="{ name: ROUTE_NAME.LOBBIES }" class="rules-back-btn">
           🚪 Retour à la salle d'attente
         </RouterLink>
         <span v-else class="rules-back-btn rules-back-btn-disabled" aria-disabled="true">

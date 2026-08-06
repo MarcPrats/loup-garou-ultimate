@@ -32,7 +32,7 @@ export function getHttpStatus(error: PublicError): number {
     case ERROR_CODE.PLAYER_NOT_FOUND:
     case ERROR_CODE.SESSION_NOT_FOUND:
       return 404
-    case ERROR_CODE.ROOM_CLOSED:
+    case ERROR_CODE.LOBBY_CLOSED:
     case ERROR_CODE.GAME_ALREADY_STARTED:
     case ERROR_CODE.GAME_NOT_STARTED:
       return 409

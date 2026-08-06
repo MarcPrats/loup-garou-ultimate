@@ -1,6 +1,6 @@
 # `@lgu/server`
 
-The V3 Fastify and Socket.IO production server owns the in-memory room, session recovery, role assignment, private access tokens, public/player/MJ projections, static Vue delivery, and graceful shutdown.
+The V3 Fastify and Socket.IO production server owns the in-memory lobby, session recovery, role assignment, private access tokens, public/player/MJ projections, static Vue delivery, and graceful shutdown.
 
 ## Commands
 

@@ -91,20 +91,20 @@ button:disabled {
   background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
 }
 
-.app-room-lobby { max-width: 720px; }
-.app-room-create-form { display: grid; gap: 8px; margin: 18px 0 24px; text-align: left; }
-.app-room-create-form label { color: var(--app-muted); font-size: .8rem; font-weight: 700; }
-.app-room-list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 10px; }
-.app-room-list-header h3 { margin: 0; color: var(--app-text); font-size: 1rem; }
-.app-room-list { display: grid; gap: 10px; width: 100%; }
-.app-room-list-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--app-border); border-radius: 12px; background: rgb(255 255 255 / 4%); text-align: left; }
-.app-room-list-card.highlighted { border-color: var(--app-accent); box-shadow: 0 0 0 2px rgb(230 126 34 / 18%); }
-.app-room-list-card strong, .app-room-list-card span { display: block; }
-.app-room-list-card strong { color: var(--app-text); }
-.app-room-list-card span, .app-room-empty, .app-room-invite-hint { color: var(--app-muted); font-size: .82rem; }
-.app-room-invite-hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 12px; border: 1px solid rgb(230 126 34 / 35%); border-radius: 10px; background: rgb(230 126 34 / 8%); } .app-room-invite-hint p { margin: 0; }
-.app-room-empty { padding: 18px; border: 1px dashed var(--app-border); border-radius: 12px; }
-@media (max-width: 560px) { .app-room-list-card { align-items: stretch; flex-direction: column; } .app-room-list-card .app-btn { flex: 1; width: 100%; } }
+.app-lobby { max-width: 720px; }
+.app-lobby-create-form { display: grid; gap: 8px; margin: 18px 0 24px; text-align: left; }
+.app-lobby-create-form label { color: var(--app-muted); font-size: .8rem; font-weight: 700; }
+.app-lobby-list-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 10px; }
+.app-lobby-list-header h3 { margin: 0; color: var(--app-text); font-size: 1rem; }
+.app-lobby-list { display: grid; gap: 10px; width: 100%; }
+.app-lobby-list-card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border: 1px solid var(--app-border); border-radius: 12px; background: rgb(255 255 255 / 4%); text-align: left; }
+.app-lobby-list-card.highlighted { border-color: var(--app-accent); box-shadow: 0 0 0 2px rgb(230 126 34 / 18%); }
+.app-lobby-list-card strong, .app-lobby-list-card span { display: block; }
+.app-lobby-list-card strong { color: var(--app-text); }
+.app-lobby-list-card span, .app-lobby-empty, .app-lobby-invite-hint { color: var(--app-muted); font-size: .82rem; }
+.app-lobby-invite-hint { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 12px; border: 1px solid rgb(230 126 34 / 35%); border-radius: 10px; background: rgb(230 126 34 / 8%); } .app-lobby-invite-hint p { margin: 0; }
+.app-lobby-empty { padding: 18px; border: 1px dashed var(--app-border); border-radius: 12px; }
+@media (max-width: 560px) { .app-lobby-list-card { align-items: stretch; flex-direction: column; } .app-lobby-list-card .app-btn { flex: 1; width: 100%; } }
 
 .app-home-page {
   background:
@@ -280,8 +280,8 @@ button:disabled {
   --app-muted: #adb5bd;
   --app-border: #495057;
 }
-.app-room-header { margin-bottom: 30px; text-align: center; }
-.app-room-limit-hint { margin: 10px 0 20px; color: var(--app-muted); font-size: .95rem; text-align: center; }
+.app-lobby-header { margin-bottom: 30px; text-align: center; }
+.app-lobby-limit-hint { margin: 10px 0 20px; color: var(--app-muted); font-size: .95rem; text-align: center; }
 .app-invitation-container { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--app-border); }
 .app-invitation-label { margin-bottom: 10px; color: var(--app-muted); font-size: .9rem; text-align: center; }
 .app-invitation-group { display: flex; align-items: stretch; gap: 10px; }

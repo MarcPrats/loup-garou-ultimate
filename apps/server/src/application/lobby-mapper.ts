@@ -1,34 +1,34 @@
 import {
-  ROOM_PHASE,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
-  type RoomSnapshot,
+  type LobbySnapshot,
   type SessionDestination,
 } from '@lgu/contracts'
 import { PLAYER_COUNT } from '@lgu/game-core'
 
 import type {
   LobbyPlayerState,
-  LobbyRoomState,
+  LobbyState,
 } from '../domain/lobby-types'
 
 export function getConnectedRegularPlayers(
-  room: LobbyRoomState,
+  lobby: LobbyState,
 ): LobbyPlayerState[] {
-  return room.players.filter((player) => player.connected && !player.isHost)
+  return lobby.players.filter((player) => player.connected && !player.isHost)
 }
 
-export function getRegularPlayerCount(room: LobbyRoomState): number {
-  return room.players.filter((player) => !player.isHost).length
+export function getRegularPlayerCount(lobby: LobbyState): number {
+  return lobby.players.filter((player) => !player.isHost).length
 }
 
-export function canStartRoom(room: LobbyRoomState): boolean {
-  if (room.phase !== ROOM_PHASE.LOBBY) return false
-  if (room.players.some((player) => !player.connected)) return false
+export function canStartLobby(lobby: LobbyState): boolean {
+  if (lobby.phase !== LOBBY_PHASE.LOBBY) return false
+  if (lobby.players.some((player) => !player.connected)) return false
 
-  const connectedHosts = room.players.filter(
+  const connectedHosts = lobby.players.filter(
     (player) => player.connected && player.isHost,
   )
-  const regularPlayerCount = getConnectedRegularPlayers(room).length
+  const regularPlayerCount = getConnectedRegularPlayers(lobby).length
 
   return connectedHosts.length === 1
     && regularPlayerCount >= PLAYER_COUNT.MINIMUM
@@ -36,21 +36,21 @@ export function canStartRoom(room: LobbyRoomState): boolean {
 }
 
 export function getSessionDestination(
-  room: LobbyRoomState,
+  lobby: LobbyState,
   player: LobbyPlayerState,
 ): SessionDestination {
-  if (room.phase === ROOM_PHASE.LOBBY) return SESSION_DESTINATION.LOBBY
+  if (lobby.phase === LOBBY_PHASE.LOBBY) return SESSION_DESTINATION.LOBBY
   return player.isHost
     ? SESSION_DESTINATION.GAME_MASTER
     : SESSION_DESTINATION.PLAYER_ROLE
 }
 
-export function toRoomSnapshot(room: LobbyRoomState): RoomSnapshot {
+export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
   return {
-    id: room.id,
-    phase: room.phase,
-    revision: room.revision,
-    players: [...room.players]
+    id: lobby.id,
+    phase: lobby.phase,
+    revision: lobby.revision,
+    players: [...lobby.players]
       .sort((left, right) => left.joinOrder - right.joinOrder)
       .map((player) => ({
         id: player.id,
@@ -60,7 +60,7 @@ export function toRoomSnapshot(room: LobbyRoomState): RoomSnapshot {
       })),
     minimumPlayers: PLAYER_COUNT.MINIMUM,
     maximumPlayers: PLAYER_COUNT.MAXIMUM,
-    canStart: canStartRoom(room),
-    createdAt: room.createdAt,
+    canStart: canStartLobby(lobby),
+    createdAt: lobby.createdAt,
   }
 }

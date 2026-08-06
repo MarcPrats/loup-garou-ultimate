@@ -2,10 +2,10 @@ import { z } from 'zod'
 
 import {
   NOTIFICATION_LEVEL,
-  ROOM_CLOSED_REASON,
+  LOBBY_CLOSED_REASON,
   SESSION_ENDED_REASON,
   type NotificationLevel,
-  type RoomClosedReason,
+  type LobbyClosedReason,
   type SessionEndedReason,
 } from './constants'
 import {
@@ -19,9 +19,9 @@ const notificationLevelValues = Object.values(NOTIFICATION_LEVEL) as [
   NotificationLevel,
   ...NotificationLevel[],
 ]
-const roomClosedReasonValues = Object.values(ROOM_CLOSED_REASON) as [
-  RoomClosedReason,
-  ...RoomClosedReason[],
+const lobbyClosedReasonValues = Object.values(LOBBY_CLOSED_REASON) as [
+  LobbyClosedReason,
+  ...LobbyClosedReason[],
 ]
 const sessionEndedReasonValues = Object.values(SESSION_ENDED_REASON) as [
   SessionEndedReason,
@@ -29,7 +29,7 @@ const sessionEndedReasonValues = Object.values(SESSION_ENDED_REASON) as [
 ]
 
 export const notificationLevelSchema = z.enum(notificationLevelValues)
-export const roomClosedReasonSchema = z.enum(roomClosedReasonValues)
+export const lobbyClosedReasonSchema = z.enum(lobbyClosedReasonValues)
 export const sessionEndedReasonSchema = z.enum(sessionEndedReasonValues)
 
 export const systemReadyEventSchema = z.object({
@@ -37,7 +37,7 @@ export const systemReadyEventSchema = z.object({
 }).strict()
 
 export const gameStartedEventSchema = z.object({
-  roomRevision: revisionSchema,
+  lobbyRevision: revisionSchema,
   startedAt: timestampSchema,
 }).strict()
 
@@ -49,8 +49,8 @@ export const hostDashboardSchema = z.object({
   villagerTeamCount: z.number().int().nonnegative(),
 }).strict()
 
-export const roomClosedEventSchema = z.object({
-  reason: roomClosedReasonSchema,
+export const lobbyClosedEventSchema = z.object({
+  reason: lobbyClosedReasonSchema,
   message: z.string().min(1).max(300),
 }).strict()
 
@@ -67,6 +67,6 @@ export const notificationEventSchema = z.object({
 export type SystemReadyEvent = z.infer<typeof systemReadyEventSchema>
 export type GameStartedEvent = z.infer<typeof gameStartedEventSchema>
 export type HostDashboard = z.infer<typeof hostDashboardSchema>
-export type RoomClosedEvent = z.infer<typeof roomClosedEventSchema>
+export type LobbyClosedEvent = z.infer<typeof lobbyClosedEventSchema>
 export type SessionEndedEvent = z.infer<typeof sessionEndedEventSchema>
 export type NotificationEvent = z.infer<typeof notificationEventSchema>

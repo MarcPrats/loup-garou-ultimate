@@ -2,10 +2,12 @@ import { fileURLToPath } from 'node:url'
 
 import { Server as SocketIoServer } from 'socket.io'
 
+import { LOBBY_ID } from '@lgu/contracts'
+
 import { LobbyService } from './application/lobby-service'
-import { RoomRegistry } from './application/room-registry'
+import { LobbyRegistry } from './application/lobby-registry'
 import { LOBBY_TIME_LIMIT } from './config/lobby-constants'
-import { InMemoryRoomRepository } from './infrastructure/in-memory-room-repository'
+import { InMemoryLobbyRepository } from './infrastructure/in-memory-lobby-repository'
 import {
   PlayerIdGenerator,
   RoleAccessTokenGenerator,
@@ -25,7 +27,7 @@ export interface ServerRuntimeOptions {
 
 export function createLobbyService(): LobbyService {
   return new LobbyService({
-    repository: new InMemoryRoomRepository(),
+    repository: new InMemoryLobbyRepository(),
     clock: new SystemClock(),
     playerIdGenerator: new PlayerIdGenerator(),
     sessionTokenGenerator: new SessionTokenGenerator(),
@@ -38,7 +40,7 @@ export interface ServerRuntime {
   readonly app: ReturnType<typeof createHttpApp>
   readonly io: GameSocketServer
   readonly service: LobbyService
-  readonly roomRegistry: RoomRegistry
+  readonly lobbyRegistry: LobbyRegistry
   close(): Promise<void>
 }
 
@@ -46,10 +48,10 @@ export function createServerRuntime(
   options: ServerRuntimeOptions,
 ): ServerRuntime {
   const service = createLobbyService()
-  const roomRegistry = new RoomRegistry(createLobbyService)
-  roomRegistry.register('main', service)
+  const lobbyRegistry = new LobbyRegistry(createLobbyService)
+  lobbyRegistry.register(LOBBY_ID.MAIN, service)
   const app = createHttpApp({
-    service: roomRegistry,
+    service: lobbyRegistry,
     webOrigin: options.webOrigin,
     logger: options.logger ?? false,
     webRoot: options.webRoot ?? fileURLToPath(new URL('../../web/dist/', import.meta.url)),
@@ -58,12 +60,12 @@ export function createServerRuntime(
     cors: { origin: options.webOrigin },
   })
 
-  registerSocketHandlers(io, roomRegistry, {
+  registerSocketHandlers(io, lobbyRegistry, {
     onUnexpectedError: (error) => app.log.error(error),
   })
 
   const cleanupTimer = setInterval(() => {
-    void runCleanup(io, roomRegistry).catch((error) => app.log.error(error))
+    void runCleanup(io, lobbyRegistry).catch((error) => app.log.error(error))
   }, LOBBY_TIME_LIMIT.CLEANUP_INTERVAL_MS)
   cleanupTimer.unref()
 
@@ -79,5 +81,5 @@ export function createServerRuntime(
     return closePromise
   }
 
-  return { app, io, service, roomRegistry, close }
+  return { app, io, service, lobbyRegistry, close }
 }

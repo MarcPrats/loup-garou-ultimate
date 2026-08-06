@@ -12,16 +12,16 @@ import {
   type ClientToServerEvents,
   type HostDashboard,
   type PrivateAssignment,
-  type RoomClosedEvent,
-  type RoomEntryResponse,
-  type RoomSnapshot,
+  type LobbyClosedEvent,
+  type LobbyEntryResponse,
+  type LobbySnapshot,
   type ServerToClientEvents,
   type SessionEndedEvent,
   type SessionResumeResponse,
 } from '@lgu/contracts'
 
 import { LobbyService } from '../src/application/lobby-service'
-import { InMemoryRoomRepository } from '../src/infrastructure/in-memory-room-repository'
+import { InMemoryLobbyRepository } from '../src/infrastructure/in-memory-lobby-repository'
 import { createHttpApp } from '../src/transport/http-app'
 import { registerSocketHandlers } from '../src/transport/socket-handlers'
 import type { GameSocketServer } from '../src/transport/socket-types'
@@ -38,7 +38,7 @@ type TestClient = ClientSocket<ServerToClientEvents, ClientToServerEvents>
 interface TestRuntime {
   readonly app: ReturnType<typeof createHttpApp>
   readonly io: GameSocketServer
-  readonly repository: InMemoryRoomRepository
+  readonly repository: InMemoryLobbyRepository
   readonly service: LobbyService
   readonly url: string
 }
@@ -46,7 +46,7 @@ interface TestRuntime {
 const openClients: TestClient[] = []
 const openRuntimes: TestRuntime[] = []
 
-function createService(repository: InMemoryRoomRepository): LobbyService {
+function createService(repository: InMemoryLobbyRepository): LobbyService {
   return new LobbyService({
     repository,
     clock: new FakeClock(),
@@ -58,7 +58,7 @@ function createService(repository: InMemoryRoomRepository): LobbyService {
 }
 
 async function createRuntime(): Promise<TestRuntime> {
-  const repository = new InMemoryRoomRepository()
+  const repository = new InMemoryLobbyRepository()
   const service = createService(repository)
   const app = createHttpApp({
     service,
@@ -91,10 +91,10 @@ function enter(
   client: TestClient,
   playerName: string,
   clientRequestId?: string,
-): Promise<Ack<RoomEntryResponse>> {
+): Promise<Ack<LobbyEntryResponse>> {
   return new Promise((resolve) => {
     client.emit(
-      SOCKET_EVENT.ROOM_ENTER,
+      SOCKET_EVENT.LOBBY_ENTER,
       clientRequestId ? { playerName, clientRequestId } : { playerName },
       resolve,
     )
@@ -125,7 +125,7 @@ function leave(client: TestClient): Promise<Ack<Record<string, never>>> {
 function kick(
   client: TestClient,
   playerId: string,
-): Promise<Ack<RoomSnapshot>> {
+): Promise<Ack<LobbySnapshot>> {
   return new Promise((resolve) => {
     client.emit(SOCKET_EVENT.HOST_KICK, { playerId }, resolve)
   })
@@ -151,13 +151,13 @@ afterEach(async () => {
 })
 
 describe('V3 transport', () => {
-  it('returns typed validation failures without mutating the room', async () => {
+  it('returns typed validation failures without mutating the lobby', async () => {
     const runtime = await createRuntime()
     const client = await connectClient(runtime.url)
 
-    const response = await new Promise<Ack<RoomEntryResponse>>((resolve) => {
+    const response = await new Promise<Ack<LobbyEntryResponse>>((resolve) => {
       client.emit(
-        SOCKET_EVENT.ROOM_ENTER,
+        SOCKET_EVENT.LOBBY_ENTER,
         { playerName: '' },
         resolve,
       )
@@ -170,20 +170,20 @@ describe('V3 transport', () => {
         message: 'La requête est invalide.',
       },
     })
-    expect(await runtime.service.getRoomSnapshot()).toBeNull()
+    expect(await runtime.service.getLobbySnapshot()).toBeNull()
   })
 
   it('ignores mutating commands that omit the acknowledgement callback', async () => {
     const runtime = await createRuntime()
     const client = await connectClient(runtime.url)
 
-    client.emit(SOCKET_EVENT.ROOM_ENTER, { playerName: 'Marc' })
+    client.emit(SOCKET_EVENT.LOBBY_ENTER, { playerName: 'Marc' })
     await new Promise((resolve) => setTimeout(resolve, 20))
 
-    expect(await runtime.service.getRoomSnapshot()).toBeNull()
+    expect(await runtime.service.getLobbySnapshot()).toBeNull()
   })
 
-  it('coalesces concurrent room-entry retries while the first is in flight', async () => {
+  it('coalesces concurrent lobby-entry retries while the first is in flight', async () => {
     const runtime = await createRuntime()
     const firstClient = await connectClient(runtime.url)
     const retryClient = await connectClient(runtime.url)
@@ -208,7 +208,7 @@ describe('V3 transport', () => {
     expect(retryResponse.ok).toBe(true)
     if (!firstResponse.ok || !retryResponse.ok) return
     expect(retryResponse.data.session).toEqual(firstResponse.data.session)
-    expect((await runtime.service.getRoomSnapshot())?.players).toHaveLength(1)
+    expect((await runtime.service.getLobbySnapshot())?.players).toHaveLength(1)
   })
 
   it('recovers an acknowledged entry retry without creating a ghost player', async () => {
@@ -221,7 +221,7 @@ describe('V3 transport', () => {
 
     const sameSocketRetry = await enter(firstClient, 'Marc', requestId)
     expect(sameSocketRetry).toEqual(first)
-    expect((await runtime.service.getRoomSnapshot())?.players).toHaveLength(1)
+    expect((await runtime.service.getLobbySnapshot())?.players).toHaveLength(1)
 
     firstClient.disconnect()
     await new Promise((resolve) => setTimeout(resolve, 10))
@@ -231,8 +231,8 @@ describe('V3 transport', () => {
     expect(recovered.ok).toBe(true)
     if (!recovered.ok) return
     expect(recovered.data.session).toEqual(first.data.session)
-    expect(recovered.data.room.players).toHaveLength(1)
-    expect(recovered.data.room.players[0]?.connected).toBe(true)
+    expect(recovered.data.lobby.players).toHaveLength(1)
+    expect(recovered.data.lobby.players[0]?.connected).toBe(true)
   })
 
   it('binds at most one active session to each socket', async () => {
@@ -258,7 +258,7 @@ describe('V3 transport', () => {
       ok: false,
       error: { code: ERROR_CODE.INVALID_PAYLOAD },
     })
-    expect((await runtime.service.getRoomSnapshot())?.players).toHaveLength(2)
+    expect((await runtime.service.getLobbySnapshot())?.players).toHaveLength(2)
   })
 
   it('replaces an active socket without changing the public revision', async () => {
@@ -277,10 +277,10 @@ describe('V3 transport', () => {
 
     expect(resumed.ok).toBe(true)
     if (!resumed.ok) return
-    expect(resumed.data.room.revision).toBe(entered.data.room.revision)
+    expect(resumed.data.lobby.revision).toBe(entered.data.lobby.revision)
     await disconnected
     expect(oldClient.connected).toBe(false)
-    expect((await runtime.service.getRoomSnapshot())?.players[0]?.connected).toBe(true)
+    expect((await runtime.service.getLobbySnapshot())?.players[0]?.connected).toBe(true)
   })
 
   it('targets each private assignment and the host dashboard to one socket', async () => {
@@ -291,7 +291,7 @@ describe('V3 transport', () => {
 
     const players: Array<{
       client: TestClient
-      entry: RoomEntryResponse
+      entry: LobbyEntryResponse
       assignments: PrivateAssignment[]
       dashboards: HostDashboard[]
     }> = []
@@ -309,10 +309,10 @@ describe('V3 transport', () => {
 
     const hostAssignments: PrivateAssignment[] = []
     const hostDashboards: HostDashboard[] = []
-    const publicSnapshots: RoomSnapshot[] = []
+    const publicSnapshots: LobbySnapshot[] = []
     host.on(SOCKET_EVENT.PRIVATE_ASSIGNMENT, (value) => hostAssignments.push(value))
     host.on(SOCKET_EVENT.HOST_DASHBOARD, (value) => hostDashboards.push(value))
-    host.on(SOCKET_EVENT.ROOM_SNAPSHOT, (value) => publicSnapshots.push(value))
+    host.on(SOCKET_EVENT.LOBBY_SNAPSHOT, (value) => publicSnapshots.push(value))
 
     const started = await start(host)
     expect(started).toEqual({ ok: true, data: {} })
@@ -350,7 +350,7 @@ describe('V3 transport', () => {
     expect(response.ok && response.data.players).toHaveLength(1)
   })
 
-  it('disconnects remaining participants when the started room closes', async () => {
+  it('disconnects remaining participants when the started lobby closes', async () => {
     const runtime = await createRuntime()
     const host = await connectClient(runtime.url)
     const hostEntry = await enter(host, 'Le MJ')
@@ -364,16 +364,16 @@ describe('V3 transport', () => {
     }
     expect((await start(host)).ok).toBe(true)
 
-    const roomClosed = onceEvent<RoomClosedEvent>(
+    const lobbyClosed = onceEvent<LobbyClosedEvent>(
       players[0]!,
-      SOCKET_EVENT.ROOM_CLOSED,
+      SOCKET_EVENT.LOBBY_CLOSED,
     )
     const disconnected = players.map((player) =>
       onceEvent<void>(player, 'disconnect'),
     )
     expect((await leave(host)).ok).toBe(true)
 
-    expect(await roomClosed).toMatchObject({
+    expect(await lobbyClosed).toMatchObject({
       reason: 'host-left',
     })
     await Promise.all(disconnected)
@@ -413,8 +413,8 @@ describe('V3 transport', () => {
     expect(playerResponse.headers['referrer-policy']).toBe('no-referrer')
     expect(playerResponse.json()).toMatchObject({ view: ROLE_ACCESS_VIEW.PLAYER })
 
-    const room = await runtime.repository.read()
-    const hostToken = room?.game?.roleAccessGrants.find(
+    const lobby = await runtime.repository.read()
+    const hostToken = lobby?.game?.roleAccessGrants.find(
       (grant) => grant.view === ROLE_ACCESS_VIEW.GAME_MASTER,
     )?.token
     expect(hostToken).toBeDefined()

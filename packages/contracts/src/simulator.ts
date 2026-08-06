@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { hostDashboardSchema } from './game'
 import { privateAssignmentSchema } from './roles'
-import { roomSnapshotSchema } from './room'
+import { lobbySnapshotSchema } from './lobby'
 
 import {
   PLAYER_COUNT_LIMIT,
@@ -45,7 +45,7 @@ export type SimulatorGame = z.infer<typeof simulatorGameSchema>
 
 export const simulatorScenarioSchema = z.object({
   seed: z.string().min(1).max(120),
-  room: roomSnapshotSchema,
+  lobby: lobbySnapshotSchema,
   privateAssignments: z.array(privateAssignmentSchema),
   hostDashboard: hostDashboardSchema,
 }).strict()

@@ -1,33 +1,35 @@
 import { z } from 'zod'
 
+import { LOBBY_ID } from './constants'
+
 import {
   clientRequestIdSchema,
   playerIdSchema,
   playerNameSchema,
-  roomIdSchema,
+  lobbyIdSchema,
   sessionTokenSchema,
 } from './identifiers'
 
 export const emptyCommandSchema = z.object({}).strict()
 
-export const roomEnterCommandSchema = z.object({
+export const lobbyEnterCommandSchema = z.object({
   playerName: playerNameSchema,
   clientRequestId: clientRequestIdSchema.optional(),
 }).strict()
 
-export const roomCreateCommandSchema = z.object({
+export const lobbyCreateCommandSchema = z.object({
   playerName: playerNameSchema,
   clientRequestId: clientRequestIdSchema.optional(),
 }).strict()
 
-export const roomJoinCommandSchema = z.object({
-  roomId: roomIdSchema,
+export const lobbyJoinCommandSchema = z.object({
+  lobbyId: lobbyIdSchema,
   playerName: playerNameSchema,
   clientRequestId: clientRequestIdSchema.optional(),
 }).strict()
 
 export const sessionResumeCommandSchema = z.object({
-  roomId: roomIdSchema.default('main'),
+  lobbyId: lobbyIdSchema.default(LOBBY_ID.MAIN),
   sessionToken: sessionTokenSchema,
 }).strict()
 
@@ -36,8 +38,8 @@ export const hostKickCommandSchema = z.object({
 }).strict()
 
 export type EmptyCommand = z.infer<typeof emptyCommandSchema>
-export type RoomEnterCommand = z.infer<typeof roomEnterCommandSchema>
-export type RoomCreateCommand = z.infer<typeof roomCreateCommandSchema>
-export type RoomJoinCommand = z.infer<typeof roomJoinCommandSchema>
+export type LobbyEnterCommand = z.infer<typeof lobbyEnterCommandSchema>
+export type LobbyCreateCommand = z.infer<typeof lobbyCreateCommandSchema>
+export type LobbyJoinCommand = z.infer<typeof lobbyJoinCommandSchema>
 export type SessionResumeCommand = z.infer<typeof sessionResumeCommandSchema>
 export type HostKickCommand = z.infer<typeof hostKickCommandSchema>

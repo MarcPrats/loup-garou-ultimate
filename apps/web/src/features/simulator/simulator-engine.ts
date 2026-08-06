@@ -1,8 +1,8 @@
 import {
   PLAYER_COUNT_LIMIT,
   ROLE_ACCESS_VIEW,
-  ROOM_ID,
-  ROOM_PHASE,
+  LOBBY_ID,
+  LOBBY_PHASE,
   playerNameSchema,
   simulatorScenarioSchema,
   type PlayerId,
@@ -111,9 +111,9 @@ export function createSimulatorScenario(
 
   return simulatorScenarioSchema.parse({
     seed,
-    room: {
-      id: ROOM_ID.MAIN,
-      phase: ROOM_PHASE.STARTED,
+    lobby: {
+      id: LOBBY_ID.MAIN,
+      phase: LOBBY_PHASE.STARTED,
       revision: 1,
       players: state.players.map((player) => ({
         id: player.id,

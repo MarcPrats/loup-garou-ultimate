@@ -28,7 +28,7 @@ export const STORAGE_KEY = {
 
 export const ROUTE_NAME = {
   HOME: 'home',
-  ENTRY: 'entry',
+  LOBBIES: 'lobbies',
   LOBBY: 'lobby',
   PLAYER_ROLE: 'player-role',
   GAME_MASTER: 'game-master',
@@ -41,7 +41,7 @@ export type RouteName = typeof ROUTE_NAME[keyof typeof ROUTE_NAME]
 
 export const ROUTE_PATH = {
   HOME: '/',
-  ENTRY: '/waiting_room',
+  LOBBIES: '/lobbies',
   LOBBY: '/lobby/:lobbyId?',
   PLAYER_ROLE: '/role',
   GAME_MASTER: '/game-master',

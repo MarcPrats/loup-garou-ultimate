@@ -3,17 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ERROR_CODE,
-  ROOM_ID,
-  ROOM_PHASE,
+  LOBBY_ID,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
   ackFailure,
   ackSuccess,
   type Ack,
   type EmptyResponse,
   type PlayerId,
-  type RoomEntryResponse,
-  type RoomListResponse,
-  type RoomSnapshot,
+  type LobbyEntryResponse,
+  type LobbyListResponse,
+  type LobbySnapshot,
   type SessionCredentials,
   type SessionResumeResponse,
   type SessionToken,
@@ -28,15 +28,15 @@ import type { SessionStorage } from '../services/session-storage'
 import { createLobbyStoreDefinition } from '../stores/lobby'
 
 const SESSION: SessionCredentials = {
-  roomId: ROOM_ID.MAIN,
+  lobbyId: LOBBY_ID.MAIN,
   playerId: 'player_1',
   sessionToken: 'session_00000000000000000000000000000001',
 }
 
-function createRoom(revision = 1): RoomSnapshot {
+function createLobby(revision = 1): LobbySnapshot {
   return {
-    id: ROOM_ID.MAIN,
-    phase: ROOM_PHASE.LOBBY,
+    id: LOBBY_ID.MAIN,
+    phase: LOBBY_PHASE.LOBBY,
     revision,
     players: [
       {
@@ -75,12 +75,12 @@ class FakeGateway implements LobbyGateway {
   handlers: LobbyGatewayHandlers | null = null
   resumeResponse: Ack<SessionResumeResponse> = ackSuccess({
     session: SESSION,
-    room: createRoom(),
+    lobby: createLobby(),
     destination: SESSION_DESTINATION.LOBBY,
   })
-  enterResponse: Ack<RoomEntryResponse> = ackSuccess({
+  enterResponse: Ack<LobbyEntryResponse> = ackSuccess({
     session: SESSION,
-    room: createRoom(),
+    lobby: createLobby(),
     destination: SESSION_DESTINATION.LOBBY,
   })
   readonly connect = vi.fn<() => Promise<void>>(async () => undefined)
@@ -88,11 +88,11 @@ class FakeGateway implements LobbyGateway {
   readonly disconnect = vi.fn(() => undefined)
   readonly resume = vi.fn(async (_token: SessionToken) => this.resumeResponse)
   readonly enter = vi.fn(async (_name: string) => this.enterResponse)
-  readonly listRooms = vi.fn(async (): Promise<Ack<RoomListResponse>> => ackSuccess([]))
-  readonly createRoom = vi.fn(async (_name: string) => this.enterResponse)
-  readonly joinRoom = vi.fn(async (_roomId: string, _name: string) => this.enterResponse)
+  readonly listLobbies = vi.fn(async (): Promise<Ack<LobbyListResponse>> => ackSuccess([]))
+  readonly createLobby = vi.fn(async (_name: string) => this.enterResponse)
+  readonly joinLobby = vi.fn(async (_lobbyId: string, _name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
-  readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createRoom(2)))
+  readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createLobby(2)))
   readonly start = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly keepAlive = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
 
@@ -132,9 +132,9 @@ describe('lobby store', () => {
     await store.initialize()
 
     expect(gateway.connect).toHaveBeenCalledOnce()
-    expect(gateway.resume).toHaveBeenCalledWith(SESSION.sessionToken)
+    expect(gateway.resume).toHaveBeenCalledWith(SESSION.sessionToken, SESSION.lobbyId)
     expect(store.connectionState).toBe(CONNECTION_STATE.ONLINE)
-    expect(store.room?.revision).toBe(1)
+    expect(store.lobby?.revision).toBe(1)
     expect(store.isHost).toBe(true)
     expect(store.destination).toBe(SESSION_DESTINATION.LOBBY)
     store.dispose()
@@ -152,7 +152,7 @@ describe('lobby store', () => {
     await store.initialize()
 
     expect(store.hasSession).toBe(false)
-    expect(store.room).toBeNull()
+    expect(store.lobby).toBeNull()
     expect(storage.clear).toHaveBeenCalledOnce()
     store.dispose()
   })
@@ -161,7 +161,7 @@ describe('lobby store', () => {
     const gateway = new FakeGateway()
     gateway.enterResponse = ackSuccess({
       session: SESSION,
-      room: createRoom(4),
+      lobby: createLobby(4),
       destination: SESSION_DESTINATION.LOBBY,
     })
     const storage = new FakeStorage()
@@ -172,8 +172,8 @@ describe('lobby store', () => {
     expect(gateway.enter).toHaveBeenCalledWith('Marc')
     expect(storage.save).toHaveBeenCalledWith(SESSION)
 
-    gateway.handlers?.onRoomSnapshot(createRoom(3))
-    expect(store.room?.revision).toBe(4)
+    gateway.handlers?.onLobbySnapshot(createLobby(3))
+    expect(store.lobby?.revision).toBe(4)
     store.dispose()
   })
 
@@ -226,14 +226,14 @@ describe('lobby store', () => {
     await store.startNewSession()
     resolveResume(ackSuccess({
       session: SESSION,
-      room: createRoom(),
+      lobby: createLobby(),
       destination: SESSION_DESTINATION.LOBBY,
     }))
     await initializing
 
     expect(gateway.leave).toHaveBeenCalledOnce()
     expect(store.hasStoredSession).toBe(false)
-    expect(store.room).toBeNull()
+    expect(store.lobby).toBeNull()
     expect(storage.value).toBeNull()
     store.dispose()
   })
@@ -246,9 +246,9 @@ describe('lobby store', () => {
     await store.initialize()
     gateway.reconnect.mockClear()
 
-    gateway.handlers?.onRoomSnapshot({
-      ...createRoom(2),
-      phase: ROOM_PHASE.STARTED,
+    gateway.handlers?.onLobbySnapshot({
+      ...createLobby(2),
+      phase: LOBBY_PHASE.STARTED,
       canStart: false,
     })
     await vi.advanceTimersByTimeAsync(
@@ -298,8 +298,8 @@ describe('lobby store', () => {
     expect(storage.save).not.toHaveBeenCalled()
 
     await store.resumeRealtime()
-    expect(gateway.resume).toHaveBeenCalledWith(SESSION.sessionToken)
-    expect(store.room).not.toBeNull()
+    expect(gateway.resume).toHaveBeenCalledWith(SESSION.sessionToken, SESSION.lobbyId)
+    expect(store.lobby).not.toBeNull()
     store.dispose()
   })
 
@@ -310,9 +310,9 @@ describe('lobby store', () => {
     await store.initialize()
     gateway.reconnect.mockClear()
 
-    gateway.handlers?.onRoomSnapshot({
-      ...createRoom(2),
-      phase: ROOM_PHASE.STARTED,
+    gateway.handlers?.onLobbySnapshot({
+      ...createLobby(2),
+      phase: LOBBY_PHASE.STARTED,
       canStart: false,
     })
     store.suspendRealtime()

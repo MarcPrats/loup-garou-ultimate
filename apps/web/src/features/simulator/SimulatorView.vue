@@ -39,7 +39,7 @@ const activePlayerAssignment = computed(() => (
   ) ?? null
 ))
 const playerOptions = computed(() => (
-  scenario.value?.room.players.filter((player) => !player.isHost) ?? []
+  scenario.value?.lobby.players.filter((player) => !player.isHost) ?? []
 ))
 const selectedPlayerId = computed<string>({
   get: () => activeView.value === SIMULATOR_VIEW.HOST ? '' : activeView.value,

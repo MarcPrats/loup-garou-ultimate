@@ -1,5 +1,5 @@
 import { LobbyService } from '../../src/application/lobby-service'
-import { InMemoryRoomRepository } from '../../src/infrastructure/in-memory-room-repository'
+import { InMemoryLobbyRepository } from '../../src/infrastructure/in-memory-lobby-repository'
 import {
   DeterministicAssignmentGenerator,
   FakeClock,
@@ -10,7 +10,7 @@ import {
 
 export function createServiceForTest(): LobbyService {
   return new LobbyService({
-    repository: new InMemoryRoomRepository(),
+    repository: new InMemoryLobbyRepository(),
     clock: new FakeClock(),
     playerIdGenerator: new PlayerIdSequence(),
     sessionTokenGenerator: new SessionTokenSequence(),

@@ -3,7 +3,7 @@ import type { Server, Socket } from 'socket.io'
 import type {
   ClientToServerEvents,
   PlayerId,
-  RoomId,
+  LobbyId,
   ServerToClientEvents,
   SessionToken,
 } from '@lgu/contracts'
@@ -11,7 +11,7 @@ import type {
 export interface InterServerEvents {}
 
 export interface AuthenticatedSocketData {
-  roomId?: RoomId
+  lobbyId?: LobbyId
   playerId?: PlayerId
   sessionToken?: SessionToken
 }

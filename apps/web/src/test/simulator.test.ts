@@ -68,8 +68,8 @@ describe('simulator engine', () => {
     }
   })
 
-  it('keeps the room projection free of every private field', () => {
-    const serialized = JSON.stringify(scenario().room)
+  it('keeps the lobby projection free of every private field', () => {
+    const serialized = JSON.stringify(scenario().lobby)
 
     expect(serialized).not.toContain('roleId')
     expect(serialized).not.toContain('roleAccessToken')

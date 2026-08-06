@@ -41,16 +41,16 @@ describe('V3 UI parity', () => {
       '🧪 Simulateur',
       '📚 Wiki des règles',
     ])
-    expect(wrapper.get('#entry-btn').attributes('href')).toBe('/waiting_room')
+    expect(wrapper.get('#lobbies-btn').attributes('href')).toBe('/lobbies')
     expect(wrapper.get('a[href="/reference"]')).toBeTruthy()
     expect(wrapper.get('a[href="/simulator"]')).toBeTruthy()
     expect(wrapper.get(`a[href="${PUBLIC_LINK.WIKI}"]`).attributes('target')).toBe('_blank')
   })
 
-  it('keeps every entry URL as the name-entry route', () => {
+  it('keeps every lobbies URL as the name-entry route', () => {
     const router = createAppRouter(createPinia())
-    for (const path of ['/waiting_room', '/waiting_room/']) {
-      expect(router.resolve(path).name).toBe(ROUTE_NAME.ENTRY)
+    for (const path of ['/lobbies', '/lobbies/']) {
+      expect(router.resolve(path).name).toBe(ROUTE_NAME.LOBBIES)
     }
   })
 

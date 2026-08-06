@@ -3,8 +3,9 @@ import { defineStore } from 'pinia'
 
 import {
   ERROR_CODE,
+  LOBBY_ID,
   NOTIFICATION_LEVEL,
-  ROOM_PHASE,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
   type ErrorCode,
   type HostDashboard,
@@ -13,7 +14,7 @@ import {
   type PrivateAssignment,
   type PublicError,
   type PublicPlayer,
-  type RoomSnapshot,
+  type LobbySnapshot,
   type SessionCredentials,
   type SessionDestination,
 } from '@lgu/contracts'
@@ -40,13 +41,13 @@ const MESSAGE = {
   SESSION_RESTORED: 'Session restaurée.',
   LINK_COPIED: 'Lien d’invitation copié.',
   PROTOCOL_ERROR: 'Le serveur a envoyé une réponse invalide. Reconnexion en cours.',
-  ROOM_UNAVAILABLE: 'Cette partie n’est plus disponible. Choisissez une autre salle.',
+  LOBBY_UNAVAILABLE: 'Cette partie n’est plus disponible. Choisissez une autre lobby.',
 } as const
 
 const TERMINAL_SESSION_ERRORS = new Set<ErrorCode>([
   ERROR_CODE.SESSION_NOT_FOUND,
-  ERROR_CODE.ROOM_CLOSED,
-  ERROR_CODE.ROOM_NOT_FOUND,
+  ERROR_CODE.LOBBY_CLOSED,
+  ERROR_CODE.LOBBY_NOT_FOUND,
 ])
 
 export interface LobbyNotice {
@@ -70,8 +71,8 @@ export function createLobbyStoreDefinition(
     const credentials = ref<SessionCredentials | null>(
       dependencies.storage.load(),
     )
-    const room = ref<RoomSnapshot | null>(null)
-    const availableRooms = ref<RoomSnapshot[]>([])
+    const lobby = ref<LobbySnapshot | null>(null)
+    const availableLobbies = ref<LobbySnapshot[]>([])
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
     const hostDashboard = ref<HostDashboard | null>(null)
@@ -96,26 +97,26 @@ export function createLobbyStoreDefinition(
     let realtimeEpoch = 0
 
     const currentPlayer = computed<PublicPlayer | null>(() => {
-      if (!credentials.value || !room.value) return null
-      return room.value.players.find(
+      if (!credentials.value || !lobby.value) return null
+      return lobby.value.players.find(
         (player) => player.id === credentials.value?.playerId,
       ) ?? null
     })
     const isHost = computed(() => currentPlayer.value?.isHost ?? false)
     const host = computed(() => (
-      room.value?.players.find((player) => player.isHost) ?? null
+      lobby.value?.players.find((player) => player.isHost) ?? null
     ))
     const regularPlayers = computed(() => (
-      room.value?.players.filter((player) => !player.isHost) ?? []
+      lobby.value?.players.filter((player) => !player.isHost) ?? []
     ))
     const connectedRegularPlayerCount = computed(() => (
       regularPlayers.value.filter((player) => player.connected).length
     ))
     const hasStoredSession = computed(() => credentials.value !== null)
     const hasSession = computed(() => (
-      credentials.value !== null && room.value !== null
+      credentials.value !== null && lobby.value !== null
     ))
-    const isLobby = computed(() => room.value?.phase === ROOM_PHASE.LOBBY)
+    const isLobby = computed(() => lobby.value?.phase === LOBBY_PHASE.LOBBY)
 
     function getGateway(): LobbyGateway {
       return dependencies.getGateway()
@@ -156,12 +157,12 @@ export function createLobbyStoreDefinition(
       }
     }
 
-    function applyRoomSnapshot(snapshot: RoomSnapshot): void {
-      if (!credentials.value || !room.value) return
-      if (snapshot.createdAt !== room.value.createdAt) return
-      if (snapshot.revision < room.value.revision) return
-      room.value = snapshot
-      if (snapshot.phase === ROOM_PHASE.STARTED) schedulePrivateViewRecovery()
+    function applyLobbySnapshot(snapshot: LobbySnapshot): void {
+      if (!credentials.value || !lobby.value) return
+      if (snapshot.createdAt !== lobby.value.createdAt) return
+      if (snapshot.revision < lobby.value.revision) return
+      lobby.value = snapshot
+      if (snapshot.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
       if (hostDashboard.value) {
         const connectionById = new Map(
           snapshot.players.map((player) => [player.id, player.connected]),
@@ -182,7 +183,7 @@ export function createLobbyStoreDefinition(
 
     function saveSession(
       session: SessionCredentials,
-      nextRoom: RoomSnapshot,
+      nextLobby: LobbySnapshot,
       nextDestination: SessionDestination,
     ): void {
       if (credentials.value?.sessionToken !== session.sessionToken) {
@@ -190,17 +191,17 @@ export function createLobbyStoreDefinition(
       }
       credentials.value = session
       dependencies.storage.save(session)
-      room.value = nextRoom
+      lobby.value = nextLobby
       destination.value = nextDestination
       restoringSession.value = false
-      if (nextRoom.phase === ROOM_PHASE.STARTED) schedulePrivateViewRecovery()
+      if (nextLobby.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
       startKeepAlive()
     }
 
     function clearSession(): void {
       sessionEpoch += 1
       credentials.value = null
-      room.value = null
+      lobby.value = null
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
@@ -212,7 +213,7 @@ export function createLobbyStoreDefinition(
 
     function handleAckError(publicError: PublicError): void {
       error.value = TERMINAL_SESSION_ERRORS.has(publicError.code)
-        ? { ...publicError, message: MESSAGE.ROOM_UNAVAILABLE }
+        ? { ...publicError, message: MESSAGE.LOBBY_UNAVAILABLE }
         : publicError
       if (TERMINAL_SESSION_ERRORS.has(publicError.code)) clearSession()
     }
@@ -230,11 +231,11 @@ export function createLobbyStoreDefinition(
       const expectedEpoch = sessionEpoch
       const expectedRealtimeEpoch = realtimeEpoch
       const expectedToken = credentials.value.sessionToken
-      const expectedRoomId = credentials.value.roomId ?? 'main'
+      const expectedLobbyId = credentials.value.lobbyId ?? LOBBY_ID.MAIN
       restoringSession.value = true
       resumePromise = (async () => {
         try {
-          const response = await getGateway().resume(expectedToken, expectedRoomId)
+          const response = await getGateway().resume(expectedToken, expectedLobbyId)
           if (
             realtimeSuspended
             || realtimeEpoch !== expectedRealtimeEpoch
@@ -247,7 +248,7 @@ export function createLobbyStoreDefinition(
           }
           saveSession(
             response.data.session,
-            response.data.room,
+            response.data.lobby,
             response.data.destination,
           )
           clearError()
@@ -296,8 +297,8 @@ export function createLobbyStoreDefinition(
         onSystemReady: () => {
           handleConnectionState(CONNECTION_STATE.ONLINE)
         },
-        onRoomSnapshot: (snapshot) => {
-          if (!realtimeSuspended) applyRoomSnapshot(snapshot)
+        onLobbySnapshot: (snapshot) => {
+          if (!realtimeSuspended) applyLobbySnapshot(snapshot)
         },
         onGameStarted: () => {
           if (realtimeSuspended) return
@@ -317,7 +318,7 @@ export function createLobbyStoreDefinition(
           destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()
         },
-        onRoomClosed: (event) => {
+        onLobbyClosed: (event) => {
           if (realtimeSuspended) return
           clearSession()
           showNotice(NOTIFICATION_LEVEL.ERROR, event.message)
@@ -376,15 +377,15 @@ export function createLobbyStoreDefinition(
       return initializePromise
     }
 
-    async function listRooms(): Promise<boolean> {
+    async function listLobbies(): Promise<boolean> {
       clearError()
       try {
-        const response = await getGateway().listRooms()
+        const response = await getGateway().listLobbies()
         if (!response.ok) {
           handleAckError(response.error)
           return false
         }
-        availableRooms.value = response.data
+        availableLobbies.value = response.data
         return true
       } catch (caught) {
         setCommandError(caught)
@@ -392,15 +393,15 @@ export function createLobbyStoreDefinition(
       }
     }
 
-    async function createRoom(playerName: string): Promise<boolean> {
+    async function createLobby(playerName: string): Promise<boolean> {
       clearError()
       try {
-        const response = await getGateway().createRoom(playerName)
+        const response = await getGateway().createLobby(playerName)
         if (!response.ok) {
           handleAckError(response.error)
           return false
         }
-        saveSession(response.data.session, response.data.room, response.data.destination)
+        saveSession(response.data.session, response.data.lobby, response.data.destination)
         return true
       } catch (caught) {
         setCommandError(caught)
@@ -408,15 +409,15 @@ export function createLobbyStoreDefinition(
       }
     }
 
-    async function joinRoom(roomId: string, playerName: string): Promise<boolean> {
+    async function joinLobby(lobbyId: string, playerName: string): Promise<boolean> {
       clearError()
       try {
-        const response = await getGateway().joinRoom(roomId, playerName)
+        const response = await getGateway().joinLobby(lobbyId, playerName)
         if (!response.ok) {
           handleAckError(response.error)
           return false
         }
-        saveSession(response.data.session, response.data.room, response.data.destination)
+        saveSession(response.data.session, response.data.lobby, response.data.destination)
         return true
       } catch (caught) {
         setCommandError(caught)
@@ -438,7 +439,7 @@ export function createLobbyStoreDefinition(
         }
         saveSession(
           response.data.session,
-          response.data.room,
+          response.data.lobby,
           response.data.destination,
         )
         return true
@@ -482,7 +483,7 @@ export function createLobbyStoreDefinition(
           handleAckError(response.error)
           return false
         }
-        applyRoomSnapshot(response.data)
+        applyLobbySnapshot(response.data)
         return true
       } catch (caught) {
         setCommandError(caught)
@@ -528,7 +529,7 @@ export function createLobbyStoreDefinition(
         realtimeSuspended
         || keepAliveTimer !== null
         || !credentials.value
-        || !room.value
+        || !lobby.value
         || connectionState.value !== CONNECTION_STATE.ONLINE
       ) return
       keepAliveTimer = window.setInterval(() => {
@@ -558,7 +559,7 @@ export function createLobbyStoreDefinition(
         if (
           !realtimeSuspended
           && sessionEpoch === expectedEpoch
-          && room.value?.phase === ROOM_PHASE.STARTED
+          && lobby.value?.phase === LOBBY_PHASE.STARTED
           && destination.value === SESSION_DESTINATION.LOBBY
         ) {
           void getGateway().reconnect().catch(setCommandError)
@@ -593,7 +594,7 @@ export function createLobbyStoreDefinition(
 
         if (!leaveResponse?.ok) {
           await getGateway().reconnect()
-          const resumeResponse = await getGateway().resume(session.sessionToken, session.roomId)
+          const resumeResponse = await getGateway().resume(session.sessionToken, session.lobbyId)
           if (resumeResponse.ok) {
             leaveResponse = await getGateway().leave()
             if (!leaveResponse.ok) throw new Error(leaveResponse.error.message)
@@ -658,8 +659,8 @@ export function createLobbyStoreDefinition(
       connectionState,
       initialized,
       credentials,
-      room,
-      availableRooms,
+      lobby,
+      availableLobbies,
       destination,
       privateAssignment,
       hostDashboard,
@@ -680,9 +681,9 @@ export function createLobbyStoreDefinition(
       isLobby,
       initialize,
       enter,
-      listRooms,
-      createRoom,
-      joinRoom,
+      listLobbies,
+      createLobby,
+      joinLobby,
       leave,
       kick,
       start,

@@ -5,8 +5,8 @@ import {
   ERROR_CODE,
   PLAYER_COUNT_LIMIT,
   ROLE_CATEGORY,
-  ROOM_ID,
-  ROOM_PHASE,
+  LOBBY_ID,
+  LOBBY_PHASE,
   SESSION_DESTINATION,
   SOCKET_EVENT,
   TEAM,
@@ -18,9 +18,9 @@ import {
   hostPlayerAssignmentSchema,
   privateAssignmentSchema,
   publicErrorSchema,
-  roomEntryResponseSchema,
-  roomEnterCommandSchema,
-  roomSnapshotSchema,
+  lobbyEntryResponseSchema,
+  lobbyEnterCommandSchema,
+  lobbySnapshotSchema,
   simulatorCreateCommandSchema,
 } from '../src'
 
@@ -61,19 +61,19 @@ describe('HTTP contracts', () => {
 
 describe('command contracts', () => {
   it('trims and validates player names', () => {
-    expect(roomEnterCommandSchema.parse({ playerName: '  Marc  ' })).toEqual({
+    expect(lobbyEnterCommandSchema.parse({ playerName: '  Marc  ' })).toEqual({
       playerName: 'Marc',
     })
-    expect(roomEnterCommandSchema.safeParse({ playerName: '' }).success).toBe(false)
-    expect(roomEnterCommandSchema.safeParse({
+    expect(lobbyEnterCommandSchema.safeParse({ playerName: '' }).success).toBe(false)
+    expect(lobbyEnterCommandSchema.safeParse({
       playerName: 'Marc',
       clientRequestId: 'entry_request_00000000000000000001',
     }).success).toBe(true)
-    expect(roomEnterCommandSchema.safeParse({
+    expect(lobbyEnterCommandSchema.safeParse({
       playerName: 'Marc',
       clientRequestId: 'short',
     }).success).toBe(false)
-    expect(roomEnterCommandSchema.safeParse({ playerName: 'Marc', isHost: true }).success).toBe(false)
+    expect(lobbyEnterCommandSchema.safeParse({ playerName: 'Marc', isHost: true }).success).toBe(false)
   })
 })
 
@@ -119,10 +119,10 @@ describe('privacy boundaries', () => {
   })
 })
 
-describe('room contracts', () => {
-  const room = {
-    id: ROOM_ID.MAIN,
-    phase: ROOM_PHASE.LOBBY,
+describe('lobby contracts', () => {
+  const lobby = {
+    id: LOBBY_ID.MAIN,
+    phase: LOBBY_PHASE.LOBBY,
     revision: 1,
     players: [
       {
@@ -137,20 +137,20 @@ describe('room contracts', () => {
     createdAt: 1,
   }
 
-  it('validates a room entry response', () => {
-    expect(roomEntryResponseSchema.parse({
+  it('validates a lobby entry response', () => {
+    expect(lobbyEntryResponseSchema.parse({
       session: {
         playerId: player.id,
         sessionToken: token,
       },
-      room,
+      lobby,
       destination: SESSION_DESTINATION.LOBBY,
-    }).room).toEqual(room)
+    }).lobby).toEqual(lobby)
   })
 
-  it('rejects inconsistent room limits', () => {
-    expect(roomSnapshotSchema.safeParse({
-      ...room,
+  it('rejects inconsistent lobby limits', () => {
+    expect(lobbySnapshotSchema.safeParse({
+      ...lobby,
       minimumPlayers: 13,
       maximumPlayers: 12,
     }).success).toBe(false)
@@ -158,7 +158,7 @@ describe('room contracts', () => {
 })
 
 describe('acknowledgements', () => {
-  const ackSchema = createAckSchema(roomEnterCommandSchema)
+  const ackSchema = createAckSchema(lobbyEnterCommandSchema)
 
   it('validates success and failure results', () => {
     expect(ackSchema.parse(ackSuccess({ playerName: 'Marc' }))).toEqual({
@@ -167,8 +167,8 @@ describe('acknowledgements', () => {
     })
 
     const error = publicErrorSchema.parse({
-      code: ERROR_CODE.ROOM_FULL,
-      message: 'La salle est complète.',
+      code: ERROR_CODE.LOBBY_FULL,
+      message: 'Le lobby est complète.',
     })
     expect(ackSchema.parse(ackFailure(error))).toEqual({
       ok: false,
