@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import type { RoomId, RoomSnapshot } from '@lgu/contracts'
 
 import { LobbyService } from './lobby-service'
@@ -12,7 +14,7 @@ export class RoomRegistry {
   createRoom(): { roomId: RoomId; service: LobbyService } {
     let roomId: RoomId
     do {
-      roomId = `room_${Math.random().toString(36).slice(2, 10)}`
+      roomId = `room_${randomUUID().replaceAll('-', '').slice(0, 12)}`
     } while (this.rooms.has(roomId))
 
     const service = this.factory()
@@ -36,7 +38,7 @@ export class RoomRegistry {
     const snapshots = await Promise.all(
       [...this.rooms.entries()].map(async ([roomId, service]) => {
         const snapshot = await service.getRoomSnapshot()
-        if (!snapshot || snapshot.phase !== 'lobby') return null
+        if (!snapshot || snapshot.phase !== 'lobby' || snapshot.players.length >= snapshot.maximumPlayers) return null
         return { ...snapshot, id: roomId }
       }),
     )

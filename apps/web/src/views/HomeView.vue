@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import type { RoomSnapshot } from '@lgu/contracts'
 
@@ -17,11 +17,13 @@ import { useLobbyStore } from '../stores/lobby'
 const lobby = useLobbyStore()
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
 const route = useRoute()
+const router = useRouter()
 const enteringName = ref(route.name === 'entry' || route.name === ROUTE_NAME.ROOM_INVITE)
 const playerName = ref('')
 const normalizedName = computed(() => playerName.value.trim())
 const submitting = ref(false)
 const joiningRoomId = ref<string | null>(null)
+const inviteMode = computed(() => Boolean(inviteRoomId.value))
 const inviteRoomId = computed(() => {
   if (typeof route.params.roomId === 'string') return route.params.roomId
   if (typeof route.query.room === 'string') return route.query.room
@@ -36,6 +38,10 @@ const canSubmit = computed(() => (
 ))
 
 async function submit(): Promise<void> {
+  if (inviteMode.value) {
+    await joinInviteRoom()
+    return
+  }
   if (!canSubmit.value) return
   submitting.value = true
   try {
@@ -43,6 +49,11 @@ async function submit(): Promise<void> {
   } finally {
     submitting.value = false
   }
+}
+
+async function copyRoomLink(room: RoomSnapshot): Promise<void> {
+  const link = `${window.location.origin}${appPath(`/room/${room.id}`)}`
+  await navigator.clipboard?.writeText(link)
 }
 
 async function joinInviteRoom(): Promise<void> {
@@ -97,6 +108,33 @@ onUnmounted(() => {
       </div>
     </section>
 
+    <section v-else-if="enteringName && inviteMode" class="app-screen app-home-container app-room-lobby app-room-invite-only">
+      <h2>Rejoindre la partie</h2>
+      <p class="app-subtitle">Entrez votre nom pour rejoindre la salle invitée.</p>
+      <p class="app-room-invite-hint">Salle : <strong>{{ inviteRoomId }}</strong></p>
+
+      <form class="app-room-create-form" @submit.prevent="submit">
+        <label for="player-name-input">Votre nom</label>
+        <input
+          id="player-name-input"
+          v-model="playerName"
+          type="text"
+          maxlength="20"
+          autocomplete="off"
+          placeholder="Votre nom..."
+          class="app-text-input"
+          autofocus
+        >
+        <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
+        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null">
+          {{ joiningRoomId ? 'Connexion…' : 'Rejoindre la partie' }}
+        </button>
+      </form>
+      <button type="button" class="app-btn app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
+        Retour
+      </button>
+    </section>
+
     <section v-else-if="enteringName" class="app-screen app-home-container app-room-lobby">
       <h2>Rejoindre une partie</h2>
       <p class="app-subtitle">Choisissez une salle existante ou créez-en une nouvelle.</p>
@@ -145,9 +183,14 @@ onUnmounted(() => {
             <strong>{{ room.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
             <span>{{ room.players.length }} / {{ room.maximumPlayers }} joueurs</span>
           </div>
-          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
-            {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
-          </button>
+          <div class="app-room-card-actions">
+            <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningRoomId !== null" @click="joinRoom(room)">
+              {{ joiningRoomId === room.id ? 'Connexion…' : 'Rejoindre' }}
+            </button>
+            <button type="button" class="app-btn app-btn-back" @click="copyRoomLink(room)">
+              Copier le lien
+            </button>
+          </div>
         </article>
       </div>
 
