@@ -76,7 +76,7 @@ generate()
             Outil de simulation
           </p>
           <h1 class="mt-2 font-display text-4xl font-bold sm:text-6xl">
-            Simulateur V3
+            Simulateur
           </h1>
           <p class="mt-4 max-w-3xl leading-7 text-slate-300">
             Générez une partie avec le même moteur, les mêmes projections et les mêmes composants que la partie réelle.

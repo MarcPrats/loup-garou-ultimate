@@ -26,7 +26,7 @@ describe('simulator app isolation', () => {
     })
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Simulateur V3')
+    expect(wrapper.text()).toContain('Simulateur')
     expect(getLobbyGatewayMock).not.toHaveBeenCalled()
     expect(removeStoredSession).not.toHaveBeenCalled()
     expect(window.sessionStorage.getItem(STORAGE_KEY.SESSION)).toBe('{malformed')

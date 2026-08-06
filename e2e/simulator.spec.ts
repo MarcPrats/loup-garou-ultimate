@@ -28,7 +28,7 @@ test('runs the simulator without API, Socket.IO or persistent browser state', as
 
   await page.goto('/')
   await expect(page).toHaveURL(/\/simulator$/)
-  await expect(page.getByRole('heading', { name: 'Simulateur V3' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Simulateur' })).toBeVisible()
   await expect(page.getByText('aucun socket, aucune session, aucun appel API')).toBeVisible()
 
   await page.getByRole('button', { name: 'Générer', exact: true }).click()
