@@ -34,7 +34,7 @@ const clueRole = computed(() => props.assignment.specialInformation
 </script>
 
 <template>
-  <div class="app-role-reveal">
+  <div class="app-role-reveal" :class="{ 'app-role-reveal-has-bluff': assignment.bluffRoleId !== null }">
     <span class="sr-only">{{ assignment.player.name }} · Votre couverture</span>
     <RoleInfoPanel
       :role-id="assignment.role.id"
