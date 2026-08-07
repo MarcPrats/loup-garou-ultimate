@@ -30,7 +30,7 @@ export interface RoleContent {
 
 export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
   "loup-garou-ultime": {
-    power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note : Vous pouvez choisir de vous tuer vous-même et l'infect loup-garou ou le grand loup jouera votre rôle.",
+    power: "Chaque nuit (sauf la première), choisissez un joueur. Il meurt. Note : Vous pouvez choisir de vous tuer vous-même et un autre Loup Garou jouera votre rôle.",
     info: "Le Loup Garou Ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (voyante, enfant sauvage, cupidon) et évitez de mordre l'ancien.",
   },
   "infect-loup": {
