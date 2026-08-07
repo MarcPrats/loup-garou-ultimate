@@ -1,5 +1,5 @@
 {
-  "name": "Loup Garou Ultimate V3",
+  "name": "Loup Garou Ultimate",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}

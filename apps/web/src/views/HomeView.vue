@@ -131,7 +131,7 @@ onUnmounted(() => {
     </section>
 
     <section v-else-if="lobby.hasStoredSession && !lobby.hasSession" class="app-screen app-home-container" aria-live="polite">
-      <h1>Loup Garou Ultime</h1>
+      <h1>🐺 Loup Garou Ultime</h1>
       <h2>Restauration de votre session</h2>
       <p class="app-subtitle">Nous essayons de retrouver votre place dans la partie.</p>
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
@@ -206,7 +206,7 @@ onUnmounted(() => {
     </section>
 
     <section v-else class="app-home-shell">
-      <h1>Loup Garou Ultime</h1>
+      <h1>🐺 Loup Garou Ultime</h1>
       <nav class="app-home-actions" aria-label="Actions principales">
         <a v-if="!staticMode" id="lobbies-btn" :href="appPath(ROUTE_PATH.LOBBIES)" class="app-home-action app-home-action-primary">
           🎮 Créer / Rejoindre la partie

@@ -55,7 +55,7 @@ watch(
 )
 
 onMounted(async () => {
-  document.title = 'Référence — Loup Garou Ultimate'
+  document.title = 'Référence — Loup Garou Ultime'
   const tab = tabFromHash(route.hash)
   if (tab) {
     activeTab.value = tab
@@ -84,7 +84,7 @@ onBeforeUnmount(() => {
       </nav>
 
       <header class="rules-header">
-        <h1>🐺 Loup Garou Ultimate</h1>
+        <h1>🐺 Loup Garou Ultime</h1>
         <p>Fiche de référence — Personnages, répartition &amp; ordre des nuits</p>
       </header>
 
@@ -157,7 +157,7 @@ onBeforeUnmount(() => {
           <span class="rules-overview-icon" aria-hidden="true"><span class="rules-emoji">📖</span></span>
           <div>
             <p class="rules-overview-kicker">Le principe en un coup d’œil</p>
-            <h2 id="rules-overview-title">Comment jouer à Loup Garou Ultimate ?</h2>
+            <h2 id="rules-overview-title">Comment jouer au Loup Garou Ultime ?</h2>
           </div>
         </div>
 

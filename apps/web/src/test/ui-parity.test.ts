@@ -158,7 +158,7 @@ describe('Vue rules page', () => {
     expect(wrapper.text()).toContain('Répartition des personnages')
 
     await wrapper.get('#rules-tab-rules').trigger('click')
-    expect(wrapper.text()).toContain('Comment jouer à Loup Garou Ultimate ?')
+    expect(wrapper.text()).toContain('Comment jouer au Loup Garou Ultime ?')
 
     await wrapper.get('#rules-tab-night').trigger('click')
     expect(wrapper.text()).toContain('Ordre de la première nuit')
