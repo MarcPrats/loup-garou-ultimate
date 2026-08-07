@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 
 import RulesDistributionTable from '../components/RulesDistributionTable.vue'
 import RulesNightBlock from '../components/RulesNightBlock.vue'
@@ -12,12 +12,55 @@ import {
 } from '../constants/rules-page'
 
 const staticMode = import.meta.env.VITE_STATIC_MODE === 'true'
+const route = useRoute()
+const router = useRouter()
 
 type RulesTab = 'roles' | 'distribution' | 'rules' | 'night'
+const RULES_TABS: readonly RulesTab[] = ['roles', 'distribution', 'rules', 'night']
 const activeTab = ref<RulesTab>('roles')
 
-onMounted(() => {
+function tabFromHash(hash: string): RulesTab | null {
+  const tab = hash.replace(/^#/, '') as RulesTab
+  return RULES_TABS.includes(tab) ? tab : null
+}
+
+async function focusTabPanel(tab: RulesTab): Promise<void> {
+  await nextTick()
+  const panel = document.getElementById(`rules-panel-${tab}`)
+  if (!panel) return
+
+  panel.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  panel.focus({ preventScroll: true })
+}
+
+async function selectTab(tab: RulesTab): Promise<void> {
+  activeTab.value = tab
+  const hash = `#${tab}`
+
+  if (route.hash !== hash) {
+    await router.replace({ hash })
+    return
+  }
+  await focusTabPanel(tab)
+}
+
+watch(
+  () => route.hash,
+  async (hash) => {
+    const tab = tabFromHash(hash)
+    if (!tab) return
+    activeTab.value = tab
+    await focusTabPanel(tab)
+  },
+)
+
+onMounted(async () => {
   document.title = 'Référence — Loup Garou Ultimate'
+  const tab = tabFromHash(route.hash)
+  if (tab) {
+    activeTab.value = tab
+    await focusTabPanel(tab)
+  }
 })
 
 onBeforeUnmount(() => {
@@ -54,7 +97,7 @@ onBeforeUnmount(() => {
           role="tab"
           :aria-selected="activeTab === 'roles'"
           aria-controls="rules-panel-roles"
-          @click="activeTab = 'roles'"
+          @click="selectTab('roles')"
         >
           <span aria-hidden="true">🎭</span>
           <span>Rôles</span>
@@ -67,7 +110,7 @@ onBeforeUnmount(() => {
           role="tab"
           :aria-selected="activeTab === 'distribution'"
           aria-controls="rules-panel-distribution"
-          @click="activeTab = 'distribution'"
+          @click="selectTab('distribution')"
         >
           <span aria-hidden="true">👥</span>
           <span>Répartition</span>
@@ -80,7 +123,7 @@ onBeforeUnmount(() => {
           role="tab"
           :aria-selected="activeTab === 'rules'"
           aria-controls="rules-panel-rules"
-          @click="activeTab = 'rules'"
+          @click="selectTab('rules')"
         >
           <span aria-hidden="true">📜</span>
           <span>Règles</span>
@@ -93,22 +136,22 @@ onBeforeUnmount(() => {
           role="tab"
           :aria-selected="activeTab === 'night'"
           aria-controls="rules-panel-night"
-          @click="activeTab = 'night'"
+          @click="selectTab('night')"
         >
           <span aria-hidden="true">🌙</span>
           <span>Nuit</span>
         </button>
       </nav>
 
-      <section v-if="activeTab === 'roles'" id="rules-panel-roles" role="tabpanel" aria-labelledby="rules-tab-roles">
+      <section v-if="activeTab === 'roles'" id="rules-panel-roles" class="rules-tab-panel" tabindex="-1" role="tabpanel" aria-labelledby="rules-tab-roles">
         <RulesRoleCatalog />
       </section>
 
-      <section v-else-if="activeTab === 'distribution'" id="rules-panel-distribution" role="tabpanel" aria-labelledby="rules-tab-distribution">
+      <section v-else-if="activeTab === 'distribution'" id="rules-panel-distribution" class="rules-tab-panel" tabindex="-1" role="tabpanel" aria-labelledby="rules-tab-distribution">
         <RulesDistributionTable />
       </section>
 
-      <section v-else-if="activeTab === 'rules'" id="rules-panel-rules" role="tabpanel" aria-labelledby="rules-tab-rules">
+      <section v-else-if="activeTab === 'rules'" id="rules-panel-rules" class="rules-tab-panel" tabindex="-1" role="tabpanel" aria-labelledby="rules-tab-rules">
         <section class="rules-overview" aria-labelledby="rules-overview-title">
         <div class="rules-overview-heading">
           <span class="rules-overview-icon" aria-hidden="true"><span class="rules-emoji">📖</span></span>
@@ -183,7 +226,7 @@ onBeforeUnmount(() => {
       </section>
       </section>
 
-      <section v-else-if="activeTab === 'night'" id="rules-panel-night" role="tabpanel" aria-labelledby="rules-tab-night">
+      <section v-else-if="activeTab === 'night'" id="rules-panel-night" class="rules-tab-panel" tabindex="-1" role="tabpanel" aria-labelledby="rules-tab-night">
         <section aria-labelledby="first-night-title">
         <h2 id="first-night-title" class="section-title">🌑 Ordre de la première nuit</h2>
         <RulesNightBlock title="🌑 Première Nuit" :sections="FIRST_NIGHT_SECTIONS" />
@@ -425,6 +468,13 @@ onBeforeUnmount(() => {
 }
 
 .footnote span { flex: 0 0 auto; font-style: normal; }
+
+.rules-tab-panel {
+  scroll-margin-top: 100px;
+}
+
+.rules-tab-panel:focus { outline: none; }
+.rules-tab-panel:focus-visible { outline: 2px solid var(--rules-accent); outline-offset: 8px; }
 
 .rules-tabs {
   position: sticky;
