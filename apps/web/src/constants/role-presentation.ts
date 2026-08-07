@@ -66,6 +66,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Chaque nuit (sauf la première), choisissez un autre personnage, celui-ci est protégé du Loup Garou Ultime le temps d'une nuit.",
     info: "Votre pouvoir peut être précieux pour des personnages faisant l'acquisition d'information régulièrement ou à pouvoir unique tels que Cupidon, la voyante ou le chasseur. Essayez vite de les identifier afin de les protéger.",
   },
+  "capitaine": {
+    power: "Si le Capitaine est vivant et qu'il ne reste que trois joueurs à la fin d'une journée sans exécution, le Village gagne. Si le Loup Garou Ultime cible le Capitaine pendant la nuit, le Maître du Jeu peut, s'il le souhaite, choisir secrètement un autre joueur vivant : celui-ci meurt à sa place.",
+    info: "Votre pouvoir est entièrement passif : vous ne vous réveillez pas la nuit et le MJ sera responsable de l'exécution de votre pouvoir. Essayez de survivre jusqu'à ce que trois joueurs restent en vie. Rappel : les Loups gagnent lorsqu'il ne reste plus que deux joueurs en vie.",
+  },
   "chasseur": {
     power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le Loup Garou Ultime, il meurt.",
     info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
@@ -140,6 +144,11 @@ const PRESENTATION_DETAILS: Record<
     imagePath: appAsset('/images/chevalier.webp'),
     fallbackSymbol: '🛡️',
     summary: 'Chaque nuit, sauf la première, il protège un autre joueur du Loup Garou Ultime.',
+  },
+  [ROLE_ID.CAPITAINE]: {
+    imagePath: appAsset('/images/capitaine.webp'),
+    fallbackSymbol: '🎖️',
+    summary: 'Si trois joueurs restent en vie sans exécution pendant la journée, le Village gagne. La nuit, le MJ peut choisir une autre victime si le Capitaine est ciblé.',
   },
   [ROLE_ID.CHASSEUR]: {
     imagePath: appAsset('/images/chasseur.webp'),
