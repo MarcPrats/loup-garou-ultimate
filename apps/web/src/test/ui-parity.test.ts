@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ROLE_CATEGORY, TEAM, type HostDashboard, type PrivateAssignment } from '@lgu/contracts'
 import { ROLE_ID } from '@lgu/game-core'
@@ -9,6 +9,7 @@ import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import RoleInfoPanel from '../components/RoleInfoPanel.vue'
 import { PUBLIC_LINK, ROUTE_NAME } from '../constants/app'
+import { RULES_ROLE_CATALOG } from '../constants/rules-page'
 import { createAppRouter } from '../router'
 import HomeView from '../views/HomeView.vue'
 import RulesView from '../views/RulesView.vue'
@@ -42,7 +43,7 @@ describe('V3 UI parity', () => {
       '📚 Wiki des règles',
     ])
     expect(wrapper.get('#lobbies-btn').attributes('href')).toBe('/lobbies')
-    expect(wrapper.get('a[href="/reference"]')).toBeTruthy()
+    expect(wrapper.get('a[href="/rules"]')).toBeTruthy()
     expect(wrapper.get('a[href="/simulator"]')).toBeTruthy()
     expect(wrapper.get(`a[href="${PUBLIC_LINK.WIKI}"]`).attributes('target')).toBe('_blank')
   })
@@ -67,7 +68,7 @@ describe('V3 UI parity', () => {
     expect(text).toContain('Ce que vous devriez savoir')
     expect(text).toContain('Infect Loup Garou')
     expect(text).toContain('Alice, Nora')
-    expect(wrapper.get('a[href="/reference"]').text()).toContain('Consulter les Règles')
+    expect(wrapper.get('a[href="/rules"]').text()).toContain('Consulter les Règles')
     expect(text).not.toContain('Ivrogne caché')
     expect(text).not.toContain('Leurre de la Voyante')
   })
@@ -130,25 +131,41 @@ describe('V3 UI parity', () => {
 
 
 describe('Vue rules page', () => {
-  it('renders the complete rules page as composed Vue components', () => {
+  beforeEach(() => {
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    })
+  })
+
+  it('renders the complete rules page as composed Vue components', async () => {
+    const router = createAppRouter(createPinia())
+    await router.push('/rules')
+    await router.isReady()
     const wrapper = mount(RulesView, {
       global: {
+        plugins: [router],
         stubs: {
           RouterLink: { template: '<a :href="to"><slot /></a>', props: ['to'] },
         },
       },
     })
-    const text = wrapper.text()
 
-    expect(text).toContain('🎭 Personnages')
-    expect(text).toContain('Répartition des personnages')
-    expect(text).toContain('Ordre de la première nuit')
-    expect(text).toContain('Ordre des nuits suivantes')
-    expect(text).toContain('Bibliothécaire')
-    expect(text).toContain('Bientôt disponible')
+    expect(wrapper.text()).toContain('🎭 Personnages')
+    expect(wrapper.findAll('.role-card')).toHaveLength(RULES_ROLE_CATALOG.length)
+
+    await wrapper.get('#rules-tab-distribution').trigger('click')
+    expect(wrapper.text()).toContain('Répartition des personnages')
+
+    await wrapper.get('#rules-tab-rules').trigger('click')
+    expect(wrapper.text()).toContain('Comment jouer à Loup Garou Ultimate ?')
+
+    await wrapper.get('#rules-tab-night').trigger('click')
+    expect(wrapper.text()).toContain('Ordre de la première nuit')
+    expect(wrapper.text()).toContain('Ordre des nuits suivantes')
+    expect(wrapper.text()).toContain('Bibliothécaire')
     expect(wrapper.findAll('.night-block')).toHaveLength(2)
-    expect(createAppRouter(createPinia()).resolve('/reference').name).toBe(ROUTE_NAME.RULES)
-    expect(wrapper.findAll('.role-card')).toHaveLength(22)
+    expect(createAppRouter(createPinia()).resolve('/rules').name).toBe(ROUTE_NAME.RULES)
     expect(createAppRouter(createPinia()).resolve('/rules/role/voyante').name).toBe(ROUTE_NAME.ROLE_DETAIL)
   })
 })

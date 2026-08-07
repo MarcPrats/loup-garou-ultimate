@@ -10,6 +10,7 @@ import {
   SUPPORTED_PLAYER_COUNTS,
   assignRoles,
   getEffectiveCategory,
+  getRoleDefinition,
   isVillageTeamRole,
   isWerewolfRole,
   type AssignablePlayer,
