@@ -12,8 +12,8 @@ import {
 
 describe('role definitions', () => {
   it('contains one unique definition for each game role', () => {
-    expect(ROLE_DEFINITIONS).toHaveLength(17)
-    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(17)
+    expect(ROLE_DEFINITIONS).toHaveLength(18)
+    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(18)
   })
 
   it('separates team and role category', () => {

@@ -14,6 +14,7 @@ import {
 import {
   TEAM,
   getRoleDefinition,
+  ROLE_ID,
   type AssignmentResult,
   type PlayerAssignment,
   type RoleId,
@@ -151,16 +152,10 @@ export function projectPrivateAssignment(
   })
 }
 
-export function projectHostDashboard(
+function projectDashboardForGrant(
   state: GameProjectionState,
+  grant: ProjectionRoleAccessGrant,
 ): HostDashboard {
-  const host = state.players.find((player) => player.isHost)
-  if (!host) throw new Error('Projected game has no game master')
-  const hostGrant = requireGrant(state, host.id)
-  if (hostGrant.view !== ROLE_ACCESS_VIEW.GAME_MASTER) {
-    throw new Error('Game master has an invalid role access grant')
-  }
-
   const players = state.assignment.assignments.map((assignment) => {
     const player = requirePlayer(state, assignment.playerId)
     return {
@@ -182,7 +177,7 @@ export function projectHostDashboard(
   })
 
   return hostDashboardSchema.parse({
-    roleAccessToken: hostGrant.token,
+    roleAccessToken: grant.token,
     players,
     playerCount: players.length,
     werewolfCount: players.filter(
@@ -192,6 +187,33 @@ export function projectHostDashboard(
       (player) => player.role.team === TEAM.VILLAGERS,
     ).length,
   })
+}
+
+export function projectHostDashboard(
+  state: GameProjectionState,
+): HostDashboard {
+  const host = state.players.find((player) => player.isHost)
+  if (!host) throw new Error('Projected game has no game master')
+  const hostGrant = requireGrant(state, host.id)
+  if (hostGrant.view !== ROLE_ACCESS_VIEW.GAME_MASTER) {
+    throw new Error('Game master has an invalid role access grant')
+  }
+  return projectDashboardForGrant(state, hostGrant)
+}
+
+export function projectLoupBlancDashboard(
+  state: GameProjectionState,
+  playerId: string,
+): HostDashboard {
+  const assignment = requireAssignment(state.assignment, playerId)
+  if (assignment.roleId !== ROLE_ID.LOUP_BLANC) {
+    throw new Error('Dashboard requested by a player without Loup Blanc access')
+  }
+  const grant = requireGrant(state, playerId)
+  if (grant.view !== ROLE_ACCESS_VIEW.PLAYER) {
+    throw new Error('Loup Blanc has an invalid role access grant')
+  }
+  return projectDashboardForGrant(state, grant)
 }
 
 export function projectRoleAccessResponse(

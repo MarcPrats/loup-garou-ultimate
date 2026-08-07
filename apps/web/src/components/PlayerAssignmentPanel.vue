@@ -4,16 +4,19 @@ import { computed } from 'vue'
 import {
   SPECIAL_INFORMATION_TYPE,
   TEAM,
+  type HostDashboard,
   type PrivateAssignment,
 } from '@lgu/contracts'
 
 import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
+import HostDashboardPanel from './HostDashboardPanel.vue'
 import RoleInfoPanel from './RoleInfoPanel.vue'
 
 const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
+  dashboard?: HostDashboard | null
 }>(), {
 })
 
@@ -58,6 +61,18 @@ const clueRole = computed(() => props.assignment.specialInformation
           Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}
         </p>
       </section>
+    </div>
+
+    <div
+      v-if="dashboard"
+      class="mt-8 border-t border-white/10 pt-8"
+    >
+      <HostDashboardPanel
+        :dashboard="dashboard"
+        :show-night-order="false"
+        :show-rules-link="false"
+        :show-header="false"
+      />
     </div>
 
     <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>

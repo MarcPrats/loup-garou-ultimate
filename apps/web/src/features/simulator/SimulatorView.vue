@@ -38,6 +38,11 @@ const activePlayerAssignment = computed(() => (
     (assignment) => assignment.player.id === activeView.value,
   ) ?? null
 ))
+const activePlayerDashboard = computed(() => (
+  scenario.value?.loupBlancDashboards.find(
+    (entry) => entry.playerId === activeView.value,
+  )?.dashboard ?? null
+))
 const playerOptions = computed(() => (
   scenario.value?.lobby.players.filter((player) => !player.isHost) ?? []
 ))
@@ -164,6 +169,7 @@ generate()
           <PlayerAssignmentPanel
             v-else-if="activePlayerAssignment"
             :assignment="activePlayerAssignment"
+            :dashboard="activePlayerDashboard"
           />
         </div>
       </template>

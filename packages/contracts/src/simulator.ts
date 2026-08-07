@@ -47,6 +47,10 @@ export const simulatorScenarioSchema = z.object({
   seed: z.string().min(1).max(120),
   lobby: lobbySnapshotSchema,
   privateAssignments: z.array(privateAssignmentSchema),
+  loupBlancDashboards: z.array(z.object({
+    playerId: playerIdSchema,
+    dashboard: hostDashboardSchema,
+  }).strict()),
   hostDashboard: hostDashboardSchema,
 }).strict()
 

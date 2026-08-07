@@ -12,9 +12,12 @@ import {
 import {
   assignRoles,
   createSeededRandomSource,
+  getRoleDefinition,
+  ROLE_ID,
 } from '@lgu/game-core'
 import {
   projectHostDashboard,
+  projectLoupBlancDashboard,
   projectPrivateAssignment,
   type GameProjectionState,
 } from '@lgu/game-projection'
@@ -109,13 +112,36 @@ export function createSimulatorScenario(
     ],
   }
 
+  const roleNamesByPlayerId = new Map(
+    assignment.assignments.map((candidate) => [
+      candidate.playerId,
+      getRoleDefinition(candidate.roleId).name,
+    ]),
+  )
+  const displayState: GameProjectionState = {
+    ...state,
+    players: state.players.map((player) => ({
+      ...player,
+      name: roleNamesByPlayerId.get(player.id) ?? player.name,
+    })),
+  }
+
+  const loupBlancDashboards = assignablePlayers
+    .filter((player) => assignment.assignments.some(
+      (candidate) => candidate.playerId === player.id && candidate.roleId === ROLE_ID.LOUP_BLANC,
+    ))
+    .map((player) => ({
+      playerId: player.id,
+      dashboard: projectLoupBlancDashboard(displayState, player.id),
+    }))
+
   return simulatorScenarioSchema.parse({
     seed,
     lobby: {
       id: LOBBY_ID.MAIN,
       phase: LOBBY_PHASE.STARTED,
       revision: 1,
-      players: state.players.map((player) => ({
+      players: displayState.players.map((player) => ({
         id: player.id,
         name: player.name,
         isHost: player.isHost,
@@ -127,9 +153,10 @@ export function createSimulatorScenario(
       createdAt: 0,
     },
     privateAssignments: assignablePlayers.map((player) => (
-      projectPrivateAssignment(state, player.id)
+      projectPrivateAssignment(displayState, player.id)
     )),
-    hostDashboard: projectHostDashboard(state),
+    loupBlancDashboards,
+    hostDashboard: projectHostDashboard(displayState),
   })
 }
 

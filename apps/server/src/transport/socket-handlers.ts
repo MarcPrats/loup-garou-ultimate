@@ -1,5 +1,7 @@
 import { type ZodType } from 'zod'
 
+import { ROLE_ID } from '@lgu/game-core'
+
 import {
   ERROR_CODE,
   LOBBY_CLOSED_REASON,
@@ -125,7 +127,11 @@ function broadcastSnapshot(io: GameSocketServer, lobby: LobbySnapshot | null): v
 
 async function emitResumedPrivateView(socket: GameSocket, service: LobbyService, destination: string): Promise<void> {
   if (destination === SESSION_DESTINATION.PLAYER_ROLE) {
-    socket.emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, await service.getPrivateAssignment(getSessionCommand(socket)))
+    const assignment = await service.getPrivateAssignment(getSessionCommand(socket))
+    socket.emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, assignment)
+    if (assignment.role.id === ROLE_ID.LOUP_BLANC) {
+      socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getLoupBlancDashboard(getSessionCommand(socket)))
+    }
   } else if (destination === SESSION_DESTINATION.GAME_MASTER) {
     socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getHostDashboard(getSessionCommand(socket)))
   }
@@ -262,6 +268,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         broadcastSnapshot(io, result.lobby)
         io.to(lobbyId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ lobbyRevision: result.lobby.revision, startedAt: result.startedAt }))
         for (const delivery of result.privateAssignments) io.to(delivery.connectionId).emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, delivery.assignment)
+        for (const delivery of result.loupBlancDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
         io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
         return {}
       }, onUnexpectedError)

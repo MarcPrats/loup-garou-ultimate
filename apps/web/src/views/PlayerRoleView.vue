@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
+import { ROLE_ID } from '@lgu/game-core'
+
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
@@ -21,10 +23,11 @@ async function confirmLeave(): Promise<void> {
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
+        :dashboard="lobby.privateAssignment.role.id === ROLE_ID.LOUP_BLANC ? lobby.hostDashboard : null"
       />
 
       <section
-        v-else
+        v-else-if="!lobby.privateAssignment"
         role="status"
         class="rounded-3xl border border-white/10 bg-slate-900/80 p-10 text-center shadow-2xl"
       >

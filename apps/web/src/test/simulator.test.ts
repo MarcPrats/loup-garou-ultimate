@@ -9,6 +9,7 @@ import {
 import {
   GAME_COMPOSITION_BY_PLAYER_COUNT,
   TEAM,
+  ROLE_ID,
   type SupportedPlayerCount,
 } from '@lgu/game-core'
 
@@ -66,6 +67,27 @@ describe('simulator engine', () => {
 
       expect({ villagers, outsiders, werewolves }).toEqual(composition)
     }
+  })
+
+  it('gives the Loup Blanc the same dashboard projection as the real player view', () => {
+    let generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, 'loup-blanc-dashboard')
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      const loupBlanc = generated.hostDashboard.players.some(
+        (entry) => entry.role.id === ROLE_ID.LOUP_BLANC,
+      )
+      if (loupBlanc) break
+      generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, `loup-blanc-dashboard-${attempt}`)
+    }
+
+    const loupBlancAssignment = generated.hostDashboard.players.find(
+      (entry) => entry.role.id === ROLE_ID.LOUP_BLANC,
+    )
+    expect(loupBlancAssignment).toBeDefined()
+    expect(generated.loupBlancDashboards).toHaveLength(1)
+    expect(generated.loupBlancDashboards[0]?.playerId).toBe(loupBlancAssignment?.player.id)
+    expect(generated.loupBlancDashboards[0]?.dashboard.players).toEqual(
+      generated.hostDashboard.players,
+    )
   })
 
   it('keeps the lobby projection free of every private field', () => {

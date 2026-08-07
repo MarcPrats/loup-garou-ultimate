@@ -6,6 +6,7 @@ import type {
 } from '@lgu/contracts'
 import {
   projectHostDashboard,
+  projectLoupBlancDashboard,
   projectPrivateAssignment,
   projectRoleAccessResponse,
   type GameProjectionState,
@@ -34,6 +35,13 @@ export function toPrivateAssignment(
 
 export function toHostDashboard(lobby: LobbyState): HostDashboard {
   return projectHostDashboard(toProjectionState(lobby))
+}
+
+export function toLoupBlancDashboard(
+  lobby: LobbyState,
+  playerId: PlayerId,
+): HostDashboard {
+  return projectLoupBlancDashboard(toProjectionState(lobby), playerId)
 }
 
 export function toRoleAccessResponse(

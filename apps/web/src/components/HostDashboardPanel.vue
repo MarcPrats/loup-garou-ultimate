@@ -11,7 +11,13 @@ import HostMobileAssignmentCard from './HostMobileAssignmentCard.vue'
 
 const props = withDefaults(defineProps<{
   dashboard: HostDashboard
+  showNightOrder?: boolean
+  showRulesLink?: boolean
+  showHeader?: boolean
 }>(), {
+  showNightOrder: true,
+  showRulesLink: true,
+  showHeader: true,
 })
 
 const assignments = computed(() => props.dashboard.players.map((assignment) => ({
@@ -24,7 +30,7 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
 
 <template>
   <div class="app-gm-view">
-    <header class="app-gm-header">
+    <header v-if="showHeader" class="app-gm-header">
       <h2>👑 Maître du Jeu</h2>
       <p class="app-subtitle">Vue d'ensemble de tous les rôles</p>
       <div class="app-gm-stats"><span class="app-gm-stat">🎮 {{ dashboard.playerCount }} Joueurs</span></div>
@@ -74,8 +80,8 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
       />
     </div>
 
-    <HostNightOrderPanel :dashboard="dashboard" />
+    <HostNightOrderPanel v-if="showNightOrder" :dashboard="dashboard" />
 
-    <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
+    <a v-if="showRulesLink" :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
   </div>
 </template>

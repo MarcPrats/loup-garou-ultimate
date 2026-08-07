@@ -15,7 +15,7 @@ import {
   type LobbySnapshot,
   type SessionResumeResponse,
 } from '@lgu/contracts'
-import { PLAYER_COUNT } from '@lgu/game-core'
+import { PLAYER_COUNT, ROLE_ID } from '@lgu/game-core'
 
 import { LOBBY_TIME_LIMIT } from '../config/lobby-constants'
 import { LobbyError } from '../domain/lobby-error'
@@ -40,6 +40,7 @@ import {
 import { createStoredGameState } from './game-state'
 import {
   toHostDashboard,
+  toLoupBlancDashboard,
   toPrivateAssignment,
   toRoleAccessResponse,
 } from './game-view-mapper'
@@ -80,6 +81,7 @@ export interface StartGameResult {
   readonly lobby: LobbySnapshot
   readonly startedAt: number
   readonly privateAssignments: readonly PrivateAssignmentDelivery[]
+  readonly loupBlancDashboards: readonly HostDashboardDelivery[]
   readonly hostDashboard: HostDashboardDelivery
 }
 
@@ -576,12 +578,29 @@ export class LobbyService {
         throw new Error('Started host has no connection')
       }
 
+      const loupBlancDashboards = lobby.players
+        .filter((player) => !player.isHost)
+        .flatMap((player): HostDashboardDelivery[] => {
+          const assignment = lobby.game?.assignment.assignments.find(
+            (candidate) => candidate.playerId === player.id,
+          )
+          if (assignment?.roleId !== ROLE_ID.LOUP_BLANC) return []
+          if (!player.connectionId) {
+            throw new Error(`Loup Blanc has no connection: ${player.id}`)
+          }
+          return [{
+            connectionId: player.connectionId,
+            dashboard: toLoupBlancDashboard(lobby, player.id),
+          }]
+        })
+
       return {
         lobby,
         result: {
           lobby: toLobbySnapshot(lobby),
           startedAt,
           privateAssignments,
+          loupBlancDashboards,
           hostDashboard: {
             connectionId: host.connectionId,
             dashboard: toHostDashboard(lobby),
@@ -606,6 +625,23 @@ export class LobbyService {
       )
     }
     return toPrivateAssignment(lobby, player.id)
+  }
+
+  async getLoupBlancDashboard(command: SessionCommand): Promise<HostDashboard> {
+    assertConnectionId(command.connectionId)
+    const lobby = await this.dependencies.repository.read()
+    if (!lobby) {
+      throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+    }
+    assertStartedGame(lobby)
+    const player = authenticateConnectedSession(lobby, command)
+    if (player.isHost) {
+      throw new LobbyError(
+        ERROR_CODE.PLAYER_NOT_FOUND,
+        'Le maître du jeu ne possède pas ce rôle joueur.',
+      )
+    }
+    return toLoupBlancDashboard(lobby, player.id)
   }
 
   async getHostDashboard(command: SessionCommand): Promise<HostDashboard> {

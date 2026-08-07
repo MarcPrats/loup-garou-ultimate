@@ -1,6 +1,8 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
+import { ROLE_ID } from '@lgu/game-core'
+
 import {
   ERROR_CODE,
   LOBBY_ID,
@@ -313,9 +315,10 @@ export function createLobbyStoreDefinition(
         },
         onHostDashboard: (dashboard) => {
           if (realtimeSuspended) return
-          if (!currentPlayer.value?.isHost) return
+          const isLoupBlanc = privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
+          if (!currentPlayer.value?.isHost && !isLoupBlanc) return
           hostDashboard.value = dashboard
-          destination.value = SESSION_DESTINATION.GAME_MASTER
+          if (!isLoupBlanc) destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()
         },
         onLobbyClosed: (event) => {
