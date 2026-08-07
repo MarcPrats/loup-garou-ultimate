@@ -167,7 +167,7 @@ describe('assignRoles', () => {
       if (!info) continue
       checked += 1
 
-      expect([ROLE_ID.INFECT_WEREWOLF, ROLE_ID.GRAND_WEREWOLF]).toContain(info.roleId)
+      expect([ROLE_ID.INFECT_WEREWOLF, ROLE_ID.GRAND_WEREWOLF, ROLE_ID.LOUP_BLANC]).toContain(info.roleId)
       expect(info.roleId).not.toBe(ROLE_ID.ULTIMATE_WEREWOLF)
       expect(info.seenPlayerIds).not.toContain(info.playerId)
       expect(

@@ -73,6 +73,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Lorsque vous êtes concernée par une information, le Maître du Jeu peut, s'il le souhaite, vous faire apparaître comme un Loup Garou, même après votre mort.",
     info: "Votre pouvoir est entièrement contrôlé par le Maître du Jeu. Vous êtes une fausse piste pour les pouvoirs d'information : mentir sur votre rôle peut vous faire passer pour un véritable Loup Garou. Dites plutôt la vérité et, si votre présence gêne les déductions du Village, vous pouvez demander à être exécutée.",
   },
+  "loup-blanc": {
+    power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
+    info: "VUtilisez vos informations pour aider les Loups sans révéler trop clairement votre véritable rôle.",
+  },
   "chasseur": {
     power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le Loup Garou Ultime, il meurt.",
     info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
@@ -146,6 +150,10 @@ const PRESENTATION_DETAILS: Record<
   [ROLE_ID.RECLUSE]: {
     imagePath: appAsset('/images/recluse.webp'),
     fallbackSymbol: '🧍',
+  },
+  [ROLE_ID.LOUP_BLANC]: {
+    imagePath: appAsset('/images/loup_blanc.webp'),
+    fallbackSymbol: '🐺',
   },
   [ROLE_ID.CHASSEUR]: {
     imagePath: appAsset('/images/chasseur.webp'),
