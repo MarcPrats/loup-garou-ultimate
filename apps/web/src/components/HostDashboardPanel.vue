@@ -82,6 +82,6 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
 
     <HostNightOrderPanel v-if="showNightOrder" :dashboard="dashboard" />
 
-    <a v-if="showRulesLink" :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button">📖 Consulter les Règles</a>
+    <a v-if="showRulesLink" :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button" target="_blank" rel="noopener noreferrer">📖 Consulter les Règles</a>
   </div>
 </template>

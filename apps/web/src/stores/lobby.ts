@@ -78,6 +78,7 @@ export function createLobbyStoreDefinition(
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
     const hostDashboard = ref<HostDashboard | null>(null)
+    const pendingHostDashboard = ref<HostDashboard | null>(null)
     const error = ref<PublicError | null>(null)
     const notice = ref<LobbyNotice | null>(null)
     const restoringSession = ref(credentials.value !== null)
@@ -196,6 +197,15 @@ export function createLobbyStoreDefinition(
       lobby.value = nextLobby
       destination.value = nextDestination
       restoringSession.value = false
+      if (pendingHostDashboard.value) {
+        const canViewDashboard = currentPlayer.value?.isHost
+          || privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
+        if (canViewDashboard) {
+          hostDashboard.value = pendingHostDashboard.value
+          pendingHostDashboard.value = null
+          cancelPrivateViewRecovery()
+        }
+      }
       if (nextLobby.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
       startKeepAlive()
     }
@@ -207,6 +217,7 @@ export function createLobbyStoreDefinition(
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
+      pendingHostDashboard.value = null
       restoringSession.value = false
       dependencies.storage.clear()
       stopKeepAlive()
@@ -316,7 +327,10 @@ export function createLobbyStoreDefinition(
         onHostDashboard: (dashboard) => {
           if (realtimeSuspended) return
           const isLoupBlanc = privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
-          if (!currentPlayer.value?.isHost && !isLoupBlanc) return
+          if (!currentPlayer.value?.isHost && !isLoupBlanc) {
+            pendingHostDashboard.value = dashboard
+            return
+          }
           hostDashboard.value = dashboard
           if (!isLoupBlanc) destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()

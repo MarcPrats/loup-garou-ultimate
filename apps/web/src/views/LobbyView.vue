@@ -98,7 +98,7 @@ async function confirmLeave(): Promise<void> {
           {{ lobby.starting ? 'Lancement…' : '🎮 Démarrer la Partie' }}
         </button>
         <p v-else class="app-waiting-text">En attente du lancement par l'hôte...</p>
-        <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary">📖 Consulter les règles</a>
+        <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary" target="_blank" rel="noopener noreferrer">📖 Consulter les règles</a>
         <button type="button" class="app-btn app-btn-back" :disabled="lobby.leaving" @click="confirmingLeave = true">
           {{ lobby.leaving ? 'Départ…' : 'Quitter' }}
         </button>
