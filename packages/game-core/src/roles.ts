@@ -25,6 +25,7 @@ export const ROLE_ID = {
   VOYANTE: 'voyante',
   CHEVALIER: 'chevalier',
   CAPITAINE: 'capitaine',
+  RECLUSE: 'recluse',
   CHASSEUR: 'chasseur',
   FLUTISTE: 'flutiste',
   SORCIERE: 'sorciere',
@@ -51,6 +52,7 @@ export const ROLE_DEFINITIONS = [
   { id: ROLE_ID.VOYANTE, name: 'Voyante', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.CHEVALIER, name: 'Chevalier', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.CAPITAINE, name: 'Capitaine', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
+  { id: ROLE_ID.RECLUSE, name: 'Recluse', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.OUTSIDER },
   { id: ROLE_ID.CHASSEUR, name: 'Chasseur', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.FLUTISTE, name: 'Joueur de flûte', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.SORCIERE, name: 'Sorcière', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
@@ -66,7 +68,10 @@ export type WerewolfRoleId = Extract<RoleId,
   | typeof ROLE_ID.GRAND_WEREWOLF>
 export type NonUltimateWerewolfRoleId = Exclude<WerewolfRoleId, typeof ROLE_ID.ULTIMATE_WEREWOLF>
 export type VillageTeamRoleId = Exclude<RoleId, WerewolfRoleId>
-export type TrueVillagerRoleId = Exclude<VillageTeamRoleId, typeof ROLE_ID.ANGEL>
+export type TrueVillagerRoleId = Extract<
+  (typeof ROLE_DEFINITIONS)[number],
+  { category: typeof ROLE_CATEGORY.VILLAGER }
+>['id']
 
 const rolesById = new Map<RoleId, (typeof ROLE_DEFINITIONS)[number]>(
   ROLE_DEFINITIONS.map((role) => [role.id, role]),

@@ -11,6 +11,7 @@ import {
   ROLE_CATEGORY,
   ROLE_DEFINITIONS,
   ROLE_ID,
+  getRoleDefinition,
   getRoleIdsByCategory,
   isNonUltimateWerewolfRole,
   isVillageTeamRole,
@@ -22,6 +23,8 @@ import type { AssignablePlayer, PlayerId } from './types'
 const nonUltimateWerewolfRoleIds = ROLE_DEFINITIONS
   .map((role) => role.id)
   .filter(isNonUltimateWerewolfRole)
+
+const outsiderRoleIds = new Set(getRoleIdsByCategory(ROLE_CATEGORY.OUTSIDER))
 
 const trueVillagerRoleIds = getRoleIdsByCategory(
   ROLE_CATEGORY.VILLAGER,
@@ -84,8 +87,9 @@ export function buildRolePool(
   const shuffledWerewolves = shuffle(nonUltimateWerewolfRoleIds, random)
 
   rolePool.push(...shuffledWerewolves.slice(0, composition.werewolves - 1))
-  if (includesOutsider(selectedOutsiders, OUTSIDER_ID.ANGEL)) {
-    rolePool.push(ROLE_ID.ANGEL)
+  for (const outsiderId of selectedOutsiders) {
+    if (outsiderId === OUTSIDER_ID.DRUNK) continue
+    if (outsiderRoleIds.has(outsiderId)) rolePool.push(outsiderId)
   }
 
   // An Ivrogne receives a Villageois card, so its slot is intentionally
@@ -106,7 +110,8 @@ export function selectDrunkPlayerId(
 
   const candidates = players.filter((player) => {
     const roleId = roleFor(assignments, player.id)
-    return isVillageTeamRole(roleId) && roleId !== ROLE_ID.ANGEL
+    return isVillageTeamRole(roleId)
+      && getRoleDefinition(roleId).category !== ROLE_CATEGORY.OUTSIDER
   })
 
   return pickRandom(candidates, random).id

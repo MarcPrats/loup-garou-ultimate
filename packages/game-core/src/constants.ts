@@ -1,3 +1,5 @@
+import { getRoleIdsByCategory, ROLE_CATEGORY, type RoleId } from './roles'
+
 export const PLAYER_COUNT = {
   MINIMUM: 5,
   MAXIMUM: 12,
@@ -25,14 +27,13 @@ export const GAME_COMPOSITION_BY_PLAYER_COUNT = {
 } as const satisfies Record<SupportedPlayerCount, GameComposition>
 
 export const OUTSIDER_ID = {
-  ANGEL: 'angel',
   DRUNK: 'drunk',
 } as const
 
-export type OutsiderId = (typeof OUTSIDER_ID)[keyof typeof OUTSIDER_ID]
+export type OutsiderId = RoleId | typeof OUTSIDER_ID.DRUNK
 
 export const AVAILABLE_OUTSIDER_IDS = [
-  OUTSIDER_ID.ANGEL,
+  ...getRoleIdsByCategory(ROLE_CATEGORY.OUTSIDER),
   OUTSIDER_ID.DRUNK,
 ] as const satisfies readonly OutsiderId[]
 

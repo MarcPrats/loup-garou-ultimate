@@ -257,13 +257,14 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     available: true,
   },
   {
-    id: 'reclus',
-    name: 'Reclus',
+    id: 'recluse',
+    name: 'Recluse',
     category: 'marginal',
     categoryLabel: 'Marginal',
+    imagePath: appAsset('/images/recluse.webp'),
     emoji: '🧍',
-    summary: 'Vous pouvez être perçu comme Maléfique et comme Loup Garou ou Loup Garou Ultime, même mort(e).',
-    available: false,
+    summary: 'Le Maître du Jeu peut vous faire apparaître comme Loup Garou ou Loup Garou Ultime pour les pouvoirs d’information, même après votre mort.',
+    available: true,
   },
   {
     id: 'ange',

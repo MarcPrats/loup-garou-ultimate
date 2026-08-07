@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  AVAILABLE_OUTSIDER_IDS,
   GAME_COMPOSITION_BY_PLAYER_COUNT,
   OUTSIDER_ID,
   PLAYER_COUNT,
@@ -63,13 +64,13 @@ describe('assignRoles', () => {
 
       for (let seed = 1; seed <= 100; seed += 1) {
         const result = assignWithSeed(playerCount, seed)
-        const angelPresent = result.assignments.some(
-          (assignment) => assignment.roleId === ROLE_ID.ANGEL,
+        const assignedOutsiderRoles = result.assignments.filter(
+          (assignment) => getRoleDefinition(assignment.roleId).category === ROLE_CATEGORY.OUTSIDER,
         )
         const assignedWerewolves = result.assignments.filter(
           (assignment) => isWerewolfRole(assignment.roleId),
         )
-        const assignedOutsiders = Number(angelPresent) + Number(Boolean(result.drunkPlayerId))
+        const assignedOutsiders = assignedOutsiderRoles.length + Number(Boolean(result.drunkPlayerId))
 
         expect(result.assignments).toHaveLength(playerCount)
         expect(new Set(result.assignments.map((assignment) => assignment.playerId)).size).toBe(
@@ -106,27 +107,27 @@ describe('assignRoles', () => {
 
       for (let seed = 1; seed <= 400; seed += 1) {
         const result = assignWithSeed(playerCount, seed)
-        const angelPresent = result.assignments.some(
-          (assignment) => assignment.roleId === ROLE_ID.ANGEL,
+        const assignedOutsiderRoles = result.assignments.filter(
+          (assignment) => getRoleDefinition(assignment.roleId).category === ROLE_CATEGORY.OUTSIDER,
         )
         const drunkPresent = Boolean(result.drunkPlayerId)
-        const outsiderCount = Number(angelPresent) + Number(drunkPresent)
+        const outsiderCount = assignedOutsiderRoles.length + Number(drunkPresent)
 
         expect(outsiderCount).toBe(composition.outsiders)
 
         if (composition.outsiders === 1) {
-          observedSingleOutsiders.add(
-            angelPresent ? OUTSIDER_ID.ANGEL : OUTSIDER_ID.DRUNK,
-          )
+          const selectedOutsider = drunkPresent
+            ? OUTSIDER_ID.DRUNK
+            : assignedOutsiderRoles[0]?.roleId
+          if (selectedOutsider) observedSingleOutsiders.add(selectedOutsider)
         }
         if (composition.outsiders === 2) {
-          expect(angelPresent).toBe(true)
-          expect(drunkPresent).toBe(true)
+          expect(assignedOutsiderRoles.length + Number(drunkPresent)).toBe(2)
         }
       }
 
       if (composition.outsiders === 1) {
-        expect(observedSingleOutsiders).toEqual(new Set(Object.values(OUTSIDER_ID)))
+        expect(observedSingleOutsiders).toEqual(new Set(AVAILABLE_OUTSIDER_IDS))
       }
     }
   })
@@ -150,7 +151,7 @@ describe('assignRoles', () => {
         expect(target).toBeDefined()
         expect(target?.playerId).not.toBe(result.drunkPlayerId)
         expect(getEffectiveCategory(info.roleId, false)).toBe(ROLE_CATEGORY.VILLAGER)
-        expect(info.roleId).not.toBe(ROLE_ID.ANGEL)
+        expect(getRoleDefinition(info.roleId).category).toBe(ROLE_CATEGORY.VILLAGER)
         expect(info.seenPlayerIds).not.toContain(info.playerId)
       }
     }

@@ -19,7 +19,6 @@ export interface RolePresentation {
   readonly category: RoleCategory
   readonly imagePath: string
   readonly fallbackSymbol: string
-  readonly summary: string
   readonly power: string
   readonly info: string
 }
@@ -70,6 +69,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Si le Capitaine est vivant et qu'il ne reste que trois joueurs à la fin d'une journée sans exécution, le Village gagne. Si le Loup Garou Ultime cible le Capitaine pendant la nuit, le Maître du Jeu peut, s'il le souhaite, choisir secrètement un autre joueur vivant : celui-ci meurt à sa place.",
     info: "Votre pouvoir est entièrement passif : vous ne vous réveillez pas la nuit et le MJ sera responsable de l'exécution de votre pouvoir. Essayez de survivre jusqu'à ce que trois joueurs restent en vie. Rappel : les Loups gagnent lorsqu'il ne reste plus que deux joueurs en vie.",
   },
+  "recluse": {
+    power: "Lorsque vous êtes concernée par une information, le Maître du Jeu peut, s'il le souhaite, vous faire apparaître comme un Loup Garou, même après votre mort.",
+    info: "Votre pouvoir est entièrement contrôlé par le Maître du Jeu. Vous êtes une fausse piste pour les pouvoirs d'information : mentir sur votre rôle peut vous faire passer pour un véritable Loup Garou. Dites plutôt la vérité et, si votre présence gêne les déductions du Village, vous pouvez demander à être exécutée.",
+  },
   "chasseur": {
     power: "Une fois par partie, pendant la journée, choisissez publiquement un joueur. Si c'est le Loup Garou Ultime, il meurt.",
     info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
@@ -98,87 +101,75 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
 
 const PRESENTATION_DETAILS: Record<
   RoleId,
-  Pick<RolePresentation, 'imagePath' | 'fallbackSymbol' | 'summary'>
+  Pick<RolePresentation, 'imagePath' | 'fallbackSymbol'>
 > = {
   [ROLE_ID.ULTIMATE_WEREWOLF]: {
     imagePath: appAsset('/images/loupgarou.webp'),
     fallbackSymbol: '🐺',
-    summary: 'Chaque nuit, il choisit un joueur qui meurt. Il ne se réveille pas la première nuit.',
   },
   [ROLE_ID.INFECT_WEREWOLF]: {
     imagePath: appAsset('/images/infectloup.webp'),
     fallbackSymbol: '🩸',
-    summary: 'Chaque nuit, il choisit un joueur empoisonné pour la nuit et le jour suivants.',
   },
   [ROLE_ID.GRAND_WEREWOLF]: {
     imagePath: appAsset('/images/grandloup.webp'),
     fallbackSymbol: '🌕',
-    summary: 'Il devient le Loup Garou Ultime si celui-ci meurt alors qu’au moins cinq joueurs sont en vie.',
   },
   [ROLE_ID.PETITE_FILLE]: {
     imagePath: appAsset('/images/petite-fille.webp'),
     fallbackSymbol: '👧',
-    summary: 'Lors de la première nuit, elle apprend qu’un Villageois se cache parmi deux joueurs.',
   },
   [ROLE_ID.RENARD]: {
     imagePath: appAsset('/images/renard.webp'),
     fallbackSymbol: '🦊',
-    summary: 'Lors de la première nuit, il apprend qu’un Loup Garou se cache parmi deux joueurs.',
   },
   [ROLE_ID.MONTREUR_DOURS]: {
     imagePath: appAsset('/images/montreur-dours.webp'),
     fallbackSymbol: '🐻',
-    summary: 'Lors de la première nuit, il découvre combien de loups-garous sont placés côte à côte.',
   },
   [ROLE_ID.CUPIDON]: {
     imagePath: appAsset('/images/cupidon.webp'),
     fallbackSymbol: '💘',
-    summary: 'Chaque nuit, il apprend combien de ses deux voisins vivants sont des loups-garous.',
   },
   [ROLE_ID.VOYANTE]: {
     imagePath: appAsset('/images/voyante.webp'),
     fallbackSymbol: '🔮',
-    summary: 'Chaque nuit, elle choisit deux joueurs et apprend si l’un d’eux est le Loup Garou Ultime.',
   },
   [ROLE_ID.CHEVALIER]: {
     imagePath: appAsset('/images/chevalier.webp'),
     fallbackSymbol: '🛡️',
-    summary: 'Chaque nuit, sauf la première, il protège un autre joueur du Loup Garou Ultime.',
   },
   [ROLE_ID.CAPITAINE]: {
     imagePath: appAsset('/images/capitaine.webp'),
     fallbackSymbol: '🎖️',
-    summary: 'Si trois joueurs restent en vie sans exécution pendant la journée, le Village gagne. La nuit, le MJ peut choisir une autre victime si le Capitaine est ciblé.',
+  },
+  [ROLE_ID.RECLUSE]: {
+    imagePath: appAsset('/images/recluse.webp'),
+    fallbackSymbol: '🧍',
   },
   [ROLE_ID.CHASSEUR]: {
     imagePath: appAsset('/images/chasseur.webp'),
     fallbackSymbol: '🏹',
-    summary: 'Une fois par partie, pendant le jour, il désigne publiquement un joueur.',
   },
   [ROLE_ID.FLUTISTE]: {
     imagePath: appAsset('/images/flute.webp'),
     fallbackSymbol: '🎵',
-    summary: 'La première fois qu’il est nominé, son nominateur est exécuté si celui-ci est Villageois.',
   },
   [ROLE_ID.SORCIERE]: {
     imagePath: appAsset('/images/sorciere.webp'),
     fallbackSymbol: '🧪',
-    summary: 'Si elle meurt la nuit, elle choisit un joueur et découvre son personnage.',
   },
   [ROLE_ID.ANCIEN]: {
     imagePath: appAsset('/images/ancien.webp'),
     fallbackSymbol: '🧓',
-    summary: 'Il est protégé du pouvoir du Loup Garou Ultime.',
   },
   [ROLE_ID.ENFANT_SAUVAGE]: {
     imagePath: appAsset('/images/enfant.webp'),
     fallbackSymbol: '🌿',
-    summary: 'Chaque nuit, sauf la première, il apprend quel personnage a été exécuté pendant le jour.',
   },
   [ROLE_ID.ANGEL]: {
     imagePath: appAsset('/images/ange.webp'),
     fallbackSymbol: '😇',
-    summary: 'Si l’Ange meurt par exécution, son équipe perd immédiatement.',
   },
 }
 
@@ -216,7 +207,6 @@ const IVROGNE_ROLE_PRESENTATION: RolePresentation = {
   category: ROLE_CATEGORY.OUTSIDER,
   imagePath: IVROGNE_PRESENTATION.imagePath,
   fallbackSymbol: IVROGNE_PRESENTATION.fallbackSymbol,
-  summary: IVROGNE_PRESENTATION.summary,
   power: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un Villageois, mais ce n'est pas le cas.",
   info: "Conseil: Pensez à consommer de l'alcool avec modération. L'abus d'alcool est dangereux pour la santé.",
 }
