@@ -1,4 +1,4 @@
-kimport {
+import {
   ROLE_CATEGORY,
   type RoleCategory,
 } from '@lgu/contracts'
