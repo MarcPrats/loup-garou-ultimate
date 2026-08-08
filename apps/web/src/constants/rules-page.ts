@@ -80,7 +80,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'loup-garou-ultime',
     categoryLabel: 'Loup Garou Ultime',
     imagePath: appAsset('/images/loupgarou.webp'),
-    summary: 'Chaque nuit*, choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime. * Ne se réveille pas la première nuit.',
+    summary: 'Chaque nuit (sauf la première), choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime.',
     available: true,
   },
   {
@@ -99,7 +99,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     categoryLabel: 'Loup Garou',
     imagePath: appAsset('/images/loup_blanc.webp'),
     emoji: '🐺',
-    summary: 'Vous bénéficiez des informations du MJ. Vous pouvez être perçu comme Villageois ou Marginal, même après votre mort.',
+    summary: 'Vous bénéficiez des informations du Maître du Jeu. Vous pouvez être perçu comme Villageois ou Marginal, même après votre mort.',
     available: true,
   },
   {
@@ -153,7 +153,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/montreur-dours.webp'),
-    summary: 'Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.',
+    summary: 'Lors de la première nuit, vous découvrez combien de Loup Garous sont placés côte à côte.',
     available: true,
   },
   {
@@ -171,7 +171,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/voyante.webp'),
-    summary: "Chaque nuit, choisissez 2 joueurs : vous apprenez si l'un d'eux est le Loup Garou Ultime. Un joueur Gentil vous apparaît comme Loup Garou Ultime.",
+    summary: "Chaque nuit, choisissez 2 joueurs : vous apprenez si l'un d'eux est le Loup Garou Ultime. Une autre personne vous apparaît comme Loup Garou Ultime.",
     available: true,
   },
   {
@@ -180,7 +180,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/enfant.webp'),
-    summary: "Chaque nuit*, vous apprenez quel personnage a été exécuté aujourd'hui. * Ne se réveille pas la première nuit.",
+    summary: "Chaque nuit (sauf la première), vous apprenez quel personnage a été exécuté aujourd'hui.",
     available: true,
   },
   {
