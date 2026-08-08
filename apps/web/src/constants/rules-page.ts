@@ -80,7 +80,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'loup-garou-ultime',
     categoryLabel: 'Loup Garou Ultime',
     imagePath: appAsset('/images/loupgarou.webp'),
-    summary: 'Chaque nuit*, choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime. * Ne se réveille pas la première nuit.',
+    summary: 'Chaque nuit (sauf la première), choisissez un joueur : il meurt. Si vous vous tuez ainsi, un Loup Garou devient le Loup Garou Ultime.',
     available: true,
   },
   {
@@ -99,7 +99,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     categoryLabel: 'Loup Garou',
     imagePath: appAsset('/images/loup_blanc.webp'),
     emoji: '🐺',
-    summary: 'Vous bénéficiez des informations du MJ. Vous pouvez être perçu comme Villageois ou Marginal, même après votre mort.',
+    summary: 'Vous bénéficiez des informations du Maître du Jeu. Vous pouvez être perçu comme Villageois ou Marginal, même après votre mort.',
     available: true,
   },
   {
@@ -153,7 +153,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/montreur-dours.webp'),
-    summary: 'Lors de la première nuit, vous découvrez combien de loup garous sont placés côte à côte.',
+    summary: 'Lors de la première nuit, vous découvrez combien de Loup Garous sont placés côte à côte.',
     available: true,
   },
   {
@@ -171,7 +171,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/voyante.webp'),
-    summary: "Chaque nuit, choisissez 2 joueurs : vous apprenez si l'un d'eux est le Loup Garou Ultime. Un joueur Gentil vous apparaît comme Loup Garou Ultime.",
+    summary: "Chaque nuit, choisissez 2 joueurs: vous apprenez si l'un d'eux est le Loup Garou Ultime. Une autre personne vous apparaît comme Loup Garou Ultime.",
     available: true,
   },
   {
@@ -180,7 +180,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/enfant.webp'),
-    summary: "Chaque nuit*, vous apprenez quel personnage a été exécuté aujourd'hui. * Ne se réveille pas la première nuit.",
+    summary: "Chaque nuit (sauf la première), vous apprenez quel personnage a été exécuté aujourd'hui.",
     available: true,
   },
   {
@@ -189,7 +189,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/chevalier.webp'),
-    summary: 'Chaque nuit*, choisissez un joueur (pas vous-même) : il est protégé du Loup Garou Ultime cette nuit. * Ne se réveille pas la première nuit.',
+    summary: 'Chaque nuit (sauf la première), choisissez une autre personne que vous: elle est protégée du Loup Garou Ultime cette nuit.',
     available: true,
   },
   {
@@ -198,7 +198,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/sorciere.webp'),
-    summary: 'Si vous mourez la nuit, vous êtes réveillé(e) pour choisir un joueur : vous apprenez son personnage.',
+    summary: 'Si vous mourez la nuit, vous êtes réveillé(e) pour choisir une personne: vous apprenez son personnage.',
     available: true,
   },
   {
@@ -207,7 +207,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/flute.webp'),
-    summary: "La première fois que vous êtes nominé(e), si le nominateur est un Villageois, il est immédiatement exécuté.",
+    summary: "La première fois que vous êtes nominé(e), si le nominateur (pas un marginal) est un Villageois, il est immédiatement exécuté.",
     available: true,
   },
   {
@@ -216,7 +216,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/chasseur.webp'),
-    summary: "Une fois par partie, pendant le jour, désignez publiquement un joueur : s'il est le Loup Garou Ultime, il meurt.",
+    summary: "Une fois par partie, pendant le jour, désignez publiquement un joueur: s'il est le Loup Garou Ultime, il meurt.",
     available: true,
   },
   {
@@ -235,7 +235,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/capitaine.webp'),
     emoji: '🎖️',
-    summary: "Si le Capitaine est vivant et que trois joueurs restent en vie sans exécution pendant la journée, le Village gagne. La nuit, le MJ peut choisir une autre victime si le Capitaine est ciblé.",
+    summary: "Si le Capitaine est vivant et que trois joueurs restent en vie sans exécution pendant la journée, le Village gagne. La nuit, le Maître du jeu peut choisir une autre victime si le Capitaine est ciblé.",
     available: true,
   },
   {
@@ -245,7 +245,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     categoryLabel: 'Marginal',
     imagePath: appAsset('/images/ivrogne.webp'),
     emoji: '🍺',
-    summary: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un personnage Villageois, mais ce n'est pas le cas.",
+    summary: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un Villageois, mais ce n'est pas le cas.",
     available: true,
   },
   {
@@ -301,11 +301,11 @@ export const FIRST_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
     steps: [
       { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [eye("L'Infect Loup Garou désigne un joueur — ce joueur est empoisonné."), normal('😴')] },
       { roleId: 'petite-fille', title: 'Petite Fille', imagePath: appAsset('/images/petite-fille.webp'), imageAlt: 'Petite Fille', lines: [eye("Montrez la carte d'un Villageois en jeu. Désignez 2 joueurs dont l'un est ce Villageois."), normal('😴')] },
-      { roleId: 'bibliothecaire', title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez l\'image d’un Marginal et désignez 2 joueurs dont l’un est ce Marginal. Sinon : signalez le chiffre « 0 ».') , normal('😴')] },
-      { roleId: 'renard', title: 'Renard', imagePath: appAsset('/images/renard.webp'), imageAlt: 'Renard', lines: [eye("Montrez l\'image d'un Loup Garou en jeu. Désignez 2 joueurs dont l'un est ce Loup Garou."), normal('😴')] },
-      { roleId: 'montreur-dours', title: "Montreur d'ours", imagePath: appAsset('/images/montreur-dours.webp'), imageAlt: "Montreur d'ours", lines: [eye('Signalez avec les doigts le nombre de Loups Garous voisins l\'un de l\'autre (0, 1, 2).'), normal('😴')] },
+      { roleId: 'bibliothecaire', title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez l\'image d’un Marginal et désignez 2 personnes dont l’une est ce Marginal. Sinon : signalez le chiffre « 0 ».') , normal('😴')] },
+      { roleId: 'renard', title: 'Renard', imagePath: appAsset('/images/renard.webp'), imageAlt: 'Renard', lines: [eye("Montrez l\'image d'un Loup Garou en jeu. Désignez 2 personnes dont l'une est ce Loup Garou."), normal('😴')] },
+      { roleId: 'montreur-dours', title: "Montreur d'ours", imagePath: appAsset('/images/montreur-dours.webp'), imageAlt: "Montreur d'ours", lines: [eye('Signalez avec les doigts le nombre de Loups Garous voisins l\'un de l\'autre (0, 1, 2, 3, 4).'), normal('😴')] },
       { roleId: 'cupidon', title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loups Garous vivants voisins de Cupidon (0, 1 ou 2).'), normal('😴')] },
-      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
+      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez si l’un est le Loup Garou Ultime ou le Leurre », niez le sinon.'), normal('😴')] },
     ],
   },
   {
@@ -322,13 +322,13 @@ export const FOLLOWING_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
   {
     label: 'Actions des rôles',
     steps: [
-      { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [normal("Le joueur Empoisonné ne l'est plus."), eye("L'Infect Loup Garou désigne un nouveau joueur — ce joueur est empoisonné."), normal('😴')] },
+      { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [normal("Le joueur Empoisonné ne l'est plus."), eye("L'Infect Loup Garou désigne une nouvelle personne — ce joueur est empoisonné."), normal('😴')] },
       { roleId: 'chevalier', title: 'Chevalier', imagePath: appAsset('/images/chevalier.webp'), imageAlt: 'Chevalier', lines: [normal("Le joueur Protégé ne l'est plus."), eye('Le Chevalier désigne un joueur (pas lui-même) — ce joueur est « Protégé ».') , normal('😴')] },
       { roleId: 'loup-garou-ultime', title: 'Loup Garou Ultime', imagePath: appAsset('/images/loupgarou.webp'), imageAlt: 'Loup Garou Ultime', lines: [eye('Le Loup Garou Ultime désigne un joueur — ce joueur meurt.'), normal('😴')] },
       { roleId: 'sorciere', title: 'Sorcière', imagePath: appAsset('/images/sorciere.webp'), imageAlt: 'Sorcière', condition: 'Uniquement si la Sorcière est morte cette nuit :', lines: [eye('La Sorcière désigne un joueur — montrez-lui la carte de ce joueur.'), normal('😴')] },
       { roleId: 'enfant-sauvage', title: 'Enfant Sauvage', imagePath: appAsset('/images/enfant.webp'), imageAlt: 'Enfant Sauvage', condition: "Uniquement si un joueur a été exécuté aujourd'hui :", lines: [eye("Montrez à l'Enfant Sauvage la carte de ce joueur."), normal('😴')] },
       { roleId: 'cupidon', title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loup Garous voisins vivants de Cupidon (0, 1 ou 2).'), normal('😴')] },
-      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez (oui) si l’un est le Loup Garou Ultime ou marqué « Leurre », secouez la tête (non) sinon.'), normal('😴')] },
+      { roleId: 'voyante', title: 'Voyante', imagePath: appAsset('/images/voyante.webp'), imageAlt: 'Voyante', lines: [eye('La Voyante désigne 2 joueurs. Acquiescez si l’un est le Loup Garou Ultime ou est le Leurre, niez le sinon.'), normal('😴')] },
     ],
   },
   {
