@@ -31,10 +31,10 @@ import { RULES_DISTRIBUTION } from '../constants/rules-page'
       </table>
     </div>
 
-    <div class="distribution-cards" aria-label="Répartition détaillée par nombre de joueurs">
+    <div class="distribution-cards" aria-label="Répartition détaillée par nombre de personnes">
       <article v-for="row in RULES_DISTRIBUTION" :key="`mobile-${row.players}`" class="distribution-card">
         <header class="distribution-card-header">
-          <span class="distribution-players">{{ row.players }} joueurs</span>
+          <span class="distribution-players">{{ row.players }} personnes</span>
           <span class="distribution-number distribution-number-total">{{ row.players }}</span>
         </header>
         <div class="distribution-metrics">
