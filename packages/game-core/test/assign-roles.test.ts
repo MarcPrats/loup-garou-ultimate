@@ -181,6 +181,41 @@ describe('assignRoles', () => {
     expect(checked).toBeGreaterThan(0)
   })
 
+  it('gives a werewolf bluffing as Renard a clue about another non-ultimate werewolf', () => {
+    let checked = 0
+
+    for (const playerCount of SUPPORTED_PLAYER_COUNTS) {
+      for (let seed = 1; seed <= 1000; seed += 1) {
+        const result = assignWithSeed(playerCount, seed)
+        const werewolves = result.assignments.filter(
+          (assignment) => isWerewolfRole(assignment.roleId),
+        )
+
+        for (const information of result.bluffSpecialInformation) {
+          if (information.type !== 'renard') continue
+          checked += 1
+
+          const bluffer = assignmentFor(result, information.playerId)
+          expect(isWerewolfRole(bluffer.roleId)).toBe(true)
+          expect(information.seenPlayerIds).not.toContain(information.playerId)
+
+          const pointedWerewolf = result.assignments.find(
+            (assignment) =>
+              assignment.roleId === information.roleId
+              && information.seenPlayerIds.includes(assignment.playerId),
+          )
+          expect(pointedWerewolf).toBeDefined()
+          expect(pointedWerewolf?.playerId).not.toBe(information.playerId)
+          expect(isWerewolfRole(pointedWerewolf?.roleId ?? ROLE_ID.RENARD)).toBe(true)
+          expect(information.roleId).not.toBe(ROLE_ID.ULTIMATE_WEREWOLF)
+          expect(werewolves.some((assignment) => assignment.playerId === pointedWerewolf?.playerId)).toBe(true)
+        }
+      }
+    }
+
+    expect(checked).toBeGreaterThan(0)
+  })
+
   it('allows any Villageois or Marginal, including Voyante, as the decoy', () => {
     const observedRoleIds = new Set<string>()
     let checked = 0

@@ -27,10 +27,6 @@ const villageTeamRoleIds = ROLE_DEFINITIONS
   .map((role) => role.id)
   .filter(isVillageTeamRole)
 
-const nonUltimateWerewolfRoleIds = ROLE_DEFINITIONS
-  .map((role) => role.id)
-  .filter(isNonUltimateWerewolfRole)
-
 export function assignBluffRoles(
   werewolfPlayers: readonly AssignablePlayer[],
   assignments: AssignmentMap,
@@ -68,6 +64,49 @@ function selectFakePlayerIds(
   return first && second ? [first.id, second.id] : null
 }
 
+function selectRenardBluffInformation(
+  werewolfPlayerId: PlayerId,
+  werewolfPlayers: readonly AssignablePlayer[],
+  players: readonly AssignablePlayer[],
+  assignments: AssignmentMap,
+  random: RandomSource,
+): {
+  readonly roleId: NonUltimateWerewolfRoleId
+  readonly seenPlayerIds: readonly [PlayerId, PlayerId]
+} | null {
+  const candidates = werewolfPlayers.filter((player) =>
+    player.id !== werewolfPlayerId
+      && isNonUltimateWerewolfRole(roleFor(assignments, player.id)),
+  )
+  const selectedWerewolf = candidates.length > 0
+    ? pickRandom(candidates, random)
+    : null
+  if (!selectedWerewolf) return null
+
+  const secondCandidates = players.filter(
+    (player) =>
+      player.id !== werewolfPlayerId
+      && player.id !== selectedWerewolf.id,
+  )
+  const secondPlayer = secondCandidates.length > 0
+    ? pickRandom(secondCandidates, random)
+    : null
+  if (!secondPlayer) return null
+
+  const visiblePlayers = shuffle(
+    [selectedWerewolf.id, secondPlayer.id],
+    random,
+  )
+  const first = visiblePlayers[0]
+  const second = visiblePlayers[1]
+  if (!first || !second) return null
+
+  return {
+    roleId: roleFor(assignments, selectedWerewolf.id) as NonUltimateWerewolfRoleId,
+    seenPlayerIds: [first, second],
+  }
+}
+
 function selectFakePetiteFilleRoleId(
   players: readonly AssignablePlayer[],
   assignments: AssignmentMap,
@@ -99,21 +138,26 @@ export function buildBluffSpecialInformation(
 
     if (!hasSpecialInformation) continue
 
-    const seenPlayerIds = selectFakePlayerIds(werewolf.id, players, random)
-    if (!seenPlayerIds) continue
-
     if (bluffRoleId === ROLE_ID.RENARD) {
+      const renardInformation = selectRenardBluffInformation(
+        werewolf.id,
+        werewolfPlayers,
+        players,
+        assignments,
+        random,
+      )
+      if (!renardInformation) continue
+
       information.push({
         playerId: werewolf.id,
         type: BLUFF_INFORMATION_TYPE.RENARD,
-        roleId: pickRandom(
-          nonUltimateWerewolfRoleIds,
-          random,
-        ) as NonUltimateWerewolfRoleId,
-        seenPlayerIds,
+        ...renardInformation,
       })
       continue
     }
+
+    const seenPlayerIds = selectFakePlayerIds(werewolf.id, players, random)
+    if (!seenPlayerIds) continue
 
     information.push({
       playerId: werewolf.id,

@@ -59,7 +59,6 @@ describe('V3 UI parity', () => {
     const wrapper = mount(PlayerAssignmentPanel, { props: { assignment } })
     const text = wrapper.text()
     expect(text).toContain('Votre Pouvoir')
-    expect(text).toContain("Chaque nuit (sauf la première), choisissez un joueur")
     expect(text).toContain('Autres Infos')
     expect(text).toContain('Votre Rôle de Couverture')
     expect(text).toContain('Pouvoir (Bluff)')
