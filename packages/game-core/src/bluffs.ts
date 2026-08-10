@@ -51,19 +51,6 @@ export function assignBluffRoles(
   return { assignments: bluffAssignments, roleByPlayerId }
 }
 
-function selectFakePlayerIds(
-  werewolfPlayerId: PlayerId,
-  players: readonly AssignablePlayer[],
-  random: RandomSource,
-): readonly [PlayerId, PlayerId] | null {
-  const candidates = players.filter((player) => player.id !== werewolfPlayerId)
-  const shuffledPlayers = shuffle(candidates, random)
-  const first = shuffledPlayers[0]
-  const second = shuffledPlayers[1]
-
-  return first && second ? [first.id, second.id] : null
-}
-
 function selectRenardBluffInformation(
   werewolfPlayerId: PlayerId,
   werewolfPlayers: readonly AssignablePlayer[],
@@ -107,18 +94,47 @@ function selectRenardBluffInformation(
   }
 }
 
-function selectFakePetiteFilleRoleId(
+function selectPetiteFilleBluffInformation(
+  werewolfPlayerId: PlayerId,
   players: readonly AssignablePlayer[],
   assignments: AssignmentMap,
   drunkPlayerId: PlayerId | null,
   random: RandomSource,
-): TrueVillagerRoleId {
+): {
+  readonly roleId: TrueVillagerRoleId
+  readonly seenPlayerIds: readonly [PlayerId, PlayerId]
+} | null {
   const candidates = players.filter((player) => {
     const roleId = roleFor(assignments, player.id)
     return player.id !== drunkPlayerId && isTrueVillagerRole(roleId)
   })
-  const selectedVillager = pickRandom(candidates, random)
-  return roleFor(assignments, selectedVillager.id) as TrueVillagerRoleId
+  const selectedVillager = candidates.length > 0
+    ? pickRandom(candidates, random)
+    : null
+  if (!selectedVillager) return null
+
+  const secondCandidates = players.filter(
+    (player) =>
+      player.id !== werewolfPlayerId
+      && player.id !== selectedVillager.id,
+  )
+  const secondPlayer = secondCandidates.length > 0
+    ? pickRandom(secondCandidates, random)
+    : null
+  if (!secondPlayer) return null
+
+  const visiblePlayers = shuffle(
+    [selectedVillager.id, secondPlayer.id],
+    random,
+  )
+  const first = visiblePlayers[0]
+  const second = visiblePlayers[1]
+  if (!first || !second) return null
+
+  return {
+    roleId: roleFor(assignments, selectedVillager.id) as TrueVillagerRoleId,
+    seenPlayerIds: [first, second],
+  }
 }
 
 export function buildBluffSpecialInformation(
@@ -156,19 +172,19 @@ export function buildBluffSpecialInformation(
       continue
     }
 
-    const seenPlayerIds = selectFakePlayerIds(werewolf.id, players, random)
-    if (!seenPlayerIds) continue
+    const petiteFilleInformation = selectPetiteFilleBluffInformation(
+      werewolf.id,
+      players,
+      assignments,
+      drunkPlayerId,
+      random,
+    )
+    if (!petiteFilleInformation) continue
 
     information.push({
       playerId: werewolf.id,
       type: BLUFF_INFORMATION_TYPE.PETITE_FILLE,
-      roleId: selectFakePetiteFilleRoleId(
-        players,
-        assignments,
-        drunkPlayerId,
-        random,
-      ),
-      seenPlayerIds,
+      ...petiteFilleInformation,
     })
   }
 

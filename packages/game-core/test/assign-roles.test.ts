@@ -216,6 +216,38 @@ describe('assignRoles', () => {
     expect(checked).toBeGreaterThan(0)
   })
 
+  it('gives a werewolf bluffing as Petite Fille a clue about another true villager', () => {
+    let checked = 0
+
+    for (const playerCount of SUPPORTED_PLAYER_COUNTS) {
+      for (let seed = 1; seed <= 1000; seed += 1) {
+        const result = assignWithSeed(playerCount, seed)
+
+        for (const information of result.bluffSpecialInformation) {
+          if (information.type !== 'petite-fille') continue
+          checked += 1
+
+          const bluffer = assignmentFor(result, information.playerId)
+          expect(isWerewolfRole(bluffer.roleId)).toBe(true)
+          expect(information.seenPlayerIds).not.toContain(information.playerId)
+
+          const pointedVillager = result.assignments.find(
+            (assignment) =>
+              assignment.roleId === information.roleId
+              && information.seenPlayerIds.includes(assignment.playerId),
+          )
+          expect(pointedVillager).toBeDefined()
+          expect(pointedVillager?.playerId).not.toBe(information.playerId)
+          expect(pointedVillager?.playerId).not.toBe(result.drunkPlayerId)
+          expect(isVillageTeamRole(pointedVillager?.roleId ?? ROLE_ID.RENARD)).toBe(true)
+          expect(getEffectiveCategory(information.roleId, false)).toBe(ROLE_CATEGORY.VILLAGER)
+        }
+      }
+    }
+
+    expect(checked).toBeGreaterThan(0)
+  })
+
   it('allows any Villageois or Marginal, including Voyante, as the decoy', () => {
     const observedRoleIds = new Set<string>()
     let checked = 0
