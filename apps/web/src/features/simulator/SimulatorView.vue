@@ -134,6 +134,22 @@ function editSimulatorGameLogEvent(eventId: string, targetPlayerId: PlayerId): v
   }
 }
 
+function deleteSimulatorGameLogEvent(eventId: string): void {
+  if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
+
+  const gameLog = scenario.value.lobby.gameLog.filter((entry) => entry.id !== eventId)
+  if (gameLog.length === scenario.value.lobby.gameLog.length) return
+  scenario.value = {
+    ...scenario.value,
+    lobby: {
+      ...scenario.value.lobby,
+      gameLog,
+      players: updateSimulatorPlayers(scenario.value.lobby, gameLog),
+      revision: scenario.value.lobby.revision + 1,
+    },
+  }
+}
+
 function advanceSimulatorPhase(): void {
   if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
   const phase = scenario.value.lobby.gamePhase
@@ -269,6 +285,7 @@ generate()
             :can-edit="activeView === SIMULATOR_VIEW.HOST"
             @record="recordSimulatorGameLogEvent"
             @edit="editSimulatorGameLogEvent"
+            @delete="deleteSimulatorGameLogEvent"
           />
           <HostDashboardPanel
             v-if="activeView === SIMULATOR_VIEW.HOST"

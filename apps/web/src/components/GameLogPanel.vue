@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import {
   GAME_LOG_EVENT_TYPE,
@@ -27,10 +27,10 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   record: [eventType: GameLogEventType, targetPlayerId: PlayerId]
   edit: [eventId: string, targetPlayerId: PlayerId]
+  delete: [eventId: string]
 }>()
 
 const selectedTargetId = ref<PlayerId | ''>('')
-const editTargets = reactive<Record<string, PlayerId | ''>>({})
 
 const currentEventType = computed<GameLogEventType | null>(() => {
   if (!props.phase) return null
@@ -68,10 +68,21 @@ function recordSelected(): void {
   selectedTargetId.value = ''
 }
 
-function editSelected(entry: GameLogEntry): void {
-  const targetId = editTargets[entry.id]
+function editTargetValue(entry: GameLogEntry): PlayerId {
+  return entry.targetPlayerId
+}
+
+function editSelected(entry: GameLogEntry, event: Event): void {
+  const targetId = (event.target as HTMLSelectElement).value as PlayerId
   if (!targetId || targetId === entry.targetPlayerId) return
   emit('edit', entry.id, targetId)
+}
+
+function deleteSelected(entry: GameLogEntry): void {
+  if (typeof window !== 'undefined' && !window.confirm(
+    `Supprimer l’événement concernant ${entry.targetPlayerName} ? Le joueur redeviendra vivant.`,
+  )) return
+  emit('delete', entry.id)
 }
 </script>
 
@@ -82,8 +93,8 @@ function editSelected(entry: GameLogEntry): void {
   >
     <header class="app-game-log-header">
       <div>
-        <p class="app-game-log-kicker">Historique public</p>
-        <h2 class="app-game-log-title">Morts et exécutions</h2>
+        <p class="app-game-log-kicker">📜 Historique public</p>
+        <h2 class="app-game-log-title">💀 Morts et exécutions</h2>
       </div>
       <p class="app-game-log-count">
         {{ entries.length }} événement{{ entries.length > 1 ? 's' : '' }} enregistré{{ entries.length > 1 ? 's' : '' }}
@@ -110,22 +121,20 @@ function editSelected(entry: GameLogEntry): void {
         </select>
         <button
           type="button"
-          class="app-btn app-btn-primary app-game-log-record-btn"
+          class="app-game-log-record-btn"
           :disabled="!selectedTargetId || busy"
+          :aria-label="currentEventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'Enregistrer une mort' : 'Enregistrer une exécution'"
+          :title="currentEventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'Enregistrer une mort' : 'Enregistrer une exécution'"
           data-testid="record-game-log-event"
           @click="recordSelected"
         >
-          {{ busy ? 'Enregistrement…' : 'Enregistrer' }}
+          <span aria-hidden="true">{{ busy ? '…' : '+' }}</span>
         </button>
       </div>
     </div>
 
-    <p v-if="currentPlayer && !currentPlayer.alive" class="app-game-log-ghost-notice">
-      Vous êtes un fantôme. Vous pouvez continuer à consulter l’historique public.
-    </p>
-
     <p v-if="ghosts.length" class="app-game-log-ghosts">
-      <strong>Fantômes :</strong>
+      <strong>👻 Fantômes :</strong>
       <span v-for="player in ghosts" :key="player.id">{{ player.name }}</span>
     </p>
 
@@ -136,31 +145,32 @@ function editSelected(entry: GameLogEntry): void {
       <li v-for="entry in entries" :key="entry.id" class="app-game-log-entry">
         <span class="app-game-log-entry-phase">{{ phaseLabel(entry) }}</span>
         <span class="app-game-log-entry-text">
-          <strong>{{ entry.targetPlayerName }}</strong>
-          {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'est mort(e)' : 'a été exécuté(e)' }}
-        </span>
-        <div v-if="canEdit" class="app-game-log-edit-controls">
           <select
-            v-model="editTargets[entry.id]"
-            class="app-input app-game-log-edit-select"
-            :aria-label="`Nouvelle cible pour ${entry.targetPlayerName}`"
+            v-if="canEdit"
+            class="app-game-log-target-select"
+            :value="editTargetValue(entry)"
+            :aria-label="`Cible de l’événement, ${entry.targetPlayerName}`"
             :data-testid="`edit-game-log-target-${entry.id}`"
+            @change="editSelected(entry, $event)"
           >
-            <option value="">Corriger la cible</option>
             <option v-for="player in editOptions(entry)" :key="player.id" :value="player.id">
               {{ player.name }}
             </option>
           </select>
+          <strong v-else>{{ entry.targetPlayerName }}</strong>
+          {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? '🩸 a été dévoré(e)' : '⚔️ a été éliminé(e) par le Village' }}
+        </span>
+        <div v-if="canEdit" class="app-game-log-edit-controls">
           <button
             type="button"
-            class="app-game-log-edit-btn"
-            :disabled="!editTargets[entry.id] || editTargets[entry.id] === entry.targetPlayerId || busy"
-            :aria-label="`Corriger l’événement concernant ${entry.targetPlayerName}`"
-            :title="`Corriger l’événement concernant ${entry.targetPlayerName}`"
-            :data-testid="`edit-game-log-event-${entry.id}`"
-            @click="editSelected(entry)"
+            class="app-game-log-delete-btn"
+            :disabled="busy"
+            :aria-label="`Supprimer l’événement concernant ${entry.targetPlayerName}`"
+            :title="`Supprimer l’événement concernant ${entry.targetPlayerName}`"
+            :data-testid="`delete-game-log-event-${entry.id}`"
+            @click="deleteSelected(entry)"
           >
-            <span aria-hidden="true">✎</span>
+            <span aria-hidden="true">×</span>
           </button>
         </div>
       </li>

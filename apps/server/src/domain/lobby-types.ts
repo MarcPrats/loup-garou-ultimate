@@ -99,6 +99,11 @@ export interface EditGameLogEventCommand extends SessionCommand {
   readonly targetPlayerId: PlayerId
 }
 
+export interface DeleteGameLogEventCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly eventId: string
+}
+
 export interface SessionCommand {
   readonly sessionToken: SessionToken
   readonly connectionId: ConnectionId

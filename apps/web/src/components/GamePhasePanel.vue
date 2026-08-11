@@ -21,15 +21,15 @@ const emit = defineEmits<{
 
 const phaseLabel = computed(() => {
   if (!props.phase) return 'La partie n’a pas commencé'
-  const period = props.phase.period === GAME_PHASE_PERIOD.NIGHT ? 'Nuit' : 'Jour'
+  const period = props.phase.period === GAME_PHASE_PERIOD.NIGHT ? '🌙 Nuit' : '☀️ Jour'
   return `${period} ${props.phase.number}`
 })
 
 const phaseDescription = computed(() => {
   if (!props.phase) return 'La phase de jeu sera affichée ici au démarrage.'
   return props.phase.period === GAME_PHASE_PERIOD.NIGHT
-    ? 'Les actions de nuit peuvent être effectuées.'
-    : 'La journée et les discussions sont ouvertes.'
+    ? '🌙 Les actions de nuit peuvent être effectuées.'
+    : '☀️ La journée et les discussions sont ouvertes.'
 })
 </script>
 
@@ -42,7 +42,7 @@ const phaseDescription = computed(() => {
     <div class="app-game-phase-panel-content flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
       <div class="app-game-phase-panel-copy min-w-0">
         <p class="text-xs font-black uppercase tracking-[0.24em] text-lgu-orange">
-          État de la partie
+          🎭 État de la partie
         </p>
         <h2 class="mt-2 font-display text-3xl font-black text-white">
           {{ phaseLabel }}

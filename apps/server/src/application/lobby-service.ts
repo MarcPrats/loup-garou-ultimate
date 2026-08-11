@@ -29,6 +29,7 @@ import type {
   Clock,
   AdvanceGamePhaseCommand,
   ConnectionId,
+  DeleteGameLogEventCommand,
   EditGameLogEventCommand,
   EnterLobbyCommand,
   GameAssignmentGenerator,
@@ -806,6 +807,34 @@ export class LobbyService {
       ))
       validateGameLog(lobby, editedEntries)
       game.gameLog = editedEntries
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  deleteGameLogEvent(command: DeleteGameLogEventCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertStartedGame(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      assertExpectedRevision(lobby, command.expectedRevision)
+
+      const game = lobby.game!
+      const eventIndex = game.gameLog.findIndex((entry) => entry.id === command.eventId)
+      if (eventIndex < 0) {
+        throw new LobbyError(
+          ERROR_CODE.GAME_EVENT_NOT_FOUND,
+          'Événement introuvable dans le journal.',
+        )
+      }
+
+      const remainingEntries = game.gameLog.filter((_, index) => index !== eventIndex)
+      validateGameLog(lobby, remainingEntries)
+      game.gameLog = remainingEntries
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })

@@ -35,6 +35,7 @@ async function confirmLeave(): Promise<void> {
         :busy="lobby.updatingGameLog"
         @record="lobby.recordGameLogEvent"
         @edit="lobby.editGameLogEvent"
+        @delete="lobby.deleteGameLogEvent"
       />
 
       <HostDashboardPanel

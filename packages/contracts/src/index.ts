@@ -61,10 +61,12 @@ export {
   type PublicError,
 } from './errors'
 export {
+  gameLogDeleteCommandSchema,
   gameLogEditCommandSchema,
   gameLogEntrySchema,
   gameLogEventTypeSchema,
   gameLogRecordCommandSchema,
+  type GameLogDeleteCommand,
   type GameLogEditCommand,
   type GameLogEntry,
   type GameLogEventType,

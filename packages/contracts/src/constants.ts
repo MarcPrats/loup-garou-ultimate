@@ -130,6 +130,7 @@ export const SOCKET_EVENT = {
   GAME_PHASE_ADVANCE: 'game:phase-advance',
   GAME_LOG_RECORD: 'game-log:record',
   GAME_LOG_EDIT: 'game-log:edit',
+  GAME_LOG_DELETE: 'game-log:delete',
   KEEP_ALIVE: 'session:keep-alive',
   LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',

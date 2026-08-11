@@ -229,6 +229,10 @@ export function createLobbyStoreDefinition(
     }
 
     function handleAckError(publicError: PublicError): void {
+      if (publicError.message === 'Cette connexion possède déjà une session active.') {
+        error.value = null
+        return
+      }
       error.value = TERMINAL_SESSION_ERRORS.has(publicError.code)
         ? { ...publicError, message: MESSAGE.LOBBY_UNAVAILABLE }
         : publicError
@@ -620,6 +624,30 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function deleteGameLogEvent(eventId: string): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value) return false
+
+      updatingGameLog.value = true
+      clearError()
+      try {
+        const response = await getGateway().deleteGameLogEvent(eventId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        updatingGameLog.value = false
+      }
+    }
+
     async function sendKeepAlive(): Promise<void> {
       const expectedEpoch = sessionEpoch
       try {
@@ -799,6 +827,7 @@ export function createLobbyStoreDefinition(
       advanceGamePhase,
       recordGameLogEvent,
       editGameLogEvent,
+      deleteGameLogEvent,
       clearError,
       clearSession,
       showCopiedNotice,

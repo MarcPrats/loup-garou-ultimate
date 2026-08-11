@@ -5,6 +5,7 @@ import {
   LOBBY_ID,
   createAckSchema,
   emptyResponseSchema,
+  gameLogDeleteCommandSchema,
   gameLogEditCommandSchema,
   gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
@@ -83,6 +84,7 @@ export interface LobbyGateway {
   advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
   recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   editGameLogEvent(eventId: string, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  deleteGameLogEvent(eventId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
 }
 
@@ -349,6 +351,21 @@ export class SocketLobbyGateway implements LobbyGateway {
       (callback) => this.socket.emit(
         SOCKET_EVENT.GAME_LOG_EDIT,
         gameLogEditCommandSchema.parse({ eventId, targetPlayerId, expectedRevision }),
+        callback,
+      ),
+    )
+  }
+
+  deleteGameLogEvent(
+    eventId: string,
+    expectedRevision: number,
+  ): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'delete game log event',
+      gameLogAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.GAME_LOG_DELETE,
+        gameLogDeleteCommandSchema.parse({ eventId, expectedRevision }),
         callback,
       ),
     )

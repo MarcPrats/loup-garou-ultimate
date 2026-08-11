@@ -3,6 +3,9 @@ import { ref } from 'vue'
 
 import { ROLE_ID } from '@lgu/game-core'
 
+import { ROUTE_PATH } from '../constants/app'
+import { appPath } from '../constants/paths'
+
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
@@ -22,19 +25,22 @@ async function confirmLeave(): Promise<void> {
 <template>
   <main class="app-page">
     <div class="app-screen app-game-container">
-      <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
-
-      <GameLogPanel
-        :entries="lobby.lobby?.gameLog ?? []"
-        :players="lobby.lobby?.players ?? []"
-        :phase="lobby.lobby?.gamePhase ?? null"
-        :current-player-id="lobby.currentPlayer?.id ?? null"
-      />
+      <section
+        v-if="lobby.currentPlayer && !lobby.currentPlayer.alive"
+        class="app-ghost-status-panel"
+        role="status"
+      >
+        <p class="app-ghost-status-kicker">👻 Vous êtes un fantôme</p>
+        <p class="app-ghost-status-message">
+          💬 Vous avez toujours le droit de parler et vous disposez encore d’un dernier vote pour le reste de la partie.
+        </p>
+      </section>
 
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
         :dashboard="lobby.privateAssignment.role.id === ROLE_ID.LOUP_BLANC ? lobby.hostDashboard : null"
+        :show-rules-link="false"
       />
 
       <section
@@ -46,6 +52,24 @@ async function confirmLeave(): Promise<void> {
         <h1 class="mt-5 font-display text-3xl font-bold">Récupération de votre rôle…</h1>
         <p class="mt-3 text-slate-300">La connexion privée est en cours de restauration.</p>
       </section>
+
+      <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
+
+      <GameLogPanel
+        :entries="lobby.lobby?.gameLog ?? []"
+        :players="lobby.lobby?.players ?? []"
+        :phase="lobby.lobby?.gamePhase ?? null"
+        :current-player-id="lobby.currentPlayer?.id ?? null"
+      />
+
+      <a
+        :href="appPath(ROUTE_PATH.RULES)"
+        class="app-btn app-btn-secondary app-rules-button"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        📖 Consulter les règles
+      </a>
 
       <FeedbackBanner
         v-if="lobby.error"

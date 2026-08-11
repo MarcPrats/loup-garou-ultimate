@@ -39,5 +39,11 @@ export const gameLogEditCommandSchema = z.object({
   targetPlayerId: playerIdSchema,
 }).strict()
 
+export const gameLogDeleteCommandSchema = z.object({
+  expectedRevision: revisionSchema,
+  eventId: z.string().trim().min(1).max(128).regex(/^[a-zA-Z0-9_-]+$/),
+}).strict()
+
 export type GameLogRecordCommand = z.infer<typeof gameLogRecordCommandSchema>
 export type GameLogEditCommand = z.infer<typeof gameLogEditCommandSchema>
+export type GameLogDeleteCommand = z.infer<typeof gameLogDeleteCommandSchema>

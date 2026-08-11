@@ -10,6 +10,7 @@ import type {
 } from './commands'
 import { SOCKET_EVENT } from './constants'
 import type {
+  GameLogDeleteCommand,
   GameLogEditCommand,
   GameLogRecordCommand,
 } from './game-log'
@@ -83,6 +84,10 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.GAME_LOG_EDIT]: (
     command: GameLogEditCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.GAME_LOG_DELETE]: (
+    command: GameLogDeleteCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (

@@ -12,6 +12,7 @@ import {
   ackFailure,
   ackSuccess,
   emptyCommandSchema,
+  gameLogDeleteCommandSchema,
   gameLogEditCommandSchema,
   gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
@@ -311,6 +312,19 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
           expectedRevision: command.expectedRevision,
           eventId: command.eventId,
           targetPlayerId: command.targetPlayerId,
+        })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_LOG_DELETE, (rawCommand, callback) => {
+      acknowledge(callback, async () => {
+        const command = parseCommand(gameLogDeleteCommandSchema, rawCommand)
+        const result = await serviceFor(socket).deleteGameLogEvent({
+          ...getSessionCommand(socket),
+          expectedRevision: command.expectedRevision,
+          eventId: command.eventId,
         })
         broadcastSnapshot(io, result)
         return result
