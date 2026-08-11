@@ -9,14 +9,17 @@ import {
 const props = withDefaults(defineProps<{
   phase: GamePhase | null
   canAdvance?: boolean
+  canRewind?: boolean
   advancing?: boolean
 }>(), {
   canAdvance: false,
+  canRewind: false,
   advancing: false,
 })
 
 const emit = defineEmits<{
   advance: []
+  rewind: []
 }>()
 
 const phaseLabel = computed(() => {
@@ -52,16 +55,27 @@ const phaseDescription = computed(() => {
         </p>
       </div>
 
-      <button
-        v-if="canAdvance"
-        type="button"
-        class="app-btn app-btn-primary app-game-phase-advance-btn shrink-0"
-        :disabled="advancing"
-        data-testid="advance-game-phase"
-        @click="emit('advance')"
-      >
-        {{ advancing ? 'Passage en cours…' : 'Passer à la phase suivante' }}
-      </button>
+      <div v-if="canAdvance" class="app-game-phase-actions">
+        <button
+          v-if="canRewind"
+          type="button"
+          class="app-game-phase-rewind-btn"
+          :disabled="advancing"
+          data-testid="rewind-game-phase"
+          @click="emit('rewind')"
+        >
+          ← <span>Phase précédente</span>
+        </button>
+        <button
+          type="button"
+          class="app-btn app-btn-primary app-game-phase-advance-btn shrink-0"
+          :disabled="advancing"
+          data-testid="advance-game-phase"
+          @click="emit('advance')"
+        >
+          {{ advancing ? 'Passage en cours…' : 'Passer à la phase suivante' }}
+        </button>
+      </div>
     </div>
   </section>
 </template>

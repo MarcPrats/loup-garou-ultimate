@@ -290,6 +290,18 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
       }, onUnexpectedError)
     })
 
+    socket.on(SOCKET_EVENT.GAME_PHASE_REWIND, (rawCommand, callback) => {
+      acknowledge(callback, async () => {
+        const command = parseCommand(gamePhaseAdvanceCommandSchema, rawCommand)
+        const result = await serviceFor(socket).rewindGamePhase({
+          ...getSessionCommand(socket),
+          expectedRevision: command.expectedRevision,
+        })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
     socket.on(SOCKET_EVENT.GAME_LOG_RECORD, (rawCommand, callback) => {
       acknowledge(callback, async () => {
         const command = parseCommand(gameLogRecordCommandSchema, rawCommand)

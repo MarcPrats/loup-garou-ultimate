@@ -23,8 +23,10 @@ async function confirmLeave(): Promise<void> {
       <GamePhasePanel
         :phase="lobby.lobby?.gamePhase ?? null"
         :can-advance="lobby.isHost"
+        :can-rewind="lobby.lobby?.gamePhase?.period === 'day' || (lobby.lobby?.gamePhase?.number ?? 1) > 1"
         :advancing="lobby.advancingPhase"
         @advance="lobby.advanceGamePhase"
+        @rewind="lobby.rewindGamePhase"
       />
 
       <GameLogPanel

@@ -235,6 +235,12 @@ button:disabled {
 .app-ghost-status-kicker { margin: 0; color: var(--app-accent); font-size: .78rem; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
 .app-ghost-status-message { margin: 7px 0 0; color: var(--app-text); font-size: .95rem; line-height: 1.5; }
 
+.app-game-phase-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.app-game-phase-rewind-btn { display: inline-flex; min-height: 44px; align-items: center; gap: 7px; padding: 0 14px; border: 1px solid var(--app-border); border-radius: 10px; color: var(--app-text); background: rgb(255 255 255 / 6%); font-size: .88rem; font-weight: 800; cursor: pointer; }
+.app-game-phase-rewind-btn:hover:not(:disabled),
+.app-game-phase-rewind-btn:focus-visible { border-color: var(--app-accent); color: var(--app-accent); background: rgb(230 126 34 / 12%); }
+.app-game-phase-rewind-btn:disabled { cursor: not-allowed; opacity: .45; }
+
 .app-game-log-panel { overflow: hidden; }
 .app-game-log-header { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
 .app-game-log-kicker { margin: 0; color: var(--app-accent); font-size: .72rem; font-weight: 900; letter-spacing: .24em; text-transform: uppercase; }

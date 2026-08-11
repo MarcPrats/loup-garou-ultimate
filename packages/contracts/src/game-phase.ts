@@ -29,3 +29,11 @@ export function getNextGamePhase(phase: GamePhase): GamePhase {
   }
   return { period: GAME_PHASE_PERIOD.NIGHT, number: phase.number + 1 }
 }
+
+export function getPreviousGamePhase(phase: GamePhase): GamePhase | null {
+  if (phase.period === GAME_PHASE_PERIOD.DAY) {
+    return { period: GAME_PHASE_PERIOD.NIGHT, number: phase.number }
+  }
+  if (phase.number === 1) return null
+  return { period: GAME_PHASE_PERIOD.DAY, number: phase.number - 1 }
+}

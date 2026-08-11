@@ -7,6 +7,7 @@ import {
   LOBBY_PHASE,
   createInitialGamePhase,
   getNextGamePhase,
+  getPreviousGamePhase,
   playerIdSchema,
   playerNameSchema,
   roleAccessTokenSchema,
@@ -721,6 +722,29 @@ export class LobbyService {
       }
 
       lobby.gamePhase = getNextGamePhase(lobby.gamePhase)
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  rewindGamePhase(command: AdvanceGamePhaseCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertStartedGame(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      if (!lobby.gamePhase) {
+        throw new LobbyError(ERROR_CODE.GAME_NOT_STARTED, 'La phase de jeu n’est pas initialisée.')
+      }
+      const previousPhase = getPreviousGamePhase(lobby.gamePhase)
+      if (!previousPhase) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'La partie est déjà à la première nuit.')
+      }
+      lobby.gamePhase = previousPhase
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })

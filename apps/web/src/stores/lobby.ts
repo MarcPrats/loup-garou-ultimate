@@ -562,6 +562,30 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function rewindGamePhase(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value) return false
+
+      advancingPhase.value = true
+      clearError()
+      try {
+        const response = await getGateway().rewindGamePhase(expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        advancingPhase.value = false
+      }
+    }
+
     async function recordGameLogEvent(
       eventType: GameLogEventType,
       targetPlayerId: PlayerId,
@@ -825,6 +849,7 @@ export function createLobbyStoreDefinition(
       kick,
       start,
       advanceGamePhase,
+      rewindGamePhase,
       recordGameLogEvent,
       editGameLogEvent,
       deleteGameLogEvent,

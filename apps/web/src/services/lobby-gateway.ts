@@ -82,6 +82,7 @@ export interface LobbyGateway {
   kick(playerId: PlayerId): Promise<Ack<LobbySnapshot>>
   start(): Promise<Ack<EmptyResponse>>
   advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  rewindGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
   recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   editGameLogEvent(eventId: string, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   deleteGameLogEvent(eventId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
@@ -318,6 +319,18 @@ export class SocketLobbyGateway implements LobbyGateway {
       gamePhaseAdvanceAckSchema,
       (callback) => this.socket.emit(
         SOCKET_EVENT.GAME_PHASE_ADVANCE,
+        gamePhaseAdvanceCommandSchema.parse({ expectedRevision }),
+        callback,
+      ),
+    )
+  }
+
+  rewindGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'rewind game phase',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.GAME_PHASE_REWIND,
         gamePhaseAdvanceCommandSchema.parse({ expectedRevision }),
         callback,
       ),

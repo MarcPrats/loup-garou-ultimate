@@ -78,6 +78,10 @@ export interface ClientToServerEvents {
     command: GamePhaseAdvanceCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
+  [SOCKET_EVENT.GAME_PHASE_REWIND]: (
+    command: GamePhaseAdvanceCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
   [SOCKET_EVENT.GAME_LOG_RECORD]: (
     command: GameLogRecordCommand,
     callback: AckCallback<LobbySnapshot>,

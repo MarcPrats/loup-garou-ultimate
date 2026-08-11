@@ -77,6 +77,7 @@ export {
   gamePhasePeriodSchema,
   gamePhaseSchema,
   getNextGamePhase,
+  getPreviousGamePhase,
   type GamePhase,
 } from './game-phase'
 export {

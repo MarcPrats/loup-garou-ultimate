@@ -150,6 +150,23 @@ function deleteSimulatorGameLogEvent(eventId: string): void {
   }
 }
 
+function rewindSimulatorPhase(): void {
+  if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
+  const phase = scenario.value.lobby.gamePhase
+  if (!phase || (phase.period === GAME_PHASE_PERIOD.NIGHT && phase.number === 1)) return
+  const previous = phase.period === GAME_PHASE_PERIOD.DAY
+    ? { period: GAME_PHASE_PERIOD.NIGHT, number: phase.number }
+    : { period: GAME_PHASE_PERIOD.DAY, number: phase.number - 1 }
+  scenario.value = {
+    ...scenario.value,
+    lobby: {
+      ...scenario.value.lobby,
+      gamePhase: previous,
+      revision: scenario.value.lobby.revision + 1,
+    },
+  }
+}
+
 function advanceSimulatorPhase(): void {
   if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
   const phase = scenario.value.lobby.gamePhase
@@ -276,7 +293,9 @@ generate()
           <GamePhasePanel
             :phase="scenario.lobby.gamePhase"
             :can-advance="activeView === SIMULATOR_VIEW.HOST"
+            :can-rewind="scenario.lobby.gamePhase?.period === 'day' || (scenario.lobby.gamePhase?.number ?? 1) > 1"
             @advance="advanceSimulatorPhase"
+            @rewind="rewindSimulatorPhase"
           />
           <GameLogPanel
             :entries="scenario.lobby.gameLog"
