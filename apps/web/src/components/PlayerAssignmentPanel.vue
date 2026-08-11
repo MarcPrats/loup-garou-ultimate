@@ -17,7 +17,9 @@ import RoleInfoPanel from './RoleInfoPanel.vue'
 const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
   dashboard?: HostDashboard | null
+  showRulesLink?: boolean
 }>(), {
+  showRulesLink: true,
 })
 
 

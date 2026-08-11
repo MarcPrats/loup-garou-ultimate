@@ -184,7 +184,7 @@
 }
 .role-detail-heading h1 {
     margin: 12px 0 0;
-    font-family: 'Roboto Slab', serif;
+    font-family: var(--font-sans);
     font-size: clamp(2rem, 7vw, 3.6rem);
     line-height: 1.08;
     background: linear-gradient(135deg, var(--catalog-orange), var(--catalog-blue));

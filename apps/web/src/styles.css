@@ -2,7 +2,7 @@
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Roboto Slab", ui-serif, Georgia, serif;
+  --font-display: var(--font-sans);
 
   --color-lgu-background: #090d16;
   --color-lgu-surface: #151b28;
@@ -468,4 +468,289 @@ button:disabled {
   .app-game-log-entry-phase { flex-basis: 100%; }
   .app-game-log-edit-controls { width: 100%; }
   .app-game-log-target-select { flex: 1; width: auto; max-width: none; }
+}
+
+/* Unified application visual system, aligned with the Rules page. */
+.app-page {
+  --app-primary: #1a1a1a;
+  --app-secondary: #2d2d2d;
+  --app-surface: #343a40;
+  --app-surface-soft: rgb(255 255 255 / 5%);
+  --app-accent: #e67e22;
+  --app-blue: #3498db;
+  --app-success: #27ae60;
+  --app-danger: #e74c3c;
+  --app-text: #f8f9fa;
+  --app-muted: #adb5bd;
+  --app-border: #495057;
+  --app-radius: 14px;
+  --app-shadow: 0 16px 34px rgb(0 0 0 / 18%);
+  align-items: flex-start;
+  padding: 24px;
+  background: linear-gradient(135deg, var(--app-primary) 0%, var(--app-secondary) 100%);
+}
+
+.app-screen,
+.app-home-shell {
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  background: rgb(52 58 64 / 95%);
+  box-shadow: var(--app-shadow), 0 0 0 1px rgb(255 255 255 / 4%);
+  backdrop-filter: blur(12px);
+}
+
+.app-screen { padding: 32px; }
+.app-screen h1,
+.app-screen h2,
+.app-screen h3,
+.app-home-shell h1 { font-family: var(--font-display); }
+.app-screen h1,
+.app-home-shell h1 { margin-bottom: 28px; font-size: clamp(2rem, 4vw, 2.8rem); letter-spacing: .02em; }
+.app-screen h2 { margin-bottom: 22px; font-size: clamp(1.45rem, 2.5vw, 2rem); }
+.app-screen h3 { font-size: 1.1rem; }
+.app-home-shell { max-width: 860px; padding: 42px; }
+.app-home-actions { padding: 20px; border: 1px solid var(--app-border); border-radius: var(--app-radius); background: rgb(255 255 255 / 4%); box-shadow: none; }
+.app-home-action { min-height: 54px; border-color: var(--app-border); border-radius: 10px; background: rgb(255 255 255 / 6%); }
+.app-home-action-primary { border-color: transparent; background: linear-gradient(135deg, var(--app-accent), var(--app-blue)); }
+
+.app-game-container { max-width: 960px; }
+.app-gm-container { max-width: 1100px; }
+.app-button-group { gap: 12px; }
+.app-btn {
+  min-height: 46px;
+  padding: 11px 18px;
+  border-radius: 10px;
+  font-size: .98rem;
+  letter-spacing: .01em;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+.app-btn-primary { border: 1px solid rgb(255 255 255 / 18%); background: linear-gradient(135deg, var(--app-accent), var(--app-blue)); box-shadow: 0 5px 16px rgb(230 126 34 / 25%); }
+.app-btn-primary:hover:not(:disabled),
+.app-btn-primary:focus-visible { filter: brightness(1.07); transform: translateY(-1px); box-shadow: 0 8px 22px rgb(230 126 34 / 32%); }
+.app-btn-secondary { border: 1px solid var(--app-border); background: rgb(255 255 255 / 6%); }
+.app-btn-secondary:hover:not(:disabled),
+.app-btn-secondary:focus-visible { border-color: var(--app-accent); background: rgb(255 255 255 / 11%); transform: translateY(-1px); }
+.app-btn-back { border: 1px solid var(--app-border); background: rgb(255 255 255 / 4%); }
+.app-btn:disabled { transform: none; filter: none; opacity: .5; }
+
+.app-input,
+.app-text-input,
+.app-game-log-compose .app-input,
+.app-game-log-target-select {
+  border: 1px solid var(--app-border);
+  border-radius: 9px;
+  color: var(--app-text);
+  background-color: rgb(255 255 255 / 7%);
+  font-size: .95rem;
+}
+.app-input:focus,
+.app-text-input:focus,
+.app-game-log-compose .app-input:focus,
+.app-game-log-target-select:focus-visible { border-color: var(--app-accent); outline: none; box-shadow: 0 0 0 3px rgb(230 126 34 / 18%); }
+
+.app-lobby-list-card,
+.app-home-actions,
+.app-game-phase-panel,
+.app-game-log-panel,
+.app-ghost-status-panel,
+.app-info-section,
+.app-power-section,
+.app-bluff-section,
+.app-bluff-special-section {
+  border-color: rgb(255 255 255 / 15%);
+  border-radius: var(--app-radius);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 12%);
+}
+.app-lobby-list-card { background: rgb(255 255 255 / 5%); }
+.app-lobby-list-card:hover { border-color: rgb(230 126 34 / 60%); background: rgb(255 255 255 / 8%); }
+.app-game-phase-panel,
+.app-game-log-panel { background: rgb(52 58 64 / 92%); }
+.app-game-phase-panel { border-color: rgb(230 126 34 / 48%); }
+.app-ghost-status-panel { background: linear-gradient(135deg, rgb(230 126 34 / 13%), rgb(255 255 255 / 4%)); }
+
+@media (max-width: 899px) {
+  .app-page { align-items: flex-start; padding: 12px; }
+  .app-screen { padding: 22px 18px; }
+  .app-home-shell { padding: 28px 18px; }
+  .app-game-phase-actions { justify-content: stretch; }
+  .app-game-phase-actions > * { flex: 1 1 100%; }
+}
+
+
+/* Laptop refinement: one typography system, semantic colors, and tighter hierarchy. */
+.app-page,
+.app-page button,
+.app-page a,
+.app-page input,
+.app-page select,
+.app-page textarea { font-family: var(--font-sans) !important; }
+.app-page h1,
+.app-page h2,
+.app-page h3,
+.app-page h4,
+.app-page .font-display,
+.app-page .app-game-log-title,
+.app-page .app-game-phase-panel h2 { font-family: var(--font-display) !important; }
+
+@media (min-width: 900px) {
+  .app-screen.app-game-container { max-width: 920px !important; padding: 24px !important; }
+  .app-screen.app-gm-container { max-width: 1080px !important; padding: 28px !important; }
+  .app-game-phase-panel,
+  .app-game-log-panel { max-width: 100%; }
+}
+
+.app-game-phase-panel {
+  border-color: #d99a36 !important;
+  background: linear-gradient(135deg, #202b43 0%, #172033 100%) !important;
+  box-shadow: 0 14px 30px rgb(11 18 35 / 35%), inset 0 1px 0 rgb(255 255 255 / 5%) !important;
+}
+.app-game-phase-panel-night { border-color: #6878c7 !important; background: linear-gradient(135deg, #202847 0%, #171c35 100%) !important; }
+.app-game-phase-panel-day { border-color: #e09a38 !important; background: linear-gradient(135deg, #45301f 0%, #24283a 100%) !important; }
+.app-game-phase-panel p { color: #c6d0e4; }
+.app-game-phase-panel h2 { color: #fff; letter-spacing: .01em; }
+
+.app-game-log-panel {
+  border-color: #4c78a8 !important;
+  background: linear-gradient(135deg, #17293d 0%, #111b2b 100%) !important;
+  box-shadow: 0 14px 30px rgb(8 18 34 / 32%), inset 0 1px 0 rgb(255 255 255 / 5%) !important;
+}
+.app-game-log-kicker,
+.app-game-log-entry-phase { color: #f2b34b !important; }
+.app-game-log-title { color: #f4f7fb !important; }
+.app-game-log-entry { border-color: rgb(132 165 204 / 22%) !important; }
+.app-game-log-entry-text { color: #bccbe0 !important; }
+.app-game-log-entry-text strong,
+.app-game-log-target-select { color: #f4f7fb !important; }
+.app-game-log-ghosts span { border: 1px solid rgb(115 153 196 / 28%); background: #223853 !important; }
+
+.app-info-section,
+.app-power-section,
+.app-bluff-section,
+.app-bluff-special-section {
+  border-radius: 14px !important;
+  box-shadow: 0 12px 26px rgb(8 12 22 / 25%), inset 0 1px 0 rgb(255 255 255 / 4%) !important;
+}
+.app-power-section { border-color: #bd7448 !important; background: linear-gradient(135deg, #3b2a2c 0%, #2d2935 100%) !important; }
+.app-info-section { border-color: #4e7fa6 !important; background: linear-gradient(135deg, #263847 0%, #29313d 100%) !important; }
+.app-bluff-section { border-color: #8c6ab0 !important; background: linear-gradient(135deg, #302747 0%, #252b3d 100%) !important; }
+.app-bluff-special-section { border-color: #b08a4d !important; background: linear-gradient(135deg, #3e3427 0%, #2a303d 100%) !important; }
+
+.app-screen .app-btn,
+.app-screen .app-input,
+.app-screen .app-game-log-target-select { border-radius: 9px; }
+.app-screen .app-btn-primary { background: linear-gradient(135deg, #e69235, #3f8fca); }
+.app-screen .app-btn-secondary { border-color: #60748b; background: rgb(28 42 59 / 72%); }
+.app-screen .app-btn-secondary:hover:not(:disabled) { border-color: #e6a044; background: rgb(47 71 96 / 85%); }
+
+@media (max-width: 899px) {
+  .app-screen.app-game-container,
+  .app-screen.app-gm-container { padding: 18px 14px !important; }
+}
+
+/* Final typography rule: all application UI uses one consistent font. */
+.app-page,
+.app-page *,
+.app-page *::before,
+.app-page *::after {
+  font-family: var(--font-sans) !important;
+}
+
+/* Role reveal refinement: let the artwork sit directly on the section surface. */
+.app-role-card {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.app-role-card .app-role-info h4 { color: var(--app-text); font-size: 1.45rem; font-weight: 800; }
+.app-bluff-title { margin-bottom: 20px !important; color: var(--app-text) !important; font-size: 1.45rem !important; letter-spacing: .02em; text-align: left !important; }
+@media (min-width: 900px) {
+  .app-role-card { padding: 12px 0 !important; }
+}
+
+/* Role reveal: no wrapper tint, centered title, and independent visual blocks. */
+.app-game-container .app-role-reveal { align-items: start; }
+.app-game-container .app-role-reveal > .app-role-description-container,
+.app-game-container .app-role-reveal > .app-bluff-section {
+  align-self: start;
+  margin: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.app-game-container .app-role-reveal > .app-role-description-container > .app-role-card {
+  min-height: 0;
+  padding: 14px 0 22px !important;
+  background: transparent !important;
+}
+.app-game-container .app-role-reveal .app-bluff-title,
+.app-game-container .app-role-reveal > .app-role-description-container > .app-role-card .app-role-info {
+  align-items: center;
+  text-align: center !important;
+}
+.app-game-container .app-role-reveal .app-bluff-title { margin-top: 0; }
+.app-game-container .app-role-reveal .app-description-section {
+  margin: 0 0 16px;
+  border-radius: 12px;
+}
+.app-game-container .app-role-reveal .app-description-section:last-child { margin-bottom: 0; }
+
+@media (min-width: 900px) {
+  .app-game-container .app-role-reveal > .app-role-description-container { height: auto; }
+  .app-game-container .app-role-reveal > .app-role-description-container > .app-role-card { justify-content: center; }
+}
+
+/* Gameplay grid: every major block shares the same width and horizontal edges. */
+.app-game-container .app-role-reveal,
+.app-game-container .app-role-description-container,
+.app-game-container .app-game-phase-panel,
+.app-game-container .app-game-log-panel {
+  width: 100%;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+.app-game-container .app-role-reveal:not(.app-role-reveal-has-bluff) {
+  width: 100%;
+  max-width: none !important;
+  margin-right: 0;
+  margin-left: 0;
+}
+.app-game-container .app-role-reveal > .app-role-description-container { min-width: 0; }
+
+@media (min-width: 900px) {
+  .app-game-container .app-role-reveal { gap: 20px; }
+  .app-game-container .app-role-reveal > .app-role-description-container { width: 100%; }
+  .app-game-container .app-game-phase-panel,
+  .app-game-container .app-game-log-panel { margin-right: 0; margin-left: 0; }
+}
+
+/* Gameplay rhythm: one consistent vertical gap between all blocks. */
+.app-game-container { --app-block-gap: 20px; }
+.app-game-container > * {
+  margin-top: 0 !important;
+  margin-bottom: var(--app-block-gap) !important;
+}
+.app-game-container > *:last-child { margin-bottom: 0 !important; }
+.app-game-container .app-role-reveal { row-gap: var(--app-block-gap); }
+.app-game-container .app-role-description-container { gap: var(--app-block-gap); }
+.app-game-container .app-role-description-container > .app-role-card,
+.app-game-container .app-role-description-container > .app-description-section { margin-bottom: 0 !important; }
+.app-game-container .app-role-reveal .app-description-section { margin-bottom: 0; }
+
+/* Mobile role reveal: compact, readable, and free of stretched empty areas. */
+@media (max-width: 899px) {
+  .app-screen.app-game-container { padding: 16px 12px !important; }
+  .app-game-container .app-role-reveal { display: flex; flex-direction: column; gap: 16px; }
+  .app-game-container .app-role-reveal > .app-role-description-container { width: 100%; gap: 16px; }
+  .app-game-container .app-role-reveal > .app-role-description-container > .app-role-card {
+    display: flex; min-height: 0; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 10px 0 16px !important;
+  }
+  .app-game-container .app-role-reveal .app-role-image-container { width: 150px; height: 150px; margin: 0 auto 6px; }
+  .app-game-container .app-role-reveal .app-role-info { align-items: center; gap: 5px; }
+  .app-game-container .app-role-reveal .app-role-info h4 { font-size: 1.45rem; }
+  .app-game-container .app-role-reveal .app-role-category { font-size: .78rem; }
+  .app-game-container .app-role-reveal .app-bluff-title { margin: 0 0 2px !important; font-size: 1.2rem !important; line-height: 1.3; text-align: center !important; }
+  .app-game-container .app-role-reveal .app-description-section { padding: 16px; }
+  .app-game-container .app-role-reveal .app-section-header { margin-bottom: 10px; padding-bottom: 8px; }
+  .app-game-container .app-role-reveal .app-section-header h4 { font-size: 1rem; }
+  .app-game-container .app-role-reveal .app-section-text { font-size: .98rem; line-height: 1.55; }
 }

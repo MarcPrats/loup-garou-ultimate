@@ -36,11 +36,9 @@ const followingNightSections = computed(() => filterRulesNightSections(
 
     <div class="app-gm-night-order-grid">
       <div>
-        <h3>🌑 Première nuit</h3>
         <RulesNightBlock title="🌑 Première Nuit" :sections="firstNightSections" />
       </div>
       <div>
-        <h3>🌒 Nuits suivantes</h3>
         <RulesNightBlock title="🌒 Nuits Suivantes" :sections="followingNightSections" />
       </div>
     </div>

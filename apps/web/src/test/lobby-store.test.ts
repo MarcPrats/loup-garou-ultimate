@@ -103,6 +103,11 @@ class FakeGateway implements LobbyGateway {
     phase: LOBBY_PHASE.STARTED,
     gamePhase: { period: 'day', number: 1 },
   }))
+  readonly rewindGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({
+    ...createLobby(revision + 1),
+    phase: LOBBY_PHASE.STARTED,
+    gamePhase: { period: 'night', number: 1 },
+  }))
   readonly recordGameLogEvent = vi.fn(async (
     _eventType: GameLogEventType,
     _targetPlayerId: PlayerId,
@@ -134,6 +139,15 @@ class FakeGateway implements LobbyGateway {
       targetPlayerId: 'player_3',
       targetPlayerName: 'Joueur 3',
     }],
+  }))
+  readonly deleteGameLogEvent = vi.fn(async (
+    _eventId: string,
+    revision: number,
+  ): Promise<Ack<LobbySnapshot>> => ackSuccess({
+    ...createLobby(revision + 1),
+    phase: LOBBY_PHASE.STARTED,
+    gamePhase: { period: 'night', number: 1 },
+    gameLog: [],
   }))
   readonly keepAlive = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
 

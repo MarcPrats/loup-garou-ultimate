@@ -39,6 +39,7 @@ const phaseDescription = computed(() => {
 <template>
   <section
     class="app-game-phase-panel mb-6 rounded-3xl border border-lgu-orange/40 bg-slate-900/90 p-6 shadow-xl"
+    :class="phase?.period === GAME_PHASE_PERIOD.NIGHT ? 'app-game-phase-panel-night' : 'app-game-phase-panel-day'"
     aria-live="polite"
     data-testid="game-phase-panel"
   >
