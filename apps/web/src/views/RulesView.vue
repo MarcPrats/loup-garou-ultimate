@@ -165,25 +165,25 @@ onBeforeUnmount(() => {
           <article class="rules-overview-card rules-overview-card-village">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🎭</span></span>
             <h3>Un rôle secret</h3>
-            <p>Chaque joueur reçoit un personnage et une équipe. Votre identité ne sera révélée qu'à la fin de la partie. Vous être libre de dire ce que vous voulez.</p>
+            <p>Chaque joueur reçoit un personnage: un Villageois ou un Loup Garou. Votre identité ne sera révélée qu'à la fin de la partie. Vous être libre de dire ce que vous voulez.</p>
           </article>
 
           <article class="rules-overview-card rules-overview-card-day">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">☀️</span></span>
             <h3>Le jour</h3>
-            <p>Discutez, observez les comportements et votez pour éliminer le joueur que vous soupçonnez.</p>
+            <p>Discutez, observez les comportements et lancez pour des nominations pour éliminer quelqu'un.</p>
           </article>
 
           <article class="rules-overview-card rules-overview-card-night">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🌙</span></span>
             <h3>La nuit</h3>
-            <p>Le Maître du Jeu réveille les rôles dans l’ordre. Les pouvoirs s’activent et les Loups choisissent leur cible.</p>
+            <p>Le Maître du Jeu réveille les différents rôles dans l’ordre. Les pouvoirs s’activent et il y aura probablement une victime.</p>
           </article>
 
           <article class="rules-overview-card rules-overview-card-goal">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🏆</span></span>
             <h3>La victoire</h3>
-            <p>Le Village doit démasquer tous les Loups tandis que ces derniers doivent rester en vie jusqu'à la fin de la partie.</p>
+            <p>Le Village doit démasquer tous les Loups Garous tandis que ces derniers doivent rester en vie jusqu'à la fin de la partie.</p>
           </article>
         </div>
 
