@@ -217,6 +217,7 @@ describe('LobbyService', () => {
     })
 
     expect(started.lobby.phase).toBe(LOBBY_PHASE.STARTED)
+    expect(started.lobby.gamePhase).toEqual({ period: 'night', number: 1 })
     expect(started.lobby.canStart).toBe(false)
     expect(started.privateAssignments).toHaveLength(PLAYER_COUNT.MINIMUM)
     expect(started.hostDashboard.connectionId).toBe('host')
@@ -430,6 +431,63 @@ describe('LobbyService', () => {
         connectionId: 'host',
       }),
       ERROR_CODE.PLAYER_NOT_FOUND,
+    )
+  })
+
+  it('advances the public game phase in order and requires the current host revision', async () => {
+    const { service } = createFixture()
+    const { host } = await fillMinimumGame(service)
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    const day = await service.advanceGamePhase({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: started.lobby.revision,
+    })
+    expect(day.gamePhase).toEqual({ period: 'day', number: 1 })
+
+    const night = await service.advanceGamePhase({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: day.revision,
+    })
+    expect(night.gamePhase).toEqual({ period: 'night', number: 2 })
+
+    await expectLobbyError(
+      service.advanceGamePhase({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: day.revision,
+      }),
+      ERROR_CODE.STALE_REVISION,
+    )
+
+    await service.disconnect('host')
+    const resumed = await service.resume({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host-reconnected',
+    })
+    expect(resumed.response.lobby.gamePhase).toEqual({ period: 'night', number: 2 })
+  })
+
+  it('rejects phase changes from a regular player', async () => {
+    const { service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+
+    await expectLobbyError(
+      service.advanceGamePhase({
+        sessionToken: players[0]!.session.sessionToken,
+        connectionId: 'player-1',
+        expectedRevision: started.lobby.revision,
+      }),
+      ERROR_CODE.NOT_GAME_MASTER,
     )
   })
 

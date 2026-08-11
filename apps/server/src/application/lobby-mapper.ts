@@ -49,6 +49,7 @@ export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
   return {
     id: lobby.id,
     phase: lobby.phase,
+    gamePhase: lobby.gamePhase,
     revision: lobby.revision,
     players: [...lobby.players]
       .sort((left, right) => left.joinOrder - right.joinOrder)

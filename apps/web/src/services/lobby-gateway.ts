@@ -5,6 +5,7 @@ import {
   LOBBY_ID,
   createAckSchema,
   emptyResponseSchema,
+  gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
   hostDashboardSchema,
   notificationEventSchema,
@@ -47,6 +48,7 @@ const lobbyEntryAckSchema = createAckSchema(lobbyEntryResponseSchema)
 const sessionResumeAckSchema = createAckSchema(sessionResumeResponseSchema)
 const lobbySnapshotAckSchema = createAckSchema(lobbySnapshotSchema)
 const emptyAckSchema = createAckSchema(emptyResponseSchema)
+const gamePhaseAdvanceAckSchema = createAckSchema(lobbySnapshotSchema)
 
 export interface LobbyGatewayHandlers {
   readonly onConnectionState: (state: ConnectionState) => void
@@ -74,6 +76,7 @@ export interface LobbyGateway {
   leave(): Promise<Ack<EmptyResponse>>
   kick(playerId: PlayerId): Promise<Ack<LobbySnapshot>>
   start(): Promise<Ack<EmptyResponse>>
+  advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
 }
 
@@ -298,6 +301,18 @@ export class SocketLobbyGateway implements LobbyGateway {
       'game start',
       emptyAckSchema,
       (callback) => this.socket.emit(SOCKET_EVENT.GAME_START, {}, callback),
+    )
+  }
+
+  advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'advance game phase',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.GAME_PHASE_ADVANCE,
+        gamePhaseAdvanceCommandSchema.parse({ expectedRevision }),
+        callback,
+      ),
     )
   }
 

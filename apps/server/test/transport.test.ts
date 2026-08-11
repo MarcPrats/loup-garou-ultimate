@@ -116,6 +116,15 @@ function start(client: TestClient): Promise<Ack<Record<string, never>>> {
   })
 }
 
+function advancePhase(
+  client: TestClient,
+  expectedRevision: number,
+): Promise<Ack<LobbySnapshot>> {
+  return new Promise((resolve) => {
+    client.emit(SOCKET_EVENT.GAME_PHASE_ADVANCE, { expectedRevision }, resolve)
+  })
+}
+
 function leave(client: TestClient): Promise<Ack<Record<string, never>>> {
   return new Promise((resolve) => {
     client.emit(SOCKET_EVENT.PLAYER_LEAVE, {}, resolve)
@@ -329,6 +338,49 @@ describe('V3 transport', () => {
     expect(publicSnapshots.length).toBeGreaterThan(0)
     expect(JSON.stringify(publicSnapshots.at(-1))).not.toContain('roleAccessToken')
     expect(JSON.stringify(publicSnapshots.at(-1))).not.toContain('isDrunk')
+  })
+
+  it('lets only the MJ advance the phase and broadcasts the new public state', async () => {
+    const runtime = await createRuntime()
+    const host = await connectClient(runtime.url)
+    const hostEntry = await enter(host, 'Le MJ')
+    expect(hostEntry.ok).toBe(true)
+
+    const players: TestClient[] = []
+    for (let index = 1; index <= PLAYER_COUNT_LIMIT.MINIMUM; index += 1) {
+      const player = await connectClient(runtime.url)
+      expect((await enter(player, `Joueur ${index}`)).ok).toBe(true)
+      players.push(player)
+    }
+    expect((await start(host)).ok).toBe(true)
+
+    const initial = await runtime.service.getLobbySnapshot()
+    expect(initial?.gamePhase).toEqual({ period: 'night', number: 1 })
+    if (!initial) return
+
+    const publicSnapshots: LobbySnapshot[] = []
+    players[0]!.on(SOCKET_EVENT.LOBBY_SNAPSHOT, (snapshot) => publicSnapshots.push(snapshot))
+    const day = await advancePhase(host, initial.revision)
+
+    expect(day).toMatchObject({
+      ok: true,
+      data: { gamePhase: { period: 'day', number: 1 } },
+    })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(publicSnapshots.at(-1)?.gamePhase).toEqual({ period: 'day', number: 1 })
+
+    const stale = await advancePhase(host, initial.revision)
+    expect(stale).toMatchObject({
+      ok: false,
+      error: { code: ERROR_CODE.STALE_REVISION },
+    })
+
+    if (!day.ok) return
+    const playerAttempt = await advancePhase(players[0]!, day.data.revision)
+    expect(playerAttempt).toMatchObject({
+      ok: false,
+      error: { code: ERROR_CODE.NOT_GAME_MASTER },
+    })
   })
 
   it('notifies and disconnects a kicked player before broadcasting the snapshot', async () => {

@@ -26,6 +26,7 @@ const ENTRY: LobbyEntryResponse = {
   lobby: {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
+    gamePhase: null,
     revision: 1,
     players: [{
       id: 'player_1',

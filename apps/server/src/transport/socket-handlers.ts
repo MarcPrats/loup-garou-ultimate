@@ -12,6 +12,7 @@ import {
   ackFailure,
   ackSuccess,
   emptyCommandSchema,
+  gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
   hostKickCommandSchema,
   lobbyClosedEventSchema,
@@ -271,6 +272,18 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         for (const delivery of result.loupBlancDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
         io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
         return {}
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_PHASE_ADVANCE, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(gamePhaseAdvanceCommandSchema, rawCommand)
+        const result = await serviceFor(socket).advanceGamePhase({
+          ...getSessionCommand(socket),
+          expectedRevision: command.expectedRevision,
+        })
+        broadcastSnapshot(io, result)
+        return result
       }, onUnexpectedError)
     })
 

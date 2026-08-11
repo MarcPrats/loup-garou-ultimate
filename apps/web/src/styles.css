@@ -369,6 +369,12 @@ button:disabled {
 }
 
 @media (min-width: 900px) {
+  .app-game-phase-panel-content { gap: 32px; }
+  .app-game-phase-panel-copy { flex: 1 1 260px; }
+  .app-game-phase-panel-copy h2 { margin-bottom: 0; text-align: left; white-space: nowrap; }
+  .app-game-phase-panel-copy p:last-child { max-width: 360px; }
+  .app-game-phase-panel .app-game-phase-advance-btn { width: auto; min-width: 280px; }
+
   .app-game-container { max-width: 1100px; }
   .app-game-container .app-role-reveal {
     display: grid;

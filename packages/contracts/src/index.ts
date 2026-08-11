@@ -11,12 +11,14 @@ export {
 } from './acknowledgements'
 export {
   emptyCommandSchema,
+  gamePhaseAdvanceCommandSchema,
   hostKickCommandSchema,
   lobbyCreateCommandSchema,
   lobbyEnterCommandSchema,
   lobbyJoinCommandSchema,
   sessionResumeCommandSchema,
   type EmptyCommand,
+  type GamePhaseAdvanceCommand,
   type HostKickCommand,
   type LobbyCreateCommand,
   type LobbyEnterCommand,
@@ -34,6 +36,7 @@ export {
   LOBBY_CLOSED_REASON,
   LOBBY_ID,
   LOBBY_PHASE,
+  GAME_PHASE_PERIOD,
   SESSION_DESTINATION,
   SESSION_ENDED_REASON,
   SOCKET_EVENT,
@@ -45,6 +48,7 @@ export {
   type RoleCategory,
   type LobbyClosedReason,
   type LobbyPhase,
+  type GamePhasePeriod,
   type SessionDestination,
   type SessionEndedReason,
   type SpecialInformationType,
@@ -55,6 +59,13 @@ export {
   publicErrorSchema,
   type PublicError,
 } from './errors'
+export {
+  createInitialGamePhase,
+  gamePhasePeriodSchema,
+  gamePhaseSchema,
+  getNextGamePhase,
+  type GamePhase,
+} from './game-phase'
 export {
   gameStartedEventSchema,
   hostDashboardSchema,

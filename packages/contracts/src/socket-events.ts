@@ -1,6 +1,7 @@
 import type { AckCallback, EmptyResponse } from './acknowledgements'
 import type {
   EmptyCommand,
+  GamePhaseAdvanceCommand,
   HostKickCommand,
   LobbyCreateCommand,
   LobbyEnterCommand,
@@ -67,6 +68,10 @@ export interface ClientToServerEvents {
   [SOCKET_EVENT.GAME_START]: (
     command: EmptyCommand,
     callback: AckCallback<EmptyResponse>,
+  ) => void
+  [SOCKET_EVENT.GAME_PHASE_ADVANCE]: (
+    command: GamePhaseAdvanceCommand,
+    callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (
     command: EmptyCommand,

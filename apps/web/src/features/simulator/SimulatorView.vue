@@ -4,10 +4,12 @@ import { RouterLink } from 'vue-router'
 
 import {
   PLAYER_COUNT_LIMIT,
+  getNextGamePhase,
   type SimulatorScenario,
 } from '@lgu/contracts'
 
 import FeedbackBanner from '../../components/FeedbackBanner.vue'
+import GamePhasePanel from '../../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../../components/PlayerAssignmentPanel.vue'
 import { ROUTE_NAME } from '../../constants/app'
@@ -52,6 +54,20 @@ const selectedPlayerId = computed<string>({
     activeView.value = playerId || SIMULATOR_VIEW.HOST
   },
 })
+
+function advanceSimulatorPhase(): void {
+  if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
+  const phase = scenario.value.lobby.gamePhase
+  if (!phase) return
+  scenario.value = {
+    ...scenario.value,
+    lobby: {
+      ...scenario.value.lobby,
+      gamePhase: getNextGamePhase(phase),
+      revision: scenario.value.lobby.revision + 1,
+    },
+  }
+}
 
 function generate(): void {
   errorMessage.value = null
@@ -162,6 +178,11 @@ generate()
       <template v-if="scenario">
 
         <div :key="activeView" class="mt-8">
+          <GamePhasePanel
+            :phase="scenario.lobby.gamePhase"
+            :can-advance="activeView === SIMULATOR_VIEW.HOST"
+            @advance="advanceSimulatorPhase"
+          />
           <HostDashboardPanel
             v-if="activeView === SIMULATOR_VIEW.HOST"
             :dashboard="scenario.hostDashboard"

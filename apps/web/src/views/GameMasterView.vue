@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
+import GamePhasePanel from '../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import { useLobbyStore } from '../stores/lobby'
 
@@ -18,6 +19,13 @@ async function confirmLeave(): Promise<void> {
 <template>
   <main class="app-page">
     <div class="app-screen app-gm-container">
+      <GamePhasePanel
+        :phase="lobby.lobby?.gamePhase ?? null"
+        :can-advance="lobby.isHost"
+        :advancing="lobby.advancingPhase"
+        @advance="lobby.advanceGamePhase"
+      />
+
       <HostDashboardPanel
         v-if="lobby.hostDashboard"
         :dashboard="lobby.hostDashboard"

@@ -85,6 +85,7 @@ export function createLobbyStoreDefinition(
     const entering = ref(false)
     const leaving = ref(false)
     const starting = ref(false)
+    const advancingPhase = ref(false)
     const kickingPlayerId = ref<PlayerId | null>(null)
 
     let initializePromise: Promise<void> | null = null
@@ -530,6 +531,30 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function advanceGamePhase(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value) return false
+
+      advancingPhase.value = true
+      clearError()
+      try {
+        const response = await getGateway().advanceGamePhase(expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        advancingPhase.value = false
+      }
+    }
+
     async function sendKeepAlive(): Promise<void> {
       const expectedEpoch = sessionEpoch
       try {
@@ -687,6 +712,7 @@ export function createLobbyStoreDefinition(
       entering,
       leaving,
       starting,
+      advancingPhase,
       kickingPlayerId,
       currentPlayer,
       isHost,
@@ -704,6 +730,7 @@ export function createLobbyStoreDefinition(
       leave,
       kick,
       start,
+      advanceGamePhase,
       clearError,
       clearSession,
       showCopiedNotice,

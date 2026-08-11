@@ -5,6 +5,7 @@ import type {
   RoleAccessToken,
   RoleAccessView,
   LobbyClosedReason,
+  GamePhase,
   LobbyPhase,
   SessionToken,
 } from '@lgu/contracts'
@@ -50,6 +51,7 @@ export interface LobbyState {
   lastActivityAt: number
   closedAt: number | null
   closeReason: LobbyClosedReason | null
+  gamePhase: GamePhase | null
   game: StoredGameState | null
 }
 
@@ -77,6 +79,10 @@ export interface LobbyRepository {
       lobby: LobbyState | null,
     ) => LobbyMutation<T> | Promise<LobbyMutation<T>>,
   ): Promise<T>
+}
+
+export interface AdvanceGamePhaseCommand extends SessionCommand {
+  readonly expectedRevision: number
 }
 
 export interface SessionCommand {

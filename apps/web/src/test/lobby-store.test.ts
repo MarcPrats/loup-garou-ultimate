@@ -37,6 +37,7 @@ function createLobby(revision = 1): LobbySnapshot {
   return {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
+    gamePhase: null,
     revision,
     players: [
       {
@@ -94,6 +95,11 @@ class FakeGateway implements LobbyGateway {
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createLobby(2)))
   readonly start = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
+  readonly advanceGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({
+    ...createLobby(revision + 1),
+    phase: LOBBY_PHASE.STARTED,
+    gamePhase: { period: 'day', number: 1 },
+  }))
   readonly keepAlive = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
 
   subscribe(handlers: LobbyGatewayHandlers): () => void {
@@ -174,6 +180,24 @@ describe('lobby store', () => {
 
     gateway.handlers?.onLobbySnapshot(createLobby(3))
     expect(store.lobby?.revision).toBe(4)
+    store.dispose()
+  })
+
+  it('advances the public phase through the MJ gateway action', async () => {
+    const gateway = new FakeGateway()
+    const storage = new FakeStorage(SESSION)
+    const store = createStore(gateway, storage)
+    await store.initialize()
+    gateway.handlers?.onLobbySnapshot({
+      ...createLobby(2),
+      phase: LOBBY_PHASE.STARTED,
+      gamePhase: { period: 'night', number: 1 },
+      canStart: false,
+    })
+
+    expect(await store.advanceGamePhase()).toBe(true)
+    expect(gateway.advanceGamePhase).toHaveBeenCalledWith(2)
+    expect(store.lobby?.gamePhase).toEqual({ period: 'day', number: 1 })
     store.dispose()
   })
 

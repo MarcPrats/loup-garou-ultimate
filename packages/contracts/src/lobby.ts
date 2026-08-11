@@ -7,6 +7,7 @@ import {
   type LobbyPhase,
   type SessionDestination,
 } from './constants'
+import { gamePhaseSchema } from './game-phase'
 import {
   playerIdSchema,
   playerNameSchema,
@@ -35,6 +36,7 @@ export const publicPlayerSchema = z.object({
 export const lobbySnapshotSchema = z.object({
   id: lobbyIdSchema,
   phase: lobbyPhaseSchema,
+  gamePhase: gamePhaseSchema.nullable(),
   revision: revisionSchema,
   players: z.array(publicPlayerSchema),
   minimumPlayers: z.number().int().positive(),

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia } from 'pinia'
+import { nextTick } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -135,6 +136,10 @@ describe('simulator route isolation', () => {
     expect(storageWrite).not.toHaveBeenCalled()
 
     expect(wrapper.text()).toContain("Vue d'ensemble de tous les rôles")
+    expect(wrapper.get('[data-testid=game-phase-panel]').text()).toContain('Nuit 1')
+    await wrapper.get('[data-testid=advance-game-phase]').trigger('click')
+    await nextTick()
+    expect(wrapper.get('[data-testid=game-phase-panel]').text()).toContain('Jour 1')
     expect(wrapper.find('.app-gm-night-order').exists()).toBe(true)
     expect(wrapper.text()).toContain('Ordre des nuits')
 
@@ -143,6 +148,8 @@ describe('simulator route isolation', () => {
     if (!firstPlayerOption) throw new Error('Simulator player option is missing')
     await playerSelect.setValue(firstPlayerOption.element.value)
     expect(wrapper.text()).toContain(firstPlayerOption.text())
+    expect(wrapper.get('[data-testid=game-phase-panel]').text()).toContain('Jour 1')
+    expect(wrapper.find('[data-testid=advance-game-phase]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Votre Rôle')
     expect(wrapper.find('.app-gm-view').exists()).toBe(false)
     wrapper.unmount()

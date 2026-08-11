@@ -27,6 +27,12 @@ export const LOBBY_PHASE = {
 } as const
 export type LobbyPhase = ValueOf<typeof LOBBY_PHASE>
 
+export const GAME_PHASE_PERIOD = {
+  NIGHT: 'night',
+  DAY: 'day',
+} as const
+export type GamePhasePeriod = ValueOf<typeof GAME_PHASE_PERIOD>
+
 export const ROLE_ACCESS_VIEW = {
   PLAYER: 'player',
   GAME_MASTER: 'game-master',
@@ -99,6 +105,7 @@ export const ERROR_CODE = {
   INVALID_ROLE_TOKEN: 'invalid-role-token',
   SIMULATOR_DISABLED: 'simulator-disabled',
   INTERNAL_ERROR: 'internal-error',
+  STALE_REVISION: 'stale-revision',
 } as const
 export type ErrorCode = ValueOf<typeof ERROR_CODE>
 
@@ -112,6 +119,7 @@ export const SOCKET_EVENT = {
   PLAYER_LEAVE: 'player:leave',
   HOST_KICK: 'host:kick',
   GAME_START: 'game:start',
+  GAME_PHASE_ADVANCE: 'game:phase-advance',
   KEEP_ALIVE: 'session:keep-alive',
   LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',

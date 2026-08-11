@@ -6,6 +6,7 @@ import {
   clientRequestIdSchema,
   playerIdSchema,
   playerNameSchema,
+  revisionSchema,
   lobbyIdSchema,
   sessionTokenSchema,
 } from './identifiers'
@@ -37,9 +38,14 @@ export const hostKickCommandSchema = z.object({
   playerId: playerIdSchema,
 }).strict()
 
+export const gamePhaseAdvanceCommandSchema = z.object({
+  expectedRevision: revisionSchema,
+}).strict()
+
 export type EmptyCommand = z.infer<typeof emptyCommandSchema>
 export type LobbyEnterCommand = z.infer<typeof lobbyEnterCommandSchema>
 export type LobbyCreateCommand = z.infer<typeof lobbyCreateCommandSchema>
 export type LobbyJoinCommand = z.infer<typeof lobbyJoinCommandSchema>
 export type SessionResumeCommand = z.infer<typeof sessionResumeCommandSchema>
 export type HostKickCommand = z.infer<typeof hostKickCommandSchema>
+export type GamePhaseAdvanceCommand = z.infer<typeof gamePhaseAdvanceCommandSchema>

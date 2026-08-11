@@ -13,6 +13,8 @@ import {
   ackFailure,
   ackSuccess,
   createAckSchema,
+  createInitialGamePhase,
+  getNextGamePhase,
   healthResponseSchema,
   hostDashboardSchema,
   hostPlayerAssignmentSchema,
@@ -119,10 +121,23 @@ describe('privacy boundaries', () => {
   })
 })
 
+describe('game phase contracts', () => {
+  it('models the public phase sequence from Night 1 forward', () => {
+    const nightOne = createInitialGamePhase()
+    const dayOne = getNextGamePhase(nightOne)
+    const nightTwo = getNextGamePhase(dayOne)
+
+    expect(nightOne).toEqual({ period: 'night', number: 1 })
+    expect(dayOne).toEqual({ period: 'day', number: 1 })
+    expect(nightTwo).toEqual({ period: 'night', number: 2 })
+  })
+})
+
 describe('lobby contracts', () => {
   const lobby = {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
+    gamePhase: null,
     revision: 1,
     players: [
       {

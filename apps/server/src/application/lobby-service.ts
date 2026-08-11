@@ -3,6 +3,8 @@ import {
   LOBBY_CLOSED_REASON,
   LOBBY_ID,
   LOBBY_PHASE,
+  createInitialGamePhase,
+  getNextGamePhase,
   playerIdSchema,
   playerNameSchema,
   roleAccessTokenSchema,
@@ -21,6 +23,7 @@ import { LOBBY_TIME_LIMIT } from '../config/lobby-constants'
 import { LobbyError } from '../domain/lobby-error'
 import type {
   Clock,
+  AdvanceGamePhaseCommand,
   ConnectionId,
   EnterLobbyCommand,
   GameAssignmentGenerator,
@@ -274,6 +277,7 @@ export class LobbyService {
           lastActivityAt: now,
           closedAt: null,
           closeReason: null,
+          gamePhase: null,
           game: null,
         }
         return { lobby: createdLobby, result: toEntryResponse(createdLobby, host) }
@@ -561,6 +565,7 @@ export class LobbyService {
         startedAt,
       )
       lobby.phase = LOBBY_PHASE.STARTED
+      lobby.gamePhase = createInitialGamePhase()
       touchLobby(lobby, startedAt)
 
       const privateAssignments = lobby.players
@@ -607,6 +612,35 @@ export class LobbyService {
           },
         },
       }
+    })
+  }
+
+  advanceGamePhase(command: AdvanceGamePhaseCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertStartedGame(lobby)
+
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      if (!lobby.gamePhase) {
+        throw new LobbyError(
+          ERROR_CODE.GAME_NOT_STARTED,
+          'La phase de jeu n’est pas initialisée.',
+        )
+      }
+      if (command.expectedRevision !== lobby.revision) {
+        throw new LobbyError(
+          ERROR_CODE.STALE_REVISION,
+          'La partie a changé. Actualisez la phase avant de réessayer.',
+        )
+      }
+
+      lobby.gamePhase = getNextGamePhase(lobby.gamePhase)
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
     })
   }
 

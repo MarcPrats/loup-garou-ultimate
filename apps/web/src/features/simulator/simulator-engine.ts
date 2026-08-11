@@ -3,6 +3,7 @@ import {
   ROLE_ACCESS_VIEW,
   LOBBY_ID,
   LOBBY_PHASE,
+  createInitialGamePhase,
   playerNameSchema,
   simulatorScenarioSchema,
   type PlayerId,
@@ -140,6 +141,7 @@ export function createSimulatorScenario(
     lobby: {
       id: LOBBY_ID.MAIN,
       phase: LOBBY_PHASE.STARTED,
+      gamePhase: createInitialGamePhase(),
       revision: 1,
       players: displayState.players.map((player) => ({
         id: player.id,
