@@ -10,6 +10,7 @@ import {
   gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
+  gameStartPreviewSchema,
   hostDashboardSchema,
   notificationEventSchema,
   privateAssignmentSchema,
@@ -25,6 +26,7 @@ import {
   type EmptyResponse,
   type GameLogEventType,
   type GameStartedEvent,
+  type GameStartPreview,
   type HostDashboard,
   type NotificationEvent,
   type PlayerId,
@@ -52,6 +54,7 @@ const lobbyEntryAckSchema = createAckSchema(lobbyEntryResponseSchema)
 const sessionResumeAckSchema = createAckSchema(sessionResumeResponseSchema)
 const lobbySnapshotAckSchema = createAckSchema(lobbySnapshotSchema)
 const emptyAckSchema = createAckSchema(emptyResponseSchema)
+const gameStartPreviewAckSchema = createAckSchema(gameStartPreviewSchema)
 const gamePhaseAdvanceAckSchema = createAckSchema(lobbySnapshotSchema)
 const gameLogAckSchema = createAckSchema(lobbySnapshotSchema)
 
@@ -62,6 +65,7 @@ export interface LobbyGatewayHandlers {
   readonly onGameStarted: (event: GameStartedEvent) => void
   readonly onPrivateAssignment: (assignment: PrivateAssignment) => void
   readonly onHostDashboard: (dashboard: HostDashboard) => void
+  readonly onStartPreview: (preview: GameStartPreview) => void
   readonly onLobbyClosed: (event: LobbyClosedEvent) => void
   readonly onSessionEnded: (event: SessionEndedEvent) => void
   readonly onNotification: (event: NotificationEvent) => void
@@ -80,7 +84,10 @@ export interface LobbyGateway {
   resume(sessionToken: SessionToken, lobbyId?: string): Promise<Ack<SessionResumeResponse>>
   leave(): Promise<Ack<EmptyResponse>>
   kick(playerId: PlayerId): Promise<Ack<LobbySnapshot>>
-  start(): Promise<Ack<EmptyResponse>>
+  start(): Promise<Ack<GameStartPreview>>
+  confirmStart(): Promise<Ack<EmptyResponse>>
+  cancelStartPreview(): Promise<Ack<EmptyResponse>>
+  redistributeStartPreview(): Promise<Ack<GameStartPreview>>
   advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
   rewindGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
   recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
@@ -175,6 +182,9 @@ export class SocketLobbyGateway implements LobbyGateway {
     const onHostDashboard = (value: unknown) => {
       deliverEvent(hostDashboardSchema, value, handlers.onHostDashboard, handlers.onProtocolError)
     }
+    const onStartPreview = (value: unknown) => {
+      deliverEvent(gameStartPreviewSchema, value, handlers.onStartPreview, handlers.onProtocolError)
+    }
     const onLobbyClosed = (value: unknown) => {
       deliverEvent(lobbyClosedEventSchema, value, handlers.onLobbyClosed, handlers.onProtocolError)
     }
@@ -194,6 +204,7 @@ export class SocketLobbyGateway implements LobbyGateway {
     this.socket.on(SOCKET_EVENT.GAME_STARTED, onGameStarted)
     this.socket.on(SOCKET_EVENT.PRIVATE_ASSIGNMENT, onPrivateAssignment)
     this.socket.on(SOCKET_EVENT.HOST_DASHBOARD, onHostDashboard)
+    this.socket.on(SOCKET_EVENT.HOST_START_PREVIEW, onStartPreview)
     this.socket.on(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
     this.socket.on(SOCKET_EVENT.SESSION_ENDED, onSessionEnded)
     this.socket.on(SOCKET_EVENT.NOTIFICATION, onNotification)
@@ -208,6 +219,7 @@ export class SocketLobbyGateway implements LobbyGateway {
       this.socket.off(SOCKET_EVENT.GAME_STARTED, onGameStarted)
       this.socket.off(SOCKET_EVENT.PRIVATE_ASSIGNMENT, onPrivateAssignment)
       this.socket.off(SOCKET_EVENT.HOST_DASHBOARD, onHostDashboard)
+      this.socket.off(SOCKET_EVENT.HOST_START_PREVIEW, onStartPreview)
       this.socket.off(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
       this.socket.off(SOCKET_EVENT.SESSION_ENDED, onSessionEnded)
       this.socket.off(SOCKET_EVENT.NOTIFICATION, onNotification)
@@ -305,11 +317,35 @@ export class SocketLobbyGateway implements LobbyGateway {
     )
   }
 
-  start(): Promise<Ack<EmptyResponse>> {
+  start(): Promise<Ack<GameStartPreview>> {
     return this.send(
       'game start',
-      emptyAckSchema,
+      gameStartPreviewAckSchema,
       (callback) => this.socket.emit(SOCKET_EVENT.GAME_START, {}, callback),
+    )
+  }
+
+  confirmStart(): Promise<Ack<EmptyResponse>> {
+    return this.send(
+      'confirm game start',
+      emptyAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.GAME_START_CONFIRM, {}, callback),
+    )
+  }
+
+  cancelStartPreview(): Promise<Ack<EmptyResponse>> {
+    return this.send(
+      'cancel game start preview',
+      emptyAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.GAME_START_CANCEL, {}, callback),
+    )
+  }
+
+  redistributeStartPreview(): Promise<Ack<GameStartPreview>> {
+    return this.send(
+      'redistribute game start preview',
+      gameStartPreviewAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.GAME_START_REDISTRIBUTE, {}, callback),
     )
   }
 

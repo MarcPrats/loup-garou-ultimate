@@ -49,6 +49,13 @@ export const hostDashboardSchema = z.object({
   villagerTeamCount: z.number().int().nonnegative(),
 }).strict()
 
+export const gameStartPreviewSchema = z.object({
+  players: z.array(hostPlayerAssignmentSchema),
+  playerCount: z.number().int().positive(),
+  werewolfCount: z.number().int().nonnegative(),
+  villagerTeamCount: z.number().int().nonnegative(),
+}).strict()
+
 export const lobbyClosedEventSchema = z.object({
   reason: lobbyClosedReasonSchema,
   message: z.string().min(1).max(300),
@@ -67,6 +74,7 @@ export const notificationEventSchema = z.object({
 export type SystemReadyEvent = z.infer<typeof systemReadyEventSchema>
 export type GameStartedEvent = z.infer<typeof gameStartedEventSchema>
 export type HostDashboard = z.infer<typeof hostDashboardSchema>
+export type GameStartPreview = z.infer<typeof gameStartPreviewSchema>
 export type LobbyClosedEvent = z.infer<typeof lobbyClosedEventSchema>
 export type SessionEndedEvent = z.infer<typeof sessionEndedEventSchema>
 export type NotificationEvent = z.infer<typeof notificationEventSchema>

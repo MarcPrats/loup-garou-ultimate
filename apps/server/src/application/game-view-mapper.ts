@@ -1,4 +1,5 @@
 import type {
+  GameStartPreview,
   HostDashboard,
   PlayerId,
   PrivateAssignment,
@@ -6,6 +7,7 @@ import type {
 } from '@lgu/contracts'
 import {
   projectHostDashboard,
+  projectGameStartPreview,
   projectLoupBlancDashboard,
   projectPrivateAssignment,
   projectRoleAccessResponse,
@@ -13,6 +15,7 @@ import {
 } from '@lgu/game-projection'
 
 import type {
+  GameStartPreviewState,
   LobbyState,
   RoleAccessGrant,
 } from '../domain/lobby-types'
@@ -35,6 +38,17 @@ export function toPrivateAssignment(
 
 export function toHostDashboard(lobby: LobbyState): HostDashboard {
   return projectHostDashboard(toProjectionState(lobby))
+}
+
+export function toGameStartPreview(
+  lobby: LobbyState,
+  assignment: GameStartPreviewState['assignment'],
+): GameStartPreview {
+  return projectGameStartPreview({
+    players: lobby.players,
+    assignment,
+    roleAccessGrants: [],
+  })
 }
 
 export function toLoupBlancDashboard(

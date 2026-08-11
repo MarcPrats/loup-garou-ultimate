@@ -17,6 +17,7 @@ import {
   gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
+  gameStartPreviewSchema,
   hostKickCommandSchema,
   lobbyClosedEventSchema,
   lobbyCreateCommandSchema,
@@ -129,6 +130,13 @@ function broadcastSnapshot(io: GameSocketServer, lobby: LobbySnapshot | null): v
   if (lobby) io.to(lobby.id).emit(SOCKET_EVENT.LOBBY_SNAPSHOT, lobby)
 }
 
+function emitStartedGame(io: GameSocketServer, lobbyId: LobbyId, result: Awaited<ReturnType<LobbyService['confirmStart']>>): void {
+  io.to(lobbyId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ lobbyRevision: result.lobby.revision, startedAt: result.startedAt }))
+  for (const delivery of result.privateAssignments) io.to(delivery.connectionId).emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, delivery.assignment)
+  for (const delivery of result.loupBlancDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
+  io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
+}
+
 async function emitResumedPrivateView(socket: GameSocket, service: LobbyService, destination: string): Promise<void> {
   if (destination === SESSION_DESTINATION.PLAYER_ROLE) {
     const assignment = await service.getPrivateAssignment(getSessionCommand(socket))
@@ -138,6 +146,8 @@ async function emitResumedPrivateView(socket: GameSocket, service: LobbyService,
     }
   } else if (destination === SESSION_DESTINATION.GAME_MASTER) {
     socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getHostDashboard(getSessionCommand(socket)))
+    const preview = await service.getStartPreview(getSessionCommand(socket))
+    if (preview) socket.emit(SOCKET_EVENT.HOST_START_PREVIEW, preview)
   }
 }
 
@@ -265,15 +275,41 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
     })
 
     socket.on(SOCKET_EVENT.GAME_START, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        parseCommand(emptyCommandSchema, rawCommand)
+        const result = await serviceFor(socket).prepareStartPreview(getSessionCommand(socket))
+        broadcastSnapshot(io, result.lobby)
+        socket.emit(SOCKET_EVENT.HOST_START_PREVIEW, gameStartPreviewSchema.parse(result.preview))
+        return result.preview
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_START_REDISTRIBUTE, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        parseCommand(emptyCommandSchema, rawCommand)
+        const result = await serviceFor(socket).redistributeStartPreview(getSessionCommand(socket))
+        broadcastSnapshot(io, result.lobby)
+        socket.emit(SOCKET_EVENT.HOST_START_PREVIEW, gameStartPreviewSchema.parse(result.preview))
+        return result.preview
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_START_CANCEL, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
+        parseCommand(emptyCommandSchema, rawCommand)
+        const result = await serviceFor(socket).cancelStartPreview(getSessionCommand(socket))
+        broadcastSnapshot(io, result.lobby)
+        return {}
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_START_CONFIRM, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
         parseCommand(emptyCommandSchema, rawCommand)
         const lobbyId = getLobbyId(socket)
-        const result = await serviceFor(socket).start(getSessionCommand(socket))
+        const result = await serviceFor(socket).confirmStart(getSessionCommand(socket))
         broadcastSnapshot(io, result.lobby)
-        io.to(lobbyId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ lobbyRevision: result.lobby.revision, startedAt: result.startedAt }))
-        for (const delivery of result.privateAssignments) io.to(delivery.connectionId).emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, delivery.assignment)
-        for (const delivery of result.loupBlancDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
-        io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
+        emitStartedGame(io, lobbyId, result)
         return {}
       }, onUnexpectedError)
     })

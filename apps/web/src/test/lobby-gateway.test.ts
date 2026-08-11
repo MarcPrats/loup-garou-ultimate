@@ -105,6 +105,7 @@ function createHandlers(): LobbyGatewayHandlers {
     onGameStarted: vi.fn(),
     onPrivateAssignment: vi.fn(),
     onHostDashboard: vi.fn(),
+    onStartPreview: vi.fn(),
     onLobbyClosed: vi.fn(),
     onSessionEnded: vi.fn(),
     onNotification: vi.fn(),

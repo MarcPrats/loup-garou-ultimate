@@ -11,6 +11,7 @@ import {
   type Ack,
   type EmptyResponse,
   type GameLogEventType,
+  type GameStartPreview,
   type PlayerId,
   type LobbyEntryResponse,
   type LobbyListResponse,
@@ -97,7 +98,20 @@ class FakeGateway implements LobbyGateway {
   readonly joinLobby = vi.fn(async (_lobbyId: string, _name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createLobby(2)))
-  readonly start = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
+  readonly start = vi.fn(async (): Promise<Ack<GameStartPreview>> => ackSuccess({
+    players: [],
+    playerCount: 1,
+    werewolfCount: 0,
+    villagerTeamCount: 1,
+  }))
+  readonly confirmStart = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
+  readonly cancelStartPreview = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
+  readonly redistributeStartPreview = vi.fn(async (): Promise<Ack<GameStartPreview>> => ackSuccess({
+    players: [],
+    playerCount: 1,
+    werewolfCount: 0,
+    villagerTeamCount: 1,
+  }))
   readonly advanceGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({
     ...createLobby(revision + 1),
     phase: LOBBY_PHASE.STARTED,

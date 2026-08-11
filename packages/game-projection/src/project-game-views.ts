@@ -1,10 +1,12 @@
 import {
   ROLE_ACCESS_VIEW,
   SPECIAL_INFORMATION_TYPE,
+  gameStartPreviewSchema,
   hostDashboardSchema,
   privateAssignmentSchema,
   roleAccessResponseSchema,
   type HostDashboard,
+  type GameStartPreview,
   type PlayerId,
   type PrivateAssignment,
   type RoleAccessResponse,
@@ -152,10 +154,7 @@ export function projectPrivateAssignment(
   })
 }
 
-function projectDashboardForGrant(
-  state: GameProjectionState,
-  grant: ProjectionRoleAccessGrant,
-): HostDashboard {
+function projectDashboardData(state: GameProjectionState) {
   const players = state.assignment.assignments.map((assignment) => {
     const player = requirePlayer(state, assignment.playerId)
     return {
@@ -176,8 +175,7 @@ function projectDashboardForGrant(
     }
   })
 
-  return hostDashboardSchema.parse({
-    roleAccessToken: grant.token,
+  return {
     players,
     playerCount: players.length,
     werewolfCount: players.filter(
@@ -186,7 +184,23 @@ function projectDashboardForGrant(
     villagerTeamCount: players.filter(
       (player) => player.role.team === TEAM.VILLAGERS,
     ).length,
+  }
+}
+
+function projectDashboardForGrant(
+  state: GameProjectionState,
+  grant: ProjectionRoleAccessGrant,
+): HostDashboard {
+  return hostDashboardSchema.parse({
+    ...projectDashboardData(state),
+    roleAccessToken: grant.token,
   })
+}
+
+export function projectGameStartPreview(
+  state: GameProjectionState,
+): GameStartPreview {
+  return gameStartPreviewSchema.parse(projectDashboardData(state))
 }
 
 export function projectHostDashboard(

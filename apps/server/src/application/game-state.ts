@@ -4,6 +4,7 @@ import {
 } from '@lgu/contracts'
 
 import type {
+  AssignmentResult,
   GameAssignmentGenerator,
   LobbyPlayerState,
   LobbyState,
@@ -11,6 +12,7 @@ import type {
   StoredGameState,
   ValueGenerator,
 } from '../domain/lobby-types'
+import type { AssignablePlayer } from '@lgu/game-core'
 
 const ROLE_ACCESS_TOKEN_MAX_ATTEMPTS = 5
 
@@ -18,6 +20,19 @@ function getPlayersInJoinOrder(lobby: LobbyState): LobbyPlayerState[] {
   return [...lobby.players].sort(
     (left, right) => left.joinOrder - right.joinOrder,
   )
+}
+
+function getAssignablePlayers(lobby: LobbyState): AssignablePlayer[] {
+  return getPlayersInJoinOrder(lobby)
+    .filter((player) => !player.isHost)
+    .map((player) => ({ id: player.id, name: player.name }))
+}
+
+export function createGameAssignment(
+  lobby: LobbyState,
+  assignmentGenerator: GameAssignmentGenerator,
+): AssignmentResult {
+  return assignmentGenerator.assign(getAssignablePlayers(lobby))
 }
 
 function createUniqueRoleAccessToken(
@@ -54,14 +69,12 @@ export function createStoredGameState(
   assignmentGenerator: GameAssignmentGenerator,
   roleAccessTokenGenerator: ValueGenerator,
   startedAt: number,
+  assignment: AssignmentResult = createGameAssignment(lobby, assignmentGenerator),
 ): StoredGameState {
   const players = getPlayersInJoinOrder(lobby)
-  const assignablePlayers = players
-    .filter((player) => !player.isHost)
-    .map((player) => ({ id: player.id, name: player.name }))
 
   return {
-    assignment: assignmentGenerator.assign(assignablePlayers),
+    assignment,
     roleAccessGrants: createRoleAccessGrants(
       players,
       roleAccessTokenGenerator,

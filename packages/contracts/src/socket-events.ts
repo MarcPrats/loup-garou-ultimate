@@ -16,6 +16,7 @@ import type {
 } from './game-log'
 import type {
   GameStartedEvent,
+  GameStartPreview,
   HostDashboard,
   NotificationEvent,
   LobbyClosedEvent,
@@ -36,6 +37,7 @@ export interface ServerToClientEvents {
   [SOCKET_EVENT.GAME_STARTED]: (event: GameStartedEvent) => void
   [SOCKET_EVENT.PRIVATE_ASSIGNMENT]: (assignment: PrivateAssignment) => void
   [SOCKET_EVENT.HOST_DASHBOARD]: (dashboard: HostDashboard) => void
+  [SOCKET_EVENT.HOST_START_PREVIEW]: (preview: GameStartPreview) => void
   [SOCKET_EVENT.LOBBY_CLOSED]: (event: LobbyClosedEvent) => void
   [SOCKET_EVENT.SESSION_ENDED]: (event: SessionEndedEvent) => void
   [SOCKET_EVENT.NOTIFICATION]: (event: NotificationEvent) => void
@@ -72,7 +74,19 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.GAME_START]: (
     command: EmptyCommand,
+    callback: AckCallback<GameStartPreview>,
+  ) => void
+  [SOCKET_EVENT.GAME_START_CONFIRM]: (
+    command: EmptyCommand,
     callback: AckCallback<EmptyResponse>,
+  ) => void
+  [SOCKET_EVENT.GAME_START_CANCEL]: (
+    command: EmptyCommand,
+    callback: AckCallback<EmptyResponse>,
+  ) => void
+  [SOCKET_EVENT.GAME_START_REDISTRIBUTE]: (
+    command: EmptyCommand,
+    callback: AckCallback<GameStartPreview>,
   ) => void
   [SOCKET_EVENT.GAME_PHASE_ADVANCE]: (
     command: GamePhaseAdvanceCommand,

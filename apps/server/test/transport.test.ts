@@ -12,6 +12,7 @@ import {
   type Ack,
   type ClientToServerEvents,
   type HostDashboard,
+  type GameStartPreview,
   type PrivateAssignment,
   type LobbyClosedEvent,
   type LobbyEntryResponse,
@@ -111,10 +112,22 @@ function resume(
   })
 }
 
-function start(client: TestClient): Promise<Ack<Record<string, never>>> {
+function prepareStart(client: TestClient): Promise<Ack<GameStartPreview>> {
   return new Promise((resolve) => {
     client.emit(SOCKET_EVENT.GAME_START, {}, resolve)
   })
+}
+
+function confirmStart(client: TestClient): Promise<Ack<Record<string, never>>> {
+  return new Promise((resolve) => {
+    client.emit(SOCKET_EVENT.GAME_START_CONFIRM, {}, resolve)
+  })
+}
+
+async function start(client: TestClient): Promise<Ack<Record<string, never>>> {
+  const preview = await prepareStart(client)
+  if (!preview.ok) throw new Error(preview.error.message)
+  return confirmStart(client)
 }
 
 function recordGameLogEvent(

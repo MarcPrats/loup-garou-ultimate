@@ -44,6 +44,11 @@ export interface StoredGameState {
   gameLog: GameLogEntry[]
 }
 
+export interface GameStartPreviewState {
+  readonly assignment: AssignmentResult
+  readonly preparedAt: number
+}
+
 export interface LobbyState {
   readonly id: LobbyId
   phase: LobbyPhase
@@ -54,6 +59,7 @@ export interface LobbyState {
   closedAt: number | null
   closeReason: LobbyClosedReason | null
   gamePhase: GamePhase | null
+  gameStartPreview: GameStartPreviewState | null
   game: StoredGameState | null
 }
 

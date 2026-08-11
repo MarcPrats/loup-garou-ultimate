@@ -224,6 +224,36 @@ describe('LobbyService', () => {
     expect(started.hostDashboard.connectionId).toBe('host')
   })
 
+  it('previews, redistributes, cancels, and confirms one exact role assignment', async () => {
+    const { repository, service } = createFixture()
+    const { host } = await fillMinimumGame(service)
+    const command = {
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    }
+
+    const preview = await service.prepareStartPreview(command)
+    expect(preview.lobby.phase).toBe(LOBBY_PHASE.LOBBY)
+    expect(preview.preview.players).toHaveLength(PLAYER_COUNT.MINIMUM)
+    expect((await repository.read())?.game).toBeNull()
+
+    const redistributed = await service.redistributeStartPreview(command)
+    expect(redistributed.preview.players).toHaveLength(PLAYER_COUNT.MINIMUM)
+
+    await service.cancelStartPreview(command)
+    expect((await repository.read())?.gameStartPreview).toBeNull()
+
+    const confirmedPreview = await service.prepareStartPreview(command)
+    const started = await service.start(command)
+    expect(started.lobby.phase).toBe(LOBBY_PHASE.STARTED)
+    expect(started.lobby.gamePhase).toEqual({ period: 'night', number: 1 })
+    expect(new Map(
+      confirmedPreview.preview.players.map((player) => [player.player.id, player.role.id]),
+    )).toEqual(new Map(
+      started.privateAssignments.map((delivery) => [delivery.assignment.player.id, delivery.assignment.role.id]),
+    ))
+  })
+
   it('transfers host ownership when the host leaves the lobby', async () => {
     const { service } = createFixture()
     const host = await service.enter({ playerName: 'Le MJ', connectionId: 'host' })

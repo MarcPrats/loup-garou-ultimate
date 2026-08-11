@@ -14,6 +14,8 @@ import {
   sessionTokenSchema,
   type GameLogEntry,
   type GameLogEventType,
+  type GameStartPreview,
+  type EmptyResponse,
   type HostDashboard,
   type PlayerId,
   type PrivateAssignment,
@@ -48,9 +50,10 @@ import {
   getSessionDestination,
   toLobbySnapshot,
 } from './lobby-mapper'
-import { createStoredGameState } from './game-state'
+import { createGameAssignment, createStoredGameState } from './game-state'
 import {
   toHostDashboard,
+  toGameStartPreview,
   toLoupBlancDashboard,
   toPrivateAssignment,
   toRoleAccessResponse,
@@ -94,6 +97,11 @@ export interface StartGameResult {
   readonly privateAssignments: readonly PrivateAssignmentDelivery[]
   readonly loupBlancDashboards: readonly HostDashboardDelivery[]
   readonly hostDashboard: HostDashboardDelivery
+}
+
+export interface StartPreviewResult {
+  readonly lobby: LobbySnapshot
+  readonly preview: GameStartPreview
 }
 
 export interface DisconnectResult {
@@ -361,6 +369,7 @@ export class LobbyService {
           closedAt: null,
           closeReason: null,
           gamePhase: null,
+          gameStartPreview: null,
           game: null,
         }
         return { lobby: createdLobby, result: toEntryResponse(createdLobby, host) }
@@ -402,6 +411,7 @@ export class LobbyService {
         this.dependencies.sessionTokenGenerator,
       )
       lobby.players.push(player)
+      lobby.gameStartPreview = null
       electHost(lobby)
       touchLobby(lobby, now)
 
@@ -555,6 +565,7 @@ export class LobbyService {
         }
       }
 
+      lobby.gameStartPreview = null
       lobby.players = lobby.players.filter((candidate) => candidate.id !== player.id)
       if (lobby.players.length === 0) {
         return {
@@ -603,6 +614,7 @@ export class LobbyService {
         )
       }
 
+      lobby.gameStartPreview = null
       lobby.players = lobby.players.filter((player) => player.id !== target.id)
       touchLobby(lobby, this.dependencies.clock.now())
       return {
@@ -617,9 +629,9 @@ export class LobbyService {
     })
   }
 
-  start(command: SessionCommand): Promise<StartGameResult> {
+  prepareStartPreview(command: SessionCommand): Promise<StartPreviewResult> {
     assertConnectionId(command.connectionId)
-    return this.dependencies.repository.mutate<StartGameResult>((lobby) => {
+    return this.dependencies.repository.mutate<StartPreviewResult>((lobby) => {
       if (!lobby) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
@@ -640,13 +652,103 @@ export class LobbyService {
         )
       }
 
+      const preparedAt = this.dependencies.clock.now()
+      const previewState = {
+        assignment: createGameAssignment(lobby, this.dependencies.assignmentGenerator),
+        preparedAt,
+      }
+      lobby.gameStartPreview = previewState
+      touchLobby(lobby, preparedAt)
+
+      return {
+        lobby,
+        result: {
+          lobby: toLobbySnapshot(lobby),
+          preview: toGameStartPreview(lobby, previewState.assignment),
+        },
+      }
+    })
+  }
+
+  redistributeStartPreview(command: SessionCommand): Promise<StartPreviewResult> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<StartPreviewResult>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertLobbyPhase(lobby)
+
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      if (!lobby.gameStartPreview) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Aucun aperçu de partie n’est en cours.')
+      }
+      if (lobby.players.some((player) => !player.connected)) {
+        throw new LobbyError(ERROR_CODE.PLAYERS_DISCONNECTED, 'Tous les joueurs doivent être connectés.')
+      }
+      if (!canStartLobby(lobby)) {
+        throw new LobbyError(ERROR_CODE.NOT_ENOUGH_PLAYERS, `Au moins ${PLAYER_COUNT.MINIMUM} joueurs sont nécessaires.`)
+      }
+
+      const preparedAt = this.dependencies.clock.now()
+      const previewState = {
+        assignment: createGameAssignment(lobby, this.dependencies.assignmentGenerator),
+        preparedAt,
+      }
+      lobby.gameStartPreview = previewState
+      touchLobby(lobby, preparedAt)
+      return {
+        lobby,
+        result: {
+          lobby: toLobbySnapshot(lobby),
+          preview: toGameStartPreview(lobby, previewState.assignment),
+        },
+      }
+    })
+  }
+
+  cancelStartPreview(command: SessionCommand): Promise<EmptyResponse> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<EmptyResponse>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertLobbyPhase(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      lobby.gameStartPreview = null
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: {} }
+    })
+  }
+
+  start(command: SessionCommand): Promise<StartGameResult> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<StartGameResult>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertLobbyPhase(lobby)
+
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      if (lobby.players.some((player) => !player.connected)) {
+        throw new LobbyError(ERROR_CODE.PLAYERS_DISCONNECTED, 'Tous les joueurs doivent être connectés.')
+      }
+      if (!canStartLobby(lobby)) {
+        throw new LobbyError(ERROR_CODE.NOT_ENOUGH_PLAYERS, `Au moins ${PLAYER_COUNT.MINIMUM} joueurs sont nécessaires.`)
+      }
+
       const startedAt = this.dependencies.clock.now()
       lobby.game = createStoredGameState(
         lobby,
         this.dependencies.assignmentGenerator,
         this.dependencies.roleAccessTokenGenerator,
         startedAt,
+        lobby.gameStartPreview?.assignment
+          ?? createGameAssignment(lobby, this.dependencies.assignmentGenerator),
       )
+      lobby.gameStartPreview = null
       lobby.phase = LOBBY_PHASE.STARTED
       lobby.gamePhase = createInitialGamePhase()
       touchLobby(lobby, startedAt)
@@ -696,6 +798,10 @@ export class LobbyService {
         },
       }
     })
+  }
+
+  confirmStart(command: SessionCommand): Promise<StartGameResult> {
+    return this.start(command)
   }
 
   advanceGamePhase(command: AdvanceGamePhaseCommand): Promise<LobbySnapshot> {
@@ -910,6 +1016,19 @@ export class LobbyService {
     return toHostDashboard(lobby)
   }
 
+  async getStartPreview(command: SessionCommand): Promise<GameStartPreview | null> {
+    assertConnectionId(command.connectionId)
+    const lobby = await this.dependencies.repository.read()
+    if (!lobby) {
+      throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+    }
+    assertLobbyPhase(lobby)
+    const player = authenticateConnectedSession(lobby, command)
+    assertHost(player)
+    if (!lobby.gameStartPreview) return null
+    return toGameStartPreview(lobby, lobby.gameStartPreview.assignment)
+  }
+
   async accessRole(roleAccessToken: string): Promise<RoleAccessResponse> {
     const parsedToken = roleAccessTokenSchema.safeParse(roleAccessToken)
     if (!parsedToken.success) {
@@ -1024,6 +1143,7 @@ export class LobbyService {
       }
 
       const removedPlayerIds = removedPlayers.map((player) => player.id)
+      lobby.gameStartPreview = null
       lobby.players = lobby.players.filter(
         (player) => !removedPlayerIds.includes(player.id),
       )

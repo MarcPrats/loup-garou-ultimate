@@ -11,6 +11,7 @@ import {
   SESSION_DESTINATION,
   type ErrorCode,
   type GameLogEventType,
+  type GameStartPreview,
   type HostDashboard,
   type NotificationLevel,
   type PlayerId,
@@ -79,6 +80,7 @@ export function createLobbyStoreDefinition(
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
     const hostDashboard = ref<HostDashboard | null>(null)
+    const startPreview = ref<GameStartPreview | null>(null)
     const pendingHostDashboard = ref<HostDashboard | null>(null)
     const error = ref<PublicError | null>(null)
     const notice = ref<LobbyNotice | null>(null)
@@ -169,6 +171,7 @@ export function createLobbyStoreDefinition(
       if (snapshot.revision < lobby.value.revision) return
       lobby.value = snapshot
       if (snapshot.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
+      if (snapshot.phase === LOBBY_PHASE.STARTED) startPreview.value = null
       if (hostDashboard.value) {
         const connectionById = new Map(
           snapshot.players.map((player) => [player.id, player.connected]),
@@ -199,6 +202,7 @@ export function createLobbyStoreDefinition(
       dependencies.storage.save(session)
       lobby.value = nextLobby
       destination.value = nextDestination
+      startPreview.value = null
       restoringSession.value = false
       updatingGameLog.value = false
       if (pendingHostDashboard.value) {
@@ -221,6 +225,7 @@ export function createLobbyStoreDefinition(
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
+      startPreview.value = null
       pendingHostDashboard.value = null
       restoringSession.value = false
       dependencies.storage.clear()
@@ -323,6 +328,7 @@ export function createLobbyStoreDefinition(
         },
         onGameStarted: () => {
           if (realtimeSuspended) return
+          startPreview.value = null
           showNotice(NOTIFICATION_LEVEL.SUCCESS, MESSAGE.GAME_STARTED)
         },
         onPrivateAssignment: (assignment) => {
@@ -342,6 +348,10 @@ export function createLobbyStoreDefinition(
           hostDashboard.value = dashboard
           if (!isLoupBlanc) destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()
+        },
+        onStartPreview: (preview) => {
+          if (realtimeSuspended || !currentPlayer.value?.isHost) return
+          startPreview.value = preview
         },
         onLobbyClosed: (event) => {
           if (realtimeSuspended) return
@@ -529,6 +539,70 @@ export function createLobbyStoreDefinition(
           handleAckError(response.error)
           return false
         }
+        startPreview.value = response.data
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        starting.value = false
+      }
+    }
+
+    async function confirmStart(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      starting.value = true
+      clearError()
+      try {
+        const response = await getGateway().confirmStart()
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        startPreview.value = null
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        starting.value = false
+      }
+    }
+
+    async function cancelStartPreview(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      starting.value = true
+      clearError()
+      try {
+        const response = await getGateway().cancelStartPreview()
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        startPreview.value = null
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        starting.value = false
+      }
+    }
+
+    async function redistributeStartPreview(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      starting.value = true
+      clearError()
+      try {
+        const response = await getGateway().redistributeStartPreview()
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        startPreview.value = response.data
         return true
       } catch (caught) {
         setCommandError(caught)
@@ -823,6 +897,7 @@ export function createLobbyStoreDefinition(
       destination,
       privateAssignment,
       hostDashboard,
+      startPreview,
       error,
       notice,
       restoringSession,
@@ -848,6 +923,9 @@ export function createLobbyStoreDefinition(
       leave,
       kick,
       start,
+      confirmStart,
+      cancelStartPreview,
+      redistributeStartPreview,
       advanceGamePhase,
       rewindGamePhase,
       recordGameLogEvent,

@@ -82,12 +82,14 @@ export {
 } from './game-phase'
 export {
   gameStartedEventSchema,
+  gameStartPreviewSchema,
   hostDashboardSchema,
   notificationEventSchema,
   lobbyClosedEventSchema,
   sessionEndedEventSchema,
   systemReadyEventSchema,
   type GameStartedEvent,
+  type GameStartPreview,
   type HostDashboard,
   type NotificationEvent,
   type LobbyClosedEvent,

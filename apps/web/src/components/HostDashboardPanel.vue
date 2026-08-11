@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import { SPECIAL_INFORMATION_TYPE, TEAM, type HostDashboard } from '@lgu/contracts'
+import {
+  SPECIAL_INFORMATION_TYPE,
+  TEAM,
+  type GameStartPreview,
+  type HostDashboard,
+} from '@lgu/contracts'
 
 import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
@@ -10,7 +15,7 @@ import HostNightOrderPanel from './HostNightOrderPanel.vue'
 import HostMobileAssignmentCard from './HostMobileAssignmentCard.vue'
 
 const props = withDefaults(defineProps<{
-  dashboard: HostDashboard
+  dashboard: HostDashboard | GameStartPreview
   showNightOrder?: boolean
   showRulesLink?: boolean
   showHeader?: boolean
@@ -26,6 +31,9 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
   bluffPresentation: assignment.bluffRoleId ? getRolePresentation(assignment.bluffRoleId) : null,
   cluePresentation: assignment.specialInformation ? getRolePresentation(assignment.specialInformation.roleId) : null,
 })))
+const nightOrderDashboard = computed<HostDashboard | null>(() => (
+  'roleAccessToken' in props.dashboard ? props.dashboard : null
+))
 </script>
 
 <template>
@@ -80,7 +88,7 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
       />
     </div>
 
-    <HostNightOrderPanel v-if="showNightOrder" :dashboard="dashboard" />
+    <HostNightOrderPanel v-if="showNightOrder && nightOrderDashboard" :dashboard="nightOrderDashboard" />
 
     <a v-if="showRulesLink" :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button" target="_blank" rel="noopener noreferrer">📖 Consulter les Règles</a>
   </div>
