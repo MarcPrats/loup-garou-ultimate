@@ -82,3 +82,16 @@ The server remains the authority for sessions and assignments. MJ projections co
 The GitHub Pages workflow builds a static mode containing the home page, `/rules`, role details, and the external Wiki link. It hides the game entry button and does not initialize the API or Socket.IO client. The multiplayer game still requires the Fastify server.
 
 The workflow uses `VITE_BASE_PATH` for project-site assets and copies the Vue entry point to `404.html` so direct `/rules` and role-detail links work on GitHub Pages.
+
+## Install requirements
+
+# Node
+sudo apk add --no-cache nodejs npm
+
+node --version
+npm --version
+
+sudo npm install --global pnpm@10.28.2
+
+pnpm --version
+pnpm install

@@ -158,7 +158,9 @@ function deleteSelected(entry: GameLogEntry): void {
             </option>
           </select>
           <strong v-else>{{ entry.targetPlayerName }}</strong>
-          {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? '🩸 a été dévoré(e)' : '⚔️ a été éliminé(e) par le Village' }}
+          <span class="app-game-log-event-description">
+            {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? ' 🩸 a été dévoré(e)' : ' ⚔️ a été éliminé(e) par le Village' }}
+          </span>
         </span>
         <div v-if="canEdit" class="app-game-log-edit-controls">
           <button
@@ -177,3 +179,41 @@ function deleteSelected(entry: GameLogEntry): void {
     </ol>
   </section>
 </template>
+
+<style scoped>
+@media (max-width: 899px) {
+  .app-game-log-panel { padding: 18px 14px !important; }
+  .app-game-log-header { margin-bottom: 14px; }
+  .app-game-log-title { font-size: 1.45rem; line-height: 1.15; }
+  .app-game-log-compose { margin-bottom: 14px; padding: 12px; }
+  .app-game-log-compose-label { margin-bottom: 8px; font-size: .95rem; line-height: 1.3; }
+  .app-game-log-compose-controls { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+  .app-game-log-compose .app-input { min-width: 0; min-height: 42px; }
+  .app-game-log-record-btn { width: 42px; height: 42px; min-width: 42px; min-height: 42px; justify-self: auto; }
+  .app-game-log-entry {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+    min-height: 0;
+    padding: 12px 0;
+  }
+  .app-game-log-entry-phase { grid-column: 1 / -1; }
+  .app-game-log-entry-text {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    line-height: 1.35;
+  }
+  .app-game-log-event-description { flex: 1 1 120px; min-width: 0; }
+  .app-game-log-edit-controls { grid-column: 2; width: auto; }
+  .app-game-log-target-select {
+    flex: 0 1 190px;
+    width: min(100%, 190px);
+    max-width: 190px;
+    min-width: 0;
+  }
+}
+</style>

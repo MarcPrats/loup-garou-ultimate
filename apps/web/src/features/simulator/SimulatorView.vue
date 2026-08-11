@@ -17,7 +17,8 @@ import GameLogPanel from '../../components/GameLogPanel.vue'
 import GamePhasePanel from '../../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../../components/PlayerAssignmentPanel.vue'
-import { ROUTE_NAME } from '../../constants/app'
+import { ROUTE_NAME, ROUTE_PATH } from '../../constants/app'
+import { appPath } from '../../constants/paths'
 import {
   createDefaultPlayerNames,
   createRandomSimulatorSeed,
@@ -43,6 +44,11 @@ const playerCountOptions = Array.from(
 const activePlayerAssignment = computed(() => (
   scenario.value?.privateAssignments.find(
     (assignment) => assignment.player.id === activeView.value,
+  ) ?? null
+))
+const activePlayer = computed(() => (
+  scenario.value?.lobby.players.find(
+    (player) => player.id === activeView.value,
   ) ?? null
 ))
 const activePlayerDashboard = computed(() => (
@@ -201,7 +207,7 @@ generate()
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-8 text-white sm:py-12">
+  <main class="app-page text-white">
     <div class="mx-auto w-full max-w-7xl">
       <header class="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
         <div>
@@ -288,11 +294,14 @@ generate()
       />
 
       <template v-if="scenario">
-
-        <div :key="activeView" class="mt-8">
+        <div
+          v-if="activeView === SIMULATOR_VIEW.HOST"
+          :key="activeView"
+          class="mt-8"
+        >
           <GamePhasePanel
             :phase="scenario.lobby.gamePhase"
-            :can-advance="activeView === SIMULATOR_VIEW.HOST"
+            can-advance
             :can-rewind="scenario.lobby.gamePhase?.period === 'day' || (scenario.lobby.gamePhase?.number ?? 1) > 1"
             @advance="advanceSimulatorPhase"
             @rewind="rewindSimulatorPhase"
@@ -307,13 +316,56 @@ generate()
             @delete="deleteSimulatorGameLogEvent"
           />
           <HostDashboardPanel
-            v-if="activeView === SIMULATOR_VIEW.HOST"
             :dashboard="scenario.hostDashboard"
           />
+        </div>
+
+        <div
+          v-else-if="activePlayerAssignment"
+          :key="activeView"
+          class="app-screen app-game-container mx-auto mt-8 w-full"
+        >
+          <section
+            v-if="activePlayer && !activePlayer.alive"
+            class="app-ghost-status-panel"
+            role="status"
+          >
+            <p class="app-ghost-status-kicker">👻 Vous êtes un fantôme</p>
+            <p class="app-ghost-status-message">
+              💬 Vous avez toujours le droit de parler et vous disposez encore d’un dernier vote pour le reste de la partie.
+            </p>
+          </section>
+
           <PlayerAssignmentPanel
-            v-else-if="activePlayerAssignment"
             :assignment="activePlayerAssignment"
             :dashboard="activePlayerDashboard"
+            :show-rules-link="false"
+          />
+
+          <GamePhasePanel
+            :phase="scenario.lobby.gamePhase"
+          />
+
+          <GameLogPanel
+            :entries="scenario.lobby.gameLog"
+            :players="scenario.lobby.players"
+            :phase="scenario.lobby.gamePhase"
+            :current-player-id="activePlayer?.id ?? null"
+          />
+
+          <a
+            :href="appPath(ROUTE_PATH.RULES)"
+            class="app-btn app-btn-secondary app-rules-button"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            📖 Consulter les règles
+          </a>
+        </div>
+        <div v-else :key="activeView" class="mt-8">
+          <FeedbackBanner
+            message="La vue joueur sélectionnée est indisponible."
+            variant="error"
           />
         </div>
       </template>
