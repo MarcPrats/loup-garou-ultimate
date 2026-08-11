@@ -10,6 +10,7 @@ import {
   LOBBY_PHASE,
   SESSION_DESTINATION,
   type ErrorCode,
+  type GameLogEventType,
   type HostDashboard,
   type NotificationLevel,
   type PlayerId,
@@ -86,6 +87,7 @@ export function createLobbyStoreDefinition(
     const leaving = ref(false)
     const starting = ref(false)
     const advancingPhase = ref(false)
+    const updatingGameLog = ref(false)
     const kickingPlayerId = ref<PlayerId | null>(null)
 
     let initializePromise: Promise<void> | null = null
@@ -198,6 +200,7 @@ export function createLobbyStoreDefinition(
       lobby.value = nextLobby
       destination.value = nextDestination
       restoringSession.value = false
+      updatingGameLog.value = false
       if (pendingHostDashboard.value) {
         const canViewDashboard = currentPlayer.value?.isHost
           || privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
@@ -555,6 +558,68 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function recordGameLogEvent(
+      eventType: GameLogEventType,
+      targetPlayerId: PlayerId,
+    ): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value) return false
+
+      updatingGameLog.value = true
+      clearError()
+      try {
+        const response = await getGateway().recordGameLogEvent(
+          eventType,
+          targetPlayerId,
+          expectedRevision,
+        )
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        updatingGameLog.value = false
+      }
+    }
+
+    async function editGameLogEvent(
+      eventId: string,
+      targetPlayerId: PlayerId,
+    ): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value) return false
+
+      updatingGameLog.value = true
+      clearError()
+      try {
+        const response = await getGateway().editGameLogEvent(
+          eventId,
+          targetPlayerId,
+          expectedRevision,
+        )
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        updatingGameLog.value = false
+      }
+    }
+
     async function sendKeepAlive(): Promise<void> {
       const expectedEpoch = sessionEpoch
       try {
@@ -713,6 +778,7 @@ export function createLobbyStoreDefinition(
       leaving,
       starting,
       advancingPhase,
+      updatingGameLog,
       kickingPlayerId,
       currentPlayer,
       isHost,
@@ -731,6 +797,8 @@ export function createLobbyStoreDefinition(
       kick,
       start,
       advanceGamePhase,
+      recordGameLogEvent,
+      editGameLogEvent,
       clearError,
       clearSession,
       showCopiedNotice,

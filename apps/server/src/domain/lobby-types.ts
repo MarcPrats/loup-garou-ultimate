@@ -5,6 +5,7 @@ import type {
   RoleAccessToken,
   RoleAccessView,
   LobbyClosedReason,
+  GameLogEntry,
   GamePhase,
   LobbyPhase,
   SessionToken,
@@ -40,6 +41,7 @@ export interface StoredGameState {
   readonly assignment: AssignmentResult
   readonly roleAccessGrants: RoleAccessGrant[]
   readonly startedAt: number
+  gameLog: GameLogEntry[]
 }
 
 export interface LobbyState {
@@ -83,6 +85,18 @@ export interface LobbyRepository {
 
 export interface AdvanceGamePhaseCommand extends SessionCommand {
   readonly expectedRevision: number
+}
+
+export interface RecordGameLogEventCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly eventType: GameLogEntry['eventType']
+  readonly targetPlayerId: PlayerId
+}
+
+export interface EditGameLogEventCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly eventId: string
+  readonly targetPlayerId: PlayerId
 }
 
 export interface SessionCommand {

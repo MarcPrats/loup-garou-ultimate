@@ -137,6 +137,15 @@ describe('simulator route isolation', () => {
 
     expect(wrapper.text()).toContain("Vue d'ensemble de tous les rôles")
     expect(wrapper.get('[data-testid=game-phase-panel]').text()).toContain('Nuit 1')
+    const logTargetSelect = wrapper.get('[data-testid=game-log-target]')
+    const logTargetOption = logTargetSelect.findAll('option')[1]
+    if (!logTargetOption) throw new Error('Simulator game log target is missing')
+    await logTargetSelect.setValue(logTargetOption.element.value)
+    await wrapper.get('[data-testid=record-game-log-event]').trigger('click')
+    await nextTick()
+    expect(wrapper.get('[data-testid=game-log-entries]').text()).toContain(logTargetOption.text())
+    expect(wrapper.get('[data-testid=game-log-panel]').text()).toContain('Fantômes')
+
     await wrapper.get('[data-testid=advance-game-phase]').trigger('click')
     await nextTick()
     expect(wrapper.get('[data-testid=game-phase-panel]').text()).toContain('Jour 1')

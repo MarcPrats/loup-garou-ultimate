@@ -1,5 +1,7 @@
 import {
   ERROR_CODE,
+  GAME_LOG_EVENT_TYPE,
+  GAME_PHASE_PERIOD,
   LOBBY_CLOSED_REASON,
   LOBBY_ID,
   LOBBY_PHASE,
@@ -9,6 +11,8 @@ import {
   playerNameSchema,
   roleAccessTokenSchema,
   sessionTokenSchema,
+  type GameLogEntry,
+  type GameLogEventType,
   type HostDashboard,
   type PlayerId,
   type PrivateAssignment,
@@ -25,8 +29,10 @@ import type {
   Clock,
   AdvanceGamePhaseCommand,
   ConnectionId,
+  EditGameLogEventCommand,
   EnterLobbyCommand,
   GameAssignmentGenerator,
+  RecordGameLogEventCommand,
   LobbyPlayerState,
   LobbyState,
   ResumeSessionCommand,
@@ -175,6 +181,81 @@ function assertLobbyPhase(lobby: LobbyState): void {
       'La partie a déjà commencé.',
     )
   }
+}
+
+function assertExpectedRevision(lobby: LobbyState, expectedRevision: number): void {
+  if (expectedRevision !== lobby.revision) {
+    throw new LobbyError(
+      ERROR_CODE.STALE_REVISION,
+      'La partie a changé. Actualisez les informations avant de réessayer.',
+    )
+  }
+}
+
+function eventTypeMatchesPhase(
+  eventType: GameLogEventType,
+  period: (typeof GAME_PHASE_PERIOD)[keyof typeof GAME_PHASE_PERIOD],
+): boolean {
+  return eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL
+    ? period === GAME_PHASE_PERIOD.NIGHT
+    : period === GAME_PHASE_PERIOD.DAY
+}
+
+function validateGameLog(
+  lobby: LobbyState,
+  entries: readonly GameLogEntry[],
+): Set<string> {
+  const assignedPlayerIds = new Set(
+    lobby.game?.assignment.assignments.map((assignment) => assignment.playerId) ?? [],
+  )
+  const deadPlayerIds = new Set<string>()
+
+  for (const entry of entries) {
+    if (!eventTypeMatchesPhase(entry.eventType, entry.phase.period)) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_GAME_EVENT,
+        'Le type d’événement ne correspond pas à sa phase.',
+      )
+    }
+    if (!assignedPlayerIds.has(entry.targetPlayerId)) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_GAME_EVENT,
+        'Seul un joueur de la partie peut apparaître dans le journal.',
+      )
+    }
+    if (deadPlayerIds.has(entry.targetPlayerId)) {
+      throw new LobbyError(
+        ERROR_CODE.INVALID_GAME_EVENT,
+        'Un joueur ne peut mourir qu’une seule fois.',
+      )
+    }
+    deadPlayerIds.add(entry.targetPlayerId)
+  }
+
+  return deadPlayerIds
+}
+
+function findGameTarget(
+  lobby: LobbyState,
+  targetPlayerId: PlayerId,
+): LobbyPlayerState {
+  const target = lobby.players.find((player) => player.id === targetPlayerId)
+  if (!target || target.isHost) {
+    throw new LobbyError(
+      ERROR_CODE.INVALID_GAME_EVENT,
+      'Le maître du jeu ne peut pas être enregistré comme victime.',
+    )
+  }
+  const isAssigned = lobby.game?.assignment.assignments.some(
+    (assignment) => assignment.playerId === target.id,
+  )
+  if (!isAssigned) {
+    throw new LobbyError(
+      ERROR_CODE.INVALID_GAME_EVENT,
+      'La cible ne participe pas à cette partie.',
+    )
+  }
+  return target
 }
 
 function assertHost(player: LobbyPlayerState): void {
@@ -639,6 +720,92 @@ export class LobbyService {
       }
 
       lobby.gamePhase = getNextGamePhase(lobby.gamePhase)
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  recordGameLogEvent(command: RecordGameLogEventCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertStartedGame(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      const currentPhase = lobby.gamePhase
+      if (!currentPhase || !eventTypeMatchesPhase(command.eventType, currentPhase.period)) {
+        throw new LobbyError(
+          ERROR_CODE.INVALID_GAME_EVENT,
+          'Cet événement ne correspond pas à la phase actuelle.',
+        )
+      }
+
+      const game = lobby.game!
+      const target = findGameTarget(lobby, command.targetPlayerId)
+      const currentEntries = game.gameLog
+      const deadPlayerIds = validateGameLog(lobby, currentEntries)
+      if (deadPlayerIds.has(target.id)) {
+        throw new LobbyError(
+          ERROR_CODE.PLAYER_ALREADY_DEAD,
+          'Ce joueur est déjà un fantôme.',
+        )
+      }
+
+      const entry: GameLogEntry = {
+        id: `game-event-${lobby.revision + 1}`,
+        eventType: command.eventType,
+        phase: currentPhase,
+        targetPlayerId: target.id,
+        targetPlayerName: target.name,
+      }
+      game.gameLog = [...currentEntries, entry]
+      validateGameLog(lobby, game.gameLog)
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  editGameLogEvent(command: EditGameLogEventCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) {
+        throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      }
+      assertStartedGame(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      assertExpectedRevision(lobby, command.expectedRevision)
+
+      const game = lobby.game!
+      const eventIndex = game.gameLog.findIndex((entry) => entry.id === command.eventId)
+      if (eventIndex < 0) {
+        throw new LobbyError(
+          ERROR_CODE.GAME_EVENT_NOT_FOUND,
+          'Événement introuvable dans le journal.',
+        )
+      }
+      const target = findGameTarget(lobby, command.targetPlayerId)
+      const currentEntry = game.gameLog[eventIndex]
+      if (!currentEntry) {
+        throw new LobbyError(
+          ERROR_CODE.GAME_EVENT_NOT_FOUND,
+          'Événement introuvable dans le journal.',
+        )
+      }
+      if (currentEntry.targetPlayerId === target.id) {
+        return { lobby, result: toLobbySnapshot(lobby) }
+      }
+
+      const editedEntries = game.gameLog.map((entry, index) => (
+        index === eventIndex
+          ? { ...entry, targetPlayerId: target.id, targetPlayerName: target.name }
+          : entry
+      ))
+      validateGameLog(lobby, editedEntries)
+      game.gameLog = editedEntries
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })

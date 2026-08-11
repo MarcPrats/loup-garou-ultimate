@@ -37,6 +37,7 @@ export {
   LOBBY_ID,
   LOBBY_PHASE,
   GAME_PHASE_PERIOD,
+  GAME_LOG_EVENT_TYPE,
   SESSION_DESTINATION,
   SESSION_ENDED_REASON,
   SOCKET_EVENT,
@@ -59,6 +60,16 @@ export {
   publicErrorSchema,
   type PublicError,
 } from './errors'
+export {
+  gameLogEditCommandSchema,
+  gameLogEntrySchema,
+  gameLogEventTypeSchema,
+  gameLogRecordCommandSchema,
+  type GameLogEditCommand,
+  type GameLogEntry,
+  type GameLogEventType,
+  type GameLogRecordCommand,
+} from './game-log'
 export {
   createInitialGamePhase,
   gamePhasePeriodSchema,

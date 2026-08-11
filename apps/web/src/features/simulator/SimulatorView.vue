@@ -3,12 +3,17 @@ import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 
 import {
+  GAME_LOG_EVENT_TYPE,
+  GAME_PHASE_PERIOD,
   PLAYER_COUNT_LIMIT,
   getNextGamePhase,
+  type GameLogEventType,
+  type PlayerId,
   type SimulatorScenario,
 } from '@lgu/contracts'
 
 import FeedbackBanner from '../../components/FeedbackBanner.vue'
+import GameLogPanel from '../../components/GameLogPanel.vue'
 import GamePhasePanel from '../../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../../components/PlayerAssignmentPanel.vue'
@@ -54,6 +59,80 @@ const selectedPlayerId = computed<string>({
     activeView.value = playerId || SIMULATOR_VIEW.HOST
   },
 })
+
+function simulatorEventType(): GameLogEventType | null {
+  const phase = scenario.value?.lobby.gamePhase
+  if (!phase) return null
+  return phase.period === GAME_PHASE_PERIOD.NIGHT
+    ? GAME_LOG_EVENT_TYPE.NIGHT_KILL
+    : GAME_LOG_EVENT_TYPE.DAY_EXECUTION
+}
+
+function simulatorAlivePlayers(log = scenario.value?.lobby.gameLog ?? []): Set<PlayerId> {
+  return new Set(log.map((entry) => entry.targetPlayerId))
+}
+
+function updateSimulatorPlayers(
+  lobby: SimulatorScenario['lobby'],
+  log: SimulatorScenario['lobby']['gameLog'],
+): SimulatorScenario['lobby']['players'] {
+  const deadPlayerIds = simulatorAlivePlayers(log)
+  return lobby.players.map((player) => ({
+    ...player,
+    alive: player.isHost || !deadPlayerIds.has(player.id),
+  }))
+}
+
+function recordSimulatorGameLogEvent(
+  eventType: GameLogEventType,
+  targetPlayerId: PlayerId,
+): void {
+  if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
+  const phase = scenario.value.lobby.gamePhase
+  const target = scenario.value.lobby.players.find((player) => player.id === targetPlayerId)
+  if (!phase || !target || target.isHost || !target.alive) return
+  if (eventType !== simulatorEventType()) return
+
+  const entry = {
+    id: `sim-event-${scenario.value.lobby.revision + 1}`,
+    eventType,
+    phase,
+    targetPlayerId,
+    targetPlayerName: target.name,
+  }
+  const gameLog = [...scenario.value.lobby.gameLog, entry]
+  scenario.value = {
+    ...scenario.value,
+    lobby: {
+      ...scenario.value.lobby,
+      gameLog,
+      players: updateSimulatorPlayers(scenario.value.lobby, gameLog),
+      revision: scenario.value.lobby.revision + 1,
+    },
+  }
+}
+
+function editSimulatorGameLogEvent(eventId: string, targetPlayerId: PlayerId): void {
+  if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
+  const currentEntry = scenario.value.lobby.gameLog.find((entry) => entry.id === eventId)
+  const target = scenario.value.lobby.players.find((player) => player.id === targetPlayerId)
+  if (!currentEntry || !target || target.isHost || (!target.alive && target.id !== currentEntry.targetPlayerId)) return
+
+  const gameLog = scenario.value.lobby.gameLog.map((entry) => (
+    entry.id === eventId
+      ? { ...entry, targetPlayerId, targetPlayerName: target.name }
+      : entry
+  ))
+  scenario.value = {
+    ...scenario.value,
+    lobby: {
+      ...scenario.value.lobby,
+      gameLog,
+      players: updateSimulatorPlayers(scenario.value.lobby, gameLog),
+      revision: scenario.value.lobby.revision + 1,
+    },
+  }
+}
 
 function advanceSimulatorPhase(): void {
   if (!scenario.value || activeView.value !== SIMULATOR_VIEW.HOST) return
@@ -182,6 +261,14 @@ generate()
             :phase="scenario.lobby.gamePhase"
             :can-advance="activeView === SIMULATOR_VIEW.HOST"
             @advance="advanceSimulatorPhase"
+          />
+          <GameLogPanel
+            :entries="scenario.lobby.gameLog"
+            :players="scenario.lobby.players"
+            :phase="scenario.lobby.gamePhase"
+            :can-edit="activeView === SIMULATOR_VIEW.HOST"
+            @record="recordSimulatorGameLogEvent"
+            @edit="editSimulatorGameLogEvent"
           />
           <HostDashboardPanel
             v-if="activeView === SIMULATOR_VIEW.HOST"

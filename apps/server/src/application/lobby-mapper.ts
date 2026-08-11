@@ -45,11 +45,18 @@ export function getSessionDestination(
     : SESSION_DESTINATION.PLAYER_ROLE
 }
 
+function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
+  return new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
+}
+
 export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
+  const deadPlayerIds = getDeadPlayerIds(lobby)
+
   return {
     id: lobby.id,
     phase: lobby.phase,
     gamePhase: lobby.gamePhase,
+    gameLog: lobby.game?.gameLog ?? [],
     revision: lobby.revision,
     players: [...lobby.players]
       .sort((left, right) => left.joinOrder - right.joinOrder)
@@ -58,6 +65,7 @@ export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
         name: player.name,
         isHost: player.isHost,
         connected: player.connected,
+        alive: player.isHost || !deadPlayerIds.has(player.id),
       })),
     minimumPlayers: PLAYER_COUNT.MINIMUM,
     maximumPlayers: PLAYER_COUNT.MAXIMUM,

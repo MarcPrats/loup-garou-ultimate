@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ERROR_CODE,
+  GAME_LOG_EVENT_TYPE,
   LOBBY_CLOSED_REASON,
   ROLE_ACCESS_VIEW,
   LOBBY_PHASE,
@@ -488,6 +489,85 @@ describe('LobbyService', () => {
         expectedRevision: started.lobby.revision,
       }),
       ERROR_CODE.NOT_GAME_MASTER,
+    )
+  })
+
+  it('records, publishes, and corrects night kills and daytime executions', async () => {
+    const { service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    const firstPlayerId = players[0]!.session.playerId
+    const secondPlayerId = players[1]!.session.playerId
+    const thirdPlayerId = players[2]!.session.playerId
+
+    const nightKill = await service.recordGameLogEvent({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: started.lobby.revision,
+      eventType: GAME_LOG_EVENT_TYPE.NIGHT_KILL,
+      targetPlayerId: firstPlayerId,
+    })
+    expect(nightKill.gameLog[0]).toMatchObject({
+      eventType: GAME_LOG_EVENT_TYPE.NIGHT_KILL,
+      targetPlayerId: firstPlayerId,
+      targetPlayerName: 'Joueur 1',
+      phase: { period: 'night', number: 1 },
+    })
+    expect(nightKill.players.find((player) => player.id === firstPlayerId)?.alive).toBe(false)
+
+    await expectLobbyError(
+      service.recordGameLogEvent({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: nightKill.revision,
+        eventType: GAME_LOG_EVENT_TYPE.DAY_EXECUTION,
+        targetPlayerId: secondPlayerId,
+      }),
+      ERROR_CODE.INVALID_GAME_EVENT,
+    )
+
+    const day = await service.advanceGamePhase({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: nightKill.revision,
+    })
+    const execution = await service.recordGameLogEvent({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: day.revision,
+      eventType: GAME_LOG_EVENT_TYPE.DAY_EXECUTION,
+      targetPlayerId: secondPlayerId,
+    })
+    const executionId = execution.gameLog[1]!.id
+    expect(execution.players.find((player) => player.id === secondPlayerId)?.alive).toBe(false)
+
+    const corrected = await service.editGameLogEvent({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: execution.revision,
+      eventId: executionId,
+      targetPlayerId: thirdPlayerId,
+    })
+    expect(corrected.gameLog[1]).toMatchObject({
+      id: executionId,
+      targetPlayerId: thirdPlayerId,
+      targetPlayerName: 'Joueur 3',
+    })
+    expect(corrected.players.find((player) => player.id === secondPlayerId)?.alive).toBe(true)
+    expect(corrected.players.find((player) => player.id === thirdPlayerId)?.alive).toBe(false)
+
+    await expectLobbyError(
+      service.recordGameLogEvent({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: corrected.revision,
+        eventType: GAME_LOG_EVENT_TYPE.DAY_EXECUTION,
+        targetPlayerId: firstPlayerId,
+      }),
+      ERROR_CODE.PLAYER_ALREADY_DEAD,
     )
   })
 

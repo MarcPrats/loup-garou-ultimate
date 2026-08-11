@@ -10,6 +10,7 @@ import {
   ackSuccess,
   type Ack,
   type EmptyResponse,
+  type GameLogEventType,
   type PlayerId,
   type LobbyEntryResponse,
   type LobbyListResponse,
@@ -38,6 +39,7 @@ function createLobby(revision = 1): LobbySnapshot {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameLog: [],
     revision,
     players: [
       {
@@ -45,6 +47,7 @@ function createLobby(revision = 1): LobbySnapshot {
         name: 'Marc',
         isHost: true,
         connected: true,
+        alive: true,
       },
     ],
     minimumPlayers: 5,
@@ -99,6 +102,38 @@ class FakeGateway implements LobbyGateway {
     ...createLobby(revision + 1),
     phase: LOBBY_PHASE.STARTED,
     gamePhase: { period: 'day', number: 1 },
+  }))
+  readonly recordGameLogEvent = vi.fn(async (
+    _eventType: GameLogEventType,
+    _targetPlayerId: PlayerId,
+    revision: number,
+  ): Promise<Ack<LobbySnapshot>> => ackSuccess({
+    ...createLobby(revision + 1),
+    phase: LOBBY_PHASE.STARTED,
+    gamePhase: { period: 'night', number: 1 },
+    gameLog: [{
+      id: 'game-event-1',
+      eventType: 'night-kill',
+      phase: { period: 'night', number: 1 },
+      targetPlayerId: 'player_2',
+      targetPlayerName: 'Joueur 2',
+    }],
+  }))
+  readonly editGameLogEvent = vi.fn(async (
+    _eventId: string,
+    _targetPlayerId: PlayerId,
+    revision: number,
+  ): Promise<Ack<LobbySnapshot>> => ackSuccess({
+    ...createLobby(revision + 1),
+    phase: LOBBY_PHASE.STARTED,
+    gamePhase: { period: 'night', number: 1 },
+    gameLog: [{
+      id: 'game-event-1',
+      eventType: 'night-kill',
+      phase: { period: 'night', number: 1 },
+      targetPlayerId: 'player_3',
+      targetPlayerName: 'Joueur 3',
+    }],
   }))
   readonly keepAlive = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
 
@@ -198,6 +233,28 @@ describe('lobby store', () => {
     expect(await store.advanceGamePhase()).toBe(true)
     expect(gateway.advanceGamePhase).toHaveBeenCalledWith(2)
     expect(store.lobby?.gamePhase).toEqual({ period: 'day', number: 1 })
+    store.dispose()
+  })
+
+  it('records and corrects a public game log event through the gateway', async () => {
+    const gateway = new FakeGateway()
+    const storage = new FakeStorage(SESSION)
+    const store = createStore(gateway, storage)
+    await store.initialize()
+    gateway.handlers?.onLobbySnapshot({
+      ...createLobby(2),
+      phase: LOBBY_PHASE.STARTED,
+      gamePhase: { period: 'night', number: 1 },
+      canStart: false,
+    })
+
+    expect(await store.recordGameLogEvent('night-kill', 'player_2')).toBe(true)
+    expect(gateway.recordGameLogEvent).toHaveBeenCalledWith('night-kill', 'player_2', 2)
+    expect(store.lobby?.gameLog[0]?.targetPlayerId).toBe('player_2')
+
+    expect(await store.editGameLogEvent('game-event-1', 'player_3')).toBe(true)
+    expect(gateway.editGameLogEvent).toHaveBeenCalledWith('game-event-1', 'player_3', 3)
+    expect(store.lobby?.gameLog[0]?.targetPlayerId).toBe('player_3')
     store.dispose()
   })
 

@@ -12,6 +12,8 @@ import {
   ackFailure,
   ackSuccess,
   emptyCommandSchema,
+  gameLogEditCommandSchema,
+  gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
   hostKickCommandSchema,
@@ -281,6 +283,34 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         const result = await serviceFor(socket).advanceGamePhase({
           ...getSessionCommand(socket),
           expectedRevision: command.expectedRevision,
+        })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_LOG_RECORD, (rawCommand, callback) => {
+      acknowledge(callback, async () => {
+        const command = parseCommand(gameLogRecordCommandSchema, rawCommand)
+        const result = await serviceFor(socket).recordGameLogEvent({
+          ...getSessionCommand(socket),
+          expectedRevision: command.expectedRevision,
+          eventType: command.eventType,
+          targetPlayerId: command.targetPlayerId,
+        })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.GAME_LOG_EDIT, (rawCommand, callback) => {
+      acknowledge(callback, async () => {
+        const command = parseCommand(gameLogEditCommandSchema, rawCommand)
+        const result = await serviceFor(socket).editGameLogEvent({
+          ...getSessionCommand(socket),
+          expectedRevision: command.expectedRevision,
+          eventId: command.eventId,
+          targetPlayerId: command.targetPlayerId,
         })
         broadcastSnapshot(io, result)
         return result

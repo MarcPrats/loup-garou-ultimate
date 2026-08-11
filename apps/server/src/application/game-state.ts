@@ -67,5 +67,6 @@ export function createStoredGameState(
       roleAccessTokenGenerator,
     ),
     startedAt,
+    gameLog: [],
   }
 }

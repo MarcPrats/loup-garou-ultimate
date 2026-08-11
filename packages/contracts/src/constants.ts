@@ -64,6 +64,11 @@ export const SPECIAL_INFORMATION_TYPE = {
   RENARD: 'renard',
   PETITE_FILLE: 'petite-fille',
 } as const
+
+export const GAME_LOG_EVENT_TYPE = {
+  NIGHT_KILL: 'night-kill',
+  DAY_EXECUTION: 'day-execution',
+} as const
 export type SpecialInformationType = ValueOf<typeof SPECIAL_INFORMATION_TYPE>
 
 export const NOTIFICATION_LEVEL = {
@@ -106,6 +111,9 @@ export const ERROR_CODE = {
   SIMULATOR_DISABLED: 'simulator-disabled',
   INTERNAL_ERROR: 'internal-error',
   STALE_REVISION: 'stale-revision',
+  INVALID_GAME_EVENT: 'invalid-game-event',
+  GAME_EVENT_NOT_FOUND: 'game-event-not-found',
+  PLAYER_ALREADY_DEAD: 'player-already-dead',
 } as const
 export type ErrorCode = ValueOf<typeof ERROR_CODE>
 
@@ -120,6 +128,8 @@ export const SOCKET_EVENT = {
   HOST_KICK: 'host:kick',
   GAME_START: 'game:start',
   GAME_PHASE_ADVANCE: 'game:phase-advance',
+  GAME_LOG_RECORD: 'game-log:record',
+  GAME_LOG_EDIT: 'game-log:edit',
   KEEP_ALIVE: 'session:keep-alive',
   LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   APPLICATION,
   ERROR_CODE,
+  GAME_LOG_EVENT_TYPE,
   PLAYER_COUNT_LIMIT,
   ROLE_CATEGORY,
   LOBBY_ID,
@@ -15,6 +16,9 @@ import {
   createAckSchema,
   createInitialGamePhase,
   getNextGamePhase,
+  gameLogEditCommandSchema,
+  gameLogEntrySchema,
+  gameLogRecordCommandSchema,
   healthResponseSchema,
   hostDashboardSchema,
   hostPlayerAssignmentSchema,
@@ -58,6 +62,29 @@ describe('HTTP contracts', () => {
       version: APPLICATION.VERSION,
       status: 'ok',
     })
+  })
+})
+
+describe('game log contracts', () => {
+  it('accepts a public night kill and validates its command', () => {
+    const entry = gameLogEntrySchema.parse({
+      id: 'game-event-1',
+      eventType: GAME_LOG_EVENT_TYPE.NIGHT_KILL,
+      phase: { period: 'night', number: 1 },
+      targetPlayerId: 'player-1',
+      targetPlayerName: 'Marc',
+    })
+    expect(entry.targetPlayerName).toBe('Marc')
+    expect(gameLogRecordCommandSchema.safeParse({
+      expectedRevision: 4,
+      eventType: GAME_LOG_EVENT_TYPE.NIGHT_KILL,
+      targetPlayerId: 'player-1',
+    }).success).toBe(true)
+    expect(gameLogEditCommandSchema.safeParse({
+      expectedRevision: 4,
+      eventId: 'game-event-1',
+      targetPlayerId: 'player-2',
+    }).success).toBe(true)
   })
 })
 
@@ -138,12 +165,14 @@ describe('lobby contracts', () => {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameLog: [],
     revision: 1,
     players: [
       {
         ...player,
         isHost: true,
         connected: true,
+        alive: true,
       },
     ],
     minimumPlayers: 5,

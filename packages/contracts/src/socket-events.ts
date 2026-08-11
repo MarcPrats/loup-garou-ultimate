@@ -10,6 +10,10 @@ import type {
 } from './commands'
 import { SOCKET_EVENT } from './constants'
 import type {
+  GameLogEditCommand,
+  GameLogRecordCommand,
+} from './game-log'
+import type {
   GameStartedEvent,
   HostDashboard,
   NotificationEvent,
@@ -71,6 +75,14 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.GAME_PHASE_ADVANCE]: (
     command: GamePhaseAdvanceCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.GAME_LOG_RECORD]: (
+    command: GameLogRecordCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.GAME_LOG_EDIT]: (
+    command: GameLogEditCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (

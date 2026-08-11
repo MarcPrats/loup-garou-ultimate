@@ -3,6 +3,7 @@ import { ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
+import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import { useLobbyStore } from '../stores/lobby'
@@ -24,6 +25,16 @@ async function confirmLeave(): Promise<void> {
         :can-advance="lobby.isHost"
         :advancing="lobby.advancingPhase"
         @advance="lobby.advanceGamePhase"
+      />
+
+      <GameLogPanel
+        :entries="lobby.lobby?.gameLog ?? []"
+        :players="lobby.lobby?.players ?? []"
+        :phase="lobby.lobby?.gamePhase ?? null"
+        :can-edit="lobby.isHost"
+        :busy="lobby.updatingGameLog"
+        @record="lobby.recordGameLogEvent"
+        @edit="lobby.editGameLogEvent"
       />
 
       <HostDashboardPanel

@@ -5,6 +5,7 @@ import { ROLE_ID } from '@lgu/game-core'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
+import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import { useLobbyStore } from '../stores/lobby'
@@ -22,6 +23,13 @@ async function confirmLeave(): Promise<void> {
   <main class="app-page">
     <div class="app-screen app-game-container">
       <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
+
+      <GameLogPanel
+        :entries="lobby.lobby?.gameLog ?? []"
+        :players="lobby.lobby?.players ?? []"
+        :phase="lobby.lobby?.gamePhase ?? null"
+        :current-player-id="lobby.currentPlayer?.id ?? null"
+      />
 
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"

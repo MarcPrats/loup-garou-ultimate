@@ -5,6 +5,8 @@ import {
   LOBBY_ID,
   createAckSchema,
   emptyResponseSchema,
+  gameLogEditCommandSchema,
+  gameLogRecordCommandSchema,
   gamePhaseAdvanceCommandSchema,
   gameStartedEventSchema,
   hostDashboardSchema,
@@ -20,6 +22,7 @@ import {
   type Ack,
   type ClientRequestId,
   type EmptyResponse,
+  type GameLogEventType,
   type GameStartedEvent,
   type HostDashboard,
   type NotificationEvent,
@@ -49,6 +52,7 @@ const sessionResumeAckSchema = createAckSchema(sessionResumeResponseSchema)
 const lobbySnapshotAckSchema = createAckSchema(lobbySnapshotSchema)
 const emptyAckSchema = createAckSchema(emptyResponseSchema)
 const gamePhaseAdvanceAckSchema = createAckSchema(lobbySnapshotSchema)
+const gameLogAckSchema = createAckSchema(lobbySnapshotSchema)
 
 export interface LobbyGatewayHandlers {
   readonly onConnectionState: (state: ConnectionState) => void
@@ -77,6 +81,8 @@ export interface LobbyGateway {
   kick(playerId: PlayerId): Promise<Ack<LobbySnapshot>>
   start(): Promise<Ack<EmptyResponse>>
   advanceGamePhase(expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  editGameLogEvent(eventId: string, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
 }
 
@@ -311,6 +317,38 @@ export class SocketLobbyGateway implements LobbyGateway {
       (callback) => this.socket.emit(
         SOCKET_EVENT.GAME_PHASE_ADVANCE,
         gamePhaseAdvanceCommandSchema.parse({ expectedRevision }),
+        callback,
+      ),
+    )
+  }
+
+  recordGameLogEvent(
+    eventType: GameLogEventType,
+    targetPlayerId: string,
+    expectedRevision: number,
+  ): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'record game log event',
+      gameLogAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.GAME_LOG_RECORD,
+        gameLogRecordCommandSchema.parse({ eventType, targetPlayerId, expectedRevision }),
+        callback,
+      ),
+    )
+  }
+
+  editGameLogEvent(
+    eventId: string,
+    targetPlayerId: string,
+    expectedRevision: number,
+  ): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'edit game log event',
+      gameLogAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.GAME_LOG_EDIT,
+        gameLogEditCommandSchema.parse({ eventId, targetPlayerId, expectedRevision }),
         callback,
       ),
     )

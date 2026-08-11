@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   ERROR_CODE,
+  GAME_LOG_EVENT_TYPE,
   PLAYER_COUNT_LIMIT,
   ROLE_ACCESS_VIEW,
   SESSION_ENDED_REASON,
@@ -113,6 +114,36 @@ function resume(
 function start(client: TestClient): Promise<Ack<Record<string, never>>> {
   return new Promise((resolve) => {
     client.emit(SOCKET_EVENT.GAME_START, {}, resolve)
+  })
+}
+
+function recordGameLogEvent(
+  client: TestClient,
+  expectedRevision: number,
+  eventType: 'night-kill' | 'day-execution',
+  targetPlayerId: string,
+): Promise<Ack<LobbySnapshot>> {
+  return new Promise((resolve) => {
+    client.emit(SOCKET_EVENT.GAME_LOG_RECORD, {
+      expectedRevision,
+      eventType,
+      targetPlayerId,
+    }, resolve)
+  })
+}
+
+function editGameLogEvent(
+  client: TestClient,
+  expectedRevision: number,
+  eventId: string,
+  targetPlayerId: string,
+): Promise<Ack<LobbySnapshot>> {
+  return new Promise((resolve) => {
+    client.emit(SOCKET_EVENT.GAME_LOG_EDIT, {
+      expectedRevision,
+      eventId,
+      targetPlayerId,
+    }, resolve)
   })
 }
 
@@ -380,6 +411,47 @@ describe('V3 transport', () => {
     expect(playerAttempt).toMatchObject({
       ok: false,
       error: { code: ERROR_CODE.NOT_GAME_MASTER },
+    })
+  })
+
+  it('broadcasts death logs and corrections to every connected player', async () => {
+    const runtime = await createRuntime()
+    const host = await connectClient(runtime.url)
+    expect((await enter(host, 'Le MJ')).ok).toBe(true)
+    const players: Array<{ client: TestClient; entry: LobbyEntryResponse }> = []
+    for (let index = 1; index <= PLAYER_COUNT_LIMIT.MINIMUM; index += 1) {
+      const client = await connectClient(runtime.url)
+      const entry = await enter(client, `Joueur ${index}`)
+      expect(entry.ok).toBe(true)
+      if (entry.ok) players.push({ client, entry: entry.data })
+    }
+    expect((await start(host)).ok).toBe(true)
+    const initial = await runtime.service.getLobbySnapshot()
+    if (!initial) return
+
+    const snapshots: LobbySnapshot[] = []
+    players[0]!.client.on(SOCKET_EVENT.LOBBY_SNAPSHOT, (snapshot) => snapshots.push(snapshot))
+    const killedPlayerId = players[0]!.entry.session.playerId
+    const kill = await recordGameLogEvent(
+      host,
+      initial.revision,
+      GAME_LOG_EVENT_TYPE.NIGHT_KILL,
+      killedPlayerId,
+    )
+    expect(kill).toMatchObject({ ok: true, data: { gameLog: [{ targetPlayerId: killedPlayerId }] } })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(snapshots.at(-1)?.players.find((player) => player.id === killedPlayerId)?.alive).toBe(false)
+
+    if (!kill.ok) return
+    const correction = await editGameLogEvent(
+      host,
+      kill.data.revision,
+      kill.data.gameLog[0]!.id,
+      players[1]!.entry.session.playerId,
+    )
+    expect(correction).toMatchObject({
+      ok: true,
+      data: { gameLog: [{ targetPlayerId: players[1]!.entry.session.playerId }] },
     })
   })
 

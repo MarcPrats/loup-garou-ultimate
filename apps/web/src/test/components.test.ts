@@ -10,12 +10,14 @@ const host = {
   name: 'Le MJ',
   isHost: true,
   connected: true,
+  alive: true,
 }
 const player = {
   id: 'player_1',
   name: 'Marc',
   isHost: false,
   connected: true,
+  alive: true,
 }
 
 describe('LobbyRoster', () => {
