@@ -1,4 +1,5 @@
 import {
+  GAME_LOG_EVENT_TYPE,
   LOBBY_PHASE,
   SESSION_DESTINATION,
   type DayVoteSnapshot,
@@ -47,7 +48,9 @@ export function getSessionDestination(
 }
 
 function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
-  return new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
+  return new Set(lobby.game?.gameLog
+    .filter((event) => event.eventType !== GAME_LOG_EVENT_TYPE.DAY_VOTE)
+    .map((event) => event.targetPlayerId) ?? [])
 }
 
 function toDayVoteSnapshot(game: NonNullable<LobbyState['game']>): DayVoteSnapshot {
@@ -55,6 +58,8 @@ function toDayVoteSnapshot(game: NonNullable<LobbyState['game']>): DayVoteSnapsh
     status: game.dayVoting.status,
     day: game.dayVoting.day,
     nomination: game.dayVoting.nomination,
+    nominatedByIds: game.dayVoting.nominatedByIds,
+    nominatedTargetIds: game.dayVoting.nominatedTargetIds,
     eligibleVoterIds: game.dayVoting.eligibleVoterIds,
     ballots: game.dayVoting.ballots,
     livingPlayerCount: game.dayVoting.livingPlayerCount,

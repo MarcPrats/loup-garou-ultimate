@@ -129,6 +129,10 @@ export interface ClientToServerEvents {
     command: DayVoteSubmitCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
+  [SOCKET_EVENT.DAY_VOTE_START]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (
     command: EmptyCommand,
     callback: AckCallback<EmptyResponse>,

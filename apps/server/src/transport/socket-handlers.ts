@@ -354,6 +354,16 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
       }, onUnexpectedError)
     })
 
+    socket.on(SOCKET_EVENT.DAY_VOTE_START, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayNominationDecisionCommandSchema, rawCommand)
+        const result = await serviceFor(socket).startDayVote({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        scheduleDayVoteExpiry(io, serviceFor(socket), getLobbyId(socket), result.dayVote?.closesAt ?? null)
+        return result
+      }, onUnexpectedError)
+    })
+
     socket.on(SOCKET_EVENT.DAY_VOTE_SUBMIT, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async () => {
         const command = parseCommand(dayVoteSubmitCommandSchema, rawCommand)

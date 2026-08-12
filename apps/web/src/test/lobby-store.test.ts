@@ -116,6 +116,7 @@ class FakeGateway implements LobbyGateway {
   }))
   readonly proposeDayNomination = vi.fn(async (_targetPlayerId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly approveDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly startDayVote = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly rejectDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly submitDayVote = vi.fn(async (_choice: DayVoteChoice, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly advanceGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({

@@ -36,6 +36,7 @@ async function confirmLeave(): Promise<void> {
         :is-host="true"
         @approve="lobby.approveDayNomination"
         @reject="lobby.rejectDayNomination"
+        @start="lobby.startDayVote"
       />
 
       <GameLogPanel

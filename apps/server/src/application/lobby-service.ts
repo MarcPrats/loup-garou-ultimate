@@ -213,6 +213,7 @@ function eventTypeMatchesPhase(
   eventType: GameLogEventType,
   period: (typeof GAME_PHASE_PERIOD)[keyof typeof GAME_PHASE_PERIOD],
 ): boolean {
+  if (eventType === GAME_LOG_EVENT_TYPE.DAY_VOTE) return period === GAME_PHASE_PERIOD.DAY
   return eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL
     ? period === GAME_PHASE_PERIOD.NIGHT
     : period === GAME_PHASE_PERIOD.DAY
@@ -240,6 +241,7 @@ function validateGameLog(
         'Seul un joueur de la partie peut apparaître dans le journal.',
       )
     }
+    if (entry.eventType === GAME_LOG_EVENT_TYPE.DAY_VOTE) continue
     if (deadPlayerIds.has(entry.targetPlayerId)) {
       throw new LobbyError(
         ERROR_CODE.INVALID_GAME_EVENT,
@@ -291,7 +293,9 @@ function assertDayPhase(lobby: LobbyState): void {
 }
 
 function getLivingRegularPlayers(lobby: LobbyState): LobbyPlayerState[] {
-  const deadPlayerIds = new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
+  const deadPlayerIds = new Set(lobby.game?.gameLog
+    .filter((event) => event.eventType !== GAME_LOG_EVENT_TYPE.DAY_VOTE)
+    .map((event) => event.targetPlayerId) ?? [])
   return lobby.players.filter((player) => !player.isHost && !deadPlayerIds.has(player.id))
 }
 
@@ -335,6 +339,22 @@ function resolveDayVote(lobby: LobbyState, now: number): void {
   }
   game.dayVoting.status = DAY_VOTE_STATUS.RESOLVED
   game.dayVoting.closesAt = now
+  game.gameLog.push({
+    id: `game-event-${lobby.revision + 1}`,
+    eventType: GAME_LOG_EVENT_TYPE.DAY_VOTE,
+    phase: lobby.gamePhase!,
+    targetPlayerId: game.dayVoting.nomination.targetId,
+    targetPlayerName: game.dayVoting.nomination.targetName,
+    voteDetails: {
+      nominationId: game.dayVoting.nomination.id,
+      nominatorName: game.dayVoting.nomination.nominatorName,
+      targetName: game.dayVoting.nomination.targetName,
+      yesVoterNames: game.dayVoting.ballots.filter((ballot) => ballot.choice === DAY_VOTE_CHOICE.YES).map((ballot) => ballot.voterName),
+      noVoterNames: game.dayVoting.ballots.filter((ballot) => ballot.choice === DAY_VOTE_CHOICE.NO).map((ballot) => ballot.voterName),
+      threshold: game.dayVoting.threshold,
+      passed: game.dayVoting.result.passed,
+    },
+  })
 }
 
 function electHost(lobby: LobbyState): LobbyPlayerState | null {
@@ -874,7 +894,7 @@ export class LobbyService {
       const player = authenticateConnectedSession(lobby, command)
       if (player.isHost) throw new LobbyError(ERROR_CODE.NOT_GAME_MASTER, 'Le maître du jeu ne peut pas nominer.')
       const game = lobby.game!
-      if (game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_PENDING || game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
+      if (game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_PENDING || game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_VALIDATED || game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
         throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Une nomination est déjà en cours.')
       }
       const livingPlayers = getLivingRegularPlayers(lobby)
@@ -930,26 +950,50 @@ export class LobbyService {
       if (!approve) {
         game.dayVoting = { ...game.dayVoting, status: DAY_VOTE_STATUS.IDLE, nomination: null, result: null }
       } else {
-        const livingPlayers = getLivingRegularPlayers(lobby)
-        const ghosts = lobby.players.filter((player) => !player.isHost && !livingPlayers.some((living) => living.id === player.id))
-        const eligibleVoterIds = [
-          ...livingPlayers.map((player) => player.id),
-          ...ghosts.filter((player) => !game.ghostFinalVoteUsedIds.includes(player.id)).map((player) => player.id),
-        ]
         game.dayVoting = {
           ...game.dayVoting,
-          status: DAY_VOTE_STATUS.ACTIVE,
+          status: DAY_VOTE_STATUS.NOMINATION_VALIDATED,
           nominatedByIds: [...game.dayVoting.nominatedByIds, nomination.nominatorId],
           nominatedTargetIds: [...game.dayVoting.nominatedTargetIds, nomination.targetId],
-          eligibleVoterIds,
-          ballots: [],
-          livingPlayerCount: livingPlayers.length,
-          yesCount: 0,
-          noCount: 0,
-          threshold: Math.floor(livingPlayers.length / 2) + 1,
-          closesAt: now + 15_000,
           result: null,
         }
+      }
+      touchLobby(lobby, now)
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  startDayVote(command: DayNominationDecisionServerCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      assertStartedGame(lobby)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      assertDayPhase(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      const game = lobby.game!
+      const nomination = game.dayVoting.nomination
+      if (game.dayVoting.status !== DAY_VOTE_STATUS.NOMINATION_VALIDATED || !nomination || nomination.id !== command.nominationId) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Cette nomination n’est pas prête à être soumise au vote.')
+      }
+      const livingPlayers = getLivingRegularPlayers(lobby)
+      const ghosts = lobby.players.filter((player) => !player.isHost && !livingPlayers.some((living) => living.id === player.id))
+      const now = this.dependencies.clock.now()
+      game.dayVoting = {
+        ...game.dayVoting,
+        status: DAY_VOTE_STATUS.ACTIVE,
+        eligibleVoterIds: [
+          ...livingPlayers.map((player) => player.id),
+          ...ghosts.filter((player) => !game.ghostFinalVoteUsedIds.includes(player.id)).map((player) => player.id),
+        ],
+        ballots: [],
+        livingPlayerCount: livingPlayers.length,
+        yesCount: 0,
+        noCount: 0,
+        threshold: Math.floor(livingPlayers.length / 2) + 1,
+        closesAt: now + 15_000,
+        result: null,
       }
       touchLobby(lobby, now)
       return { lobby, result: toLobbySnapshot(lobby) }

@@ -53,7 +53,9 @@ const currentPlayer = computed(() => props.players.find(
 
 function phaseLabel(entry: GameLogEntry): string {
   const period = entry.phase.period === GAME_PHASE_PERIOD.NIGHT ? 'Nuit' : 'Jour'
-  return `${period} ${entry.phase.number}`
+  return entry.eventType === GAME_LOG_EVENT_TYPE.DAY_VOTE
+    ? `🗳️ Vote, ${period} ${entry.phase.number}`
+    : `${period} ${entry.phase.number}`
 }
 
 function editOptions(entry: GameLogEntry): PublicPlayer[] {
@@ -84,6 +86,10 @@ function deleteSelected(entry: GameLogEntry): void {
   )) return
   emit('delete', entry.id)
 }
+
+function isVoteEntry(entry: GameLogEntry): boolean {
+  return entry.eventType === GAME_LOG_EVENT_TYPE.DAY_VOTE
+}
 </script>
 
 <template>
@@ -94,7 +100,7 @@ function deleteSelected(entry: GameLogEntry): void {
     <header class="app-game-log-header">
       <div>
         <p class="app-game-log-kicker">📜 Historique public</p>
-        <h2 class="app-game-log-title">💀 Morts et exécutions</h2>
+        <h2 class="app-game-log-title">📜 Historique de la partie</h2>
       </div>
       <p class="app-game-log-count">
         {{ entries.length }} événement{{ entries.length > 1 ? 's' : '' }} enregistré{{ entries.length > 1 ? 's' : '' }}
@@ -142,11 +148,11 @@ function deleteSelected(entry: GameLogEntry): void {
       Aucun événement n’a encore été enregistré.
     </p>
     <ol v-else class="app-game-log-entries" data-testid="game-log-entries">
-      <li v-for="entry in entries" :key="entry.id" class="app-game-log-entry">
+      <li v-for="entry in entries" :key="entry.id" class="app-game-log-entry" :class="{ 'app-game-log-entry-vote': isVoteEntry(entry) }">
         <span class="app-game-log-entry-phase">{{ phaseLabel(entry) }}</span>
         <span class="app-game-log-entry-text">
           <select
-            v-if="canEdit"
+            v-if="canEdit && !isVoteEntry(entry)"
             class="app-game-log-target-select"
             :value="editTargetValue(entry)"
             :aria-label="`Cible de l’événement, ${entry.targetPlayerName}`"
@@ -159,10 +165,14 @@ function deleteSelected(entry: GameLogEntry): void {
           </select>
           <strong v-else>{{ entry.targetPlayerName }}</strong>
           <span class="app-game-log-event-description">
-            {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? ' 🩸 a été dévoré(e)' : ' ⚔️ a été éliminé(e) par le Village' }}
+            {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? ' 🩸 a été dévoré(e)' : isVoteEntry(entry) ? ' 🗳️ a fait l’objet d’un vote' : ' ⚔️ a été éliminé(e) par le Village' }}
           </span>
+          <div v-if="entry.voteDetails" class="app-game-log-vote-details">
+            <span><strong>👍 Oui :</strong> {{ entry.voteDetails.yesVoterNames.join(', ') || 'Personne' }}</span>
+            <span><strong>👎 Non :</strong> {{ entry.voteDetails.noVoterNames.join(', ') || 'Personne' }}</span>
+          </div>
         </span>
-        <div v-if="canEdit" class="app-game-log-edit-controls">
+        <div v-if="canEdit && !isVoteEntry(entry)" class="app-game-log-edit-controls">
           <button
             type="button"
             class="app-game-log-delete-btn"
@@ -208,6 +218,8 @@ function deleteSelected(entry: GameLogEntry): void {
     line-height: 1.35;
   }
   .app-game-log-event-description { flex: 1 1 120px; min-width: 0; }
+  .app-game-log-vote-details { flex-basis: 100%; display: grid; gap: 4px; color: #d9e5f3; font-size: .9rem; }
+  .app-game-log-entry-vote { border-left: 3px solid #fbbf4a; padding-left: 10px; }
   .app-game-log-edit-controls { grid-column: 2; width: auto; }
   .app-game-log-target-select {
     flex: 0 1 190px;

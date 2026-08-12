@@ -96,6 +96,7 @@ export interface LobbyGateway {
   deleteGameLogEvent(eventId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   proposeDayNomination(targetPlayerId: PlayerId, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   approveDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  startDayVote(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   rejectDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   submitDayVote(choice: DayVoteChoice, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
@@ -438,6 +439,14 @@ export class SocketLobbyGateway implements LobbyGateway {
       'approve day nomination',
       gamePhaseAdvanceAckSchema,
       (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_APPROVE, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  startDayVote(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'start day vote',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_VOTE_START, { nominationId, expectedRevision }, callback),
     )
   }
 

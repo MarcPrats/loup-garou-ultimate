@@ -11,6 +11,7 @@ export type DayVoteChoice = typeof DAY_VOTE_CHOICE[keyof typeof DAY_VOTE_CHOICE]
 export const DAY_VOTE_STATUS = {
   IDLE: 'idle',
   NOMINATION_PENDING: 'nomination-pending',
+  NOMINATION_VALIDATED: 'nomination-validated',
   ACTIVE: 'active',
   RESOLVED: 'resolved',
 } as const
@@ -49,6 +50,8 @@ export const dayVoteSnapshotSchema = z.object({
   status: dayVoteStatusSchema,
   day: z.number().int().positive(),
   nomination: dayNominationSchema.nullable(),
+  nominatedByIds: z.array(playerIdSchema),
+  nominatedTargetIds: z.array(playerIdSchema),
   eligibleVoterIds: z.array(playerIdSchema),
   ballots: z.array(dayVoteBallotSchema),
   livingPlayerCount: z.number().int().positive(),
