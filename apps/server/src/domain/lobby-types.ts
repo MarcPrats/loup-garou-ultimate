@@ -9,6 +9,10 @@ import type {
   GamePhase,
   LobbyPhase,
   SessionToken,
+  DayNomination,
+  DayVoteBallot,
+  DayVoteChoice,
+  DayVoteResult,
 } from '@lgu/contracts'
 import type {
   AssignablePlayer,
@@ -42,6 +46,24 @@ export interface StoredGameState {
   readonly roleAccessGrants: RoleAccessGrant[]
   readonly startedAt: number
   gameLog: GameLogEntry[]
+  dayVoting: DayVotingState
+  ghostFinalVoteUsedIds: PlayerId[]
+}
+
+export interface DayVotingState {
+  day: number
+  status: 'idle' | 'nomination-pending' | 'active' | 'resolved'
+  nominatedByIds: PlayerId[]
+  nominatedTargetIds: PlayerId[]
+  nomination: DayNomination | null
+  eligibleVoterIds: PlayerId[]
+  ballots: DayVoteBallot[]
+  livingPlayerCount: number
+  yesCount: number
+  noCount: number
+  threshold: number
+  closesAt: number | null
+  result: DayVoteResult | null
 }
 
 export interface GameStartPreviewState {
@@ -108,6 +130,21 @@ export interface EditGameLogEventCommand extends SessionCommand {
 export interface DeleteGameLogEventCommand extends SessionCommand {
   readonly expectedRevision: number
   readonly eventId: string
+}
+
+export interface DayNominationProposeServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly targetPlayerId: PlayerId
+}
+
+export interface DayNominationDecisionServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly nominationId: string
+}
+
+export interface DayVoteSubmitServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly choice: DayVoteChoice
 }
 
 export interface SessionCommand {

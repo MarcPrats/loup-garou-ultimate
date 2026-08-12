@@ -12,6 +12,7 @@ import {
   type EmptyResponse,
   type GameLogEventType,
   type GameStartPreview,
+  type DayVoteChoice,
   type PlayerId,
   type LobbyEntryResponse,
   type LobbyListResponse,
@@ -41,6 +42,7 @@ function createLobby(revision = 1): LobbySnapshot {
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
     gameLog: [],
+    dayVote: null,
     revision,
     players: [
       {
@@ -112,6 +114,10 @@ class FakeGateway implements LobbyGateway {
     werewolfCount: 0,
     villagerTeamCount: 1,
   }))
+  readonly proposeDayNomination = vi.fn(async (_targetPlayerId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly approveDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly rejectDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly submitDayVote = vi.fn(async (_choice: DayVoteChoice, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly advanceGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({
     ...createLobby(revision + 1),
     phase: LOBBY_PHASE.STARTED,

@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import DayVotingPanel from '../components/DayVotingPanel.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
@@ -27,6 +28,14 @@ async function confirmLeave(): Promise<void> {
         :advancing="lobby.advancingPhase"
         @advance="lobby.advanceGamePhase"
         @rewind="lobby.rewindGamePhase"
+      />
+
+      <DayVotingPanel
+        :day-vote="lobby.lobby?.dayVote ?? null"
+        :players="lobby.lobby?.players ?? []"
+        :is-host="true"
+        @approve="lobby.approveDayNomination"
+        @reject="lobby.rejectDayNomination"
       />
 
       <GameLogPanel

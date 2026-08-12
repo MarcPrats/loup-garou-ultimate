@@ -1,6 +1,7 @@
 import {
   LOBBY_PHASE,
   SESSION_DESTINATION,
+  type DayVoteSnapshot,
   type LobbySnapshot,
   type SessionDestination,
 } from '@lgu/contracts'
@@ -49,6 +50,22 @@ function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
   return new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
 }
 
+function toDayVoteSnapshot(game: NonNullable<LobbyState['game']>): DayVoteSnapshot {
+  return {
+    status: game.dayVoting.status,
+    day: game.dayVoting.day,
+    nomination: game.dayVoting.nomination,
+    eligibleVoterIds: game.dayVoting.eligibleVoterIds,
+    ballots: game.dayVoting.ballots,
+    livingPlayerCount: game.dayVoting.livingPlayerCount,
+    yesCount: game.dayVoting.yesCount,
+    noCount: game.dayVoting.noCount,
+    threshold: game.dayVoting.threshold,
+    closesAt: game.dayVoting.closesAt,
+    result: game.dayVoting.result,
+  }
+}
+
 export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
   const deadPlayerIds = getDeadPlayerIds(lobby)
 
@@ -57,6 +74,9 @@ export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
     phase: lobby.phase,
     gamePhase: lobby.gamePhase,
     gameLog: lobby.game?.gameLog ?? [],
+    dayVote: lobby.gamePhase?.period === 'day'
+      ? lobby.game ? toDayVoteSnapshot(lobby.game) : null
+      : null,
     revision: lobby.revision,
     players: [...lobby.players]
       .sort((left, right) => left.joinOrder - right.joinOrder)

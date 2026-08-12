@@ -7,6 +7,7 @@ import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import DayVotingPanel from '../components/DayVotingPanel.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
@@ -54,6 +55,14 @@ async function confirmLeave(): Promise<void> {
       </section>
 
       <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
+
+      <DayVotingPanel
+        :day-vote="lobby.lobby?.dayVote ?? null"
+        :players="lobby.lobby?.players ?? []"
+        :current-player-id="lobby.currentPlayer?.id ?? null"
+        @propose="lobby.proposeDayNomination"
+        @vote="lobby.submitDayVote"
+      />
 
       <GameLogPanel
         :entries="lobby.lobby?.gameLog ?? []"

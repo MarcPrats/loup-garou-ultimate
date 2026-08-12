@@ -1,5 +1,7 @@
 import {
   ERROR_CODE,
+  DAY_VOTE_CHOICE,
+  DAY_VOTE_STATUS,
   GAME_LOG_EVENT_TYPE,
   GAME_PHASE_PERIOD,
   LOBBY_CLOSED_REASON,
@@ -14,6 +16,8 @@ import {
   sessionTokenSchema,
   type GameLogEntry,
   type GameLogEventType,
+  type DayNomination,
+  type DayVoteBallot,
   type GameStartPreview,
   type EmptyResponse,
   type HostDashboard,
@@ -39,6 +43,9 @@ import type {
   RecordGameLogEventCommand,
   LobbyPlayerState,
   LobbyState,
+  DayNominationDecisionServerCommand,
+  DayNominationProposeServerCommand,
+  DayVoteSubmitServerCommand,
   ResumeSessionCommand,
   LobbyRepository,
   SessionCommand,
@@ -275,6 +282,59 @@ function assertHost(player: LobbyPlayerState): void {
       'Seul le maître du jeu peut effectuer cette action.',
     )
   }
+}
+
+function assertDayPhase(lobby: LobbyState): void {
+  if (lobby.gamePhase?.period !== GAME_PHASE_PERIOD.DAY) {
+    throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Le vote est disponible uniquement pendant le jour.')
+  }
+}
+
+function getLivingRegularPlayers(lobby: LobbyState): LobbyPlayerState[] {
+  const deadPlayerIds = new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
+  return lobby.players.filter((player) => !player.isHost && !deadPlayerIds.has(player.id))
+}
+
+function resetDayVoting(lobby: LobbyState, day: number): void {
+  const game = lobby.game
+  if (!game) return
+  const livingPlayerCount = getLivingRegularPlayers(lobby).length
+  game.dayVoting = {
+    day,
+    status: DAY_VOTE_STATUS.IDLE,
+    nominatedByIds: [],
+    nominatedTargetIds: [],
+    nomination: null,
+    eligibleVoterIds: [],
+    ballots: [],
+    livingPlayerCount,
+    yesCount: 0,
+    noCount: 0,
+    threshold: Math.floor(livingPlayerCount / 2) + 1,
+    closesAt: null,
+    result: null,
+  }
+}
+
+function resolveDayVote(lobby: LobbyState, now: number): void {
+  const game = lobby.game
+  if (!game || game.dayVoting.status !== DAY_VOTE_STATUS.ACTIVE || !game.dayVoting.nomination) return
+  const answered = new Set(game.dayVoting.ballots.map((ballot) => ballot.voterId))
+  for (const voterId of game.dayVoting.eligibleVoterIds) {
+    if (answered.has(voterId)) continue
+    const player = lobby.players.find((candidate) => candidate.id === voterId)
+    if (player) game.dayVoting.ballots.push({ voterId, voterName: player.name, choice: DAY_VOTE_CHOICE.NO })
+  }
+  game.dayVoting.yesCount = game.dayVoting.ballots.filter((ballot) => ballot.choice === DAY_VOTE_CHOICE.YES).length
+  game.dayVoting.noCount = game.dayVoting.ballots.length - game.dayVoting.yesCount
+  game.dayVoting.result = {
+    yesCount: game.dayVoting.yesCount,
+    noCount: game.dayVoting.noCount,
+    threshold: game.dayVoting.threshold,
+    passed: game.dayVoting.yesCount >= game.dayVoting.threshold,
+  }
+  game.dayVoting.status = DAY_VOTE_STATUS.RESOLVED
+  game.dayVoting.closesAt = now
 }
 
 function electHost(lobby: LobbyState): LobbyPlayerState | null {
@@ -804,6 +864,146 @@ export class LobbyService {
     return this.start(command)
   }
 
+  proposeDayNomination(command: DayNominationProposeServerCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      assertStartedGame(lobby)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      assertDayPhase(lobby)
+      const player = authenticateConnectedSession(lobby, command)
+      if (player.isHost) throw new LobbyError(ERROR_CODE.NOT_GAME_MASTER, 'Le maître du jeu ne peut pas nominer.')
+      const game = lobby.game!
+      if (game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_PENDING || game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Une nomination est déjà en cours.')
+      }
+      const livingPlayers = getLivingRegularPlayers(lobby)
+      if (!livingPlayers.some((candidate) => candidate.id === player.id)) {
+        throw new LobbyError(ERROR_CODE.PLAYER_ALREADY_DEAD, 'Les fantômes ne peuvent pas nominer.')
+      }
+      if (game.dayVoting.nominatedByIds.includes(player.id)) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Vous avez déjà nominé quelqu’un aujourd’hui.')
+      }
+      const target = livingPlayers.find((candidate) => candidate.id === command.targetPlayerId)
+      if (!target || target.id === player.id || game.dayVoting.nominatedTargetIds.includes(target.id)) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Cette cible ne peut pas être nominée.')
+      }
+      const createdAt = this.dependencies.clock.now()
+      const nomination: DayNomination = {
+        id: `nomination-${lobby.revision + 1}`,
+        day: lobby.gamePhase!.number,
+        nominatorId: player.id,
+        nominatorName: player.name,
+        targetId: target.id,
+        targetName: target.name,
+        createdAt,
+      }
+      game.dayVoting = { ...game.dayVoting, status: DAY_VOTE_STATUS.NOMINATION_PENDING, nomination, result: null }
+      touchLobby(lobby, createdAt)
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  approveDayNomination(command: DayNominationDecisionServerCommand): Promise<LobbySnapshot> {
+    return this.decideDayNomination(command, true)
+  }
+
+  rejectDayNomination(command: DayNominationDecisionServerCommand): Promise<LobbySnapshot> {
+    return this.decideDayNomination(command, false)
+  }
+
+  private decideDayNomination(command: DayNominationDecisionServerCommand, approve: boolean): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      assertStartedGame(lobby)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      assertDayPhase(lobby)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      const game = lobby.game!
+      const nomination = game.dayVoting.nomination
+      if (game.dayVoting.status !== DAY_VOTE_STATUS.NOMINATION_PENDING || !nomination || nomination.id !== command.nominationId) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Cette nomination n’est plus disponible.')
+      }
+      const now = this.dependencies.clock.now()
+      if (!approve) {
+        game.dayVoting = { ...game.dayVoting, status: DAY_VOTE_STATUS.IDLE, nomination: null, result: null }
+      } else {
+        const livingPlayers = getLivingRegularPlayers(lobby)
+        const ghosts = lobby.players.filter((player) => !player.isHost && !livingPlayers.some((living) => living.id === player.id))
+        const eligibleVoterIds = [
+          ...livingPlayers.map((player) => player.id),
+          ...ghosts.filter((player) => !game.ghostFinalVoteUsedIds.includes(player.id)).map((player) => player.id),
+        ]
+        game.dayVoting = {
+          ...game.dayVoting,
+          status: DAY_VOTE_STATUS.ACTIVE,
+          nominatedByIds: [...game.dayVoting.nominatedByIds, nomination.nominatorId],
+          nominatedTargetIds: [...game.dayVoting.nominatedTargetIds, nomination.targetId],
+          eligibleVoterIds,
+          ballots: [],
+          livingPlayerCount: livingPlayers.length,
+          yesCount: 0,
+          noCount: 0,
+          threshold: Math.floor(livingPlayers.length / 2) + 1,
+          closesAt: now + 15_000,
+          result: null,
+        }
+      }
+      touchLobby(lobby, now)
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  submitDayVote(command: DayVoteSubmitServerCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      assertStartedGame(lobby)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      assertDayPhase(lobby)
+      const player = authenticateConnectedSession(lobby, command)
+      const game = lobby.game!
+      if (game.dayVoting.status !== DAY_VOTE_STATUS.ACTIVE || !game.dayVoting.nomination) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Aucun vote n’est ouvert.')
+      }
+      const now = this.dependencies.clock.now()
+      if (game.dayVoting.closesAt !== null && now >= game.dayVoting.closesAt) {
+        resolveDayVote(lobby, now)
+        touchLobby(lobby, now)
+        return { lobby, result: toLobbySnapshot(lobby) }
+      }
+      if (!game.dayVoting.eligibleVoterIds.includes(player.id) || game.dayVoting.ballots.some((ballot) => ballot.voterId === player.id)) {
+        throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Vous ne pouvez pas voter à nouveau.')
+      }
+      game.dayVoting.ballots.push({ voterId: player.id, voterName: player.name, choice: command.choice } satisfies DayVoteBallot)
+      if (command.choice === DAY_VOTE_CHOICE.YES && !getLivingRegularPlayers(lobby).some((candidate) => candidate.id === player.id)) {
+        game.ghostFinalVoteUsedIds.push(player.id)
+      }
+      game.dayVoting.yesCount = game.dayVoting.ballots.filter((ballot) => ballot.choice === DAY_VOTE_CHOICE.YES).length
+      game.dayVoting.noCount = game.dayVoting.ballots.length - game.dayVoting.yesCount
+      if (game.dayVoting.ballots.length >= game.dayVoting.eligibleVoterIds.length) resolveDayVote(lobby, now)
+      touchLobby(lobby, now)
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
+  expireDayVote(lobbyId: string): Promise<LobbySnapshot | null> {
+    return this.dependencies.repository.mutate<LobbySnapshot | null>((lobby) => {
+      if (!lobby || lobby.id !== lobbyId || !lobby.game || lobby.gamePhase?.period !== GAME_PHASE_PERIOD.DAY) {
+        return { lobby, result: lobby ? toLobbySnapshot(lobby) : null }
+      }
+      const now = this.dependencies.clock.now()
+      if (lobby.game.dayVoting.status !== DAY_VOTE_STATUS.ACTIVE || lobby.game.dayVoting.closesAt === null || now < lobby.game.dayVoting.closesAt) {
+        return { lobby, result: toLobbySnapshot(lobby) }
+      }
+      resolveDayVote(lobby, now)
+      touchLobby(lobby, now)
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
   advanceGamePhase(command: AdvanceGamePhaseCommand): Promise<LobbySnapshot> {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
@@ -828,6 +1028,7 @@ export class LobbyService {
       }
 
       lobby.gamePhase = getNextGamePhase(lobby.gamePhase)
+      resetDayVoting(lobby, lobby.gamePhase.number)
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })
@@ -851,6 +1052,7 @@ export class LobbyService {
         throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'La partie est déjà à la première nuit.')
       }
       lobby.gamePhase = previousPhase
+      resetDayVoting(lobby, previousPhase.number)
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })

@@ -12,6 +12,9 @@ import {
   ackFailure,
   ackSuccess,
   emptyCommandSchema,
+  dayNominationDecisionCommandSchema,
+  dayNominationProposeCommandSchema,
+  dayVoteSubmitCommandSchema,
   gameLogDeleteCommandSchema,
   gameLogEditCommandSchema,
   gameLogRecordCommandSchema,
@@ -96,6 +99,15 @@ function dispatchAcknowledged<T>(callback: AckCallback<T>, operation: () => Prom
     return
   }
   void acknowledge(callback, operation, onUnexpectedError)
+}
+
+function scheduleDayVoteExpiry(io: GameSocketServer, service: LobbyService, lobbyId: string, closesAt: number | null): void {
+  if (closesAt === null) return
+  setTimeout(() => {
+    void service.expireDayVote(lobbyId).then((snapshot) => {
+      if (snapshot) io.to(lobbyId).emit(SOCKET_EVENT.LOBBY_SNAPSHOT, snapshot)
+    }).catch(() => undefined)
+  }, Math.max(0, closesAt - Date.now()))
 }
 
 function assertUnboundSocket(socket: GameSocket): void {
@@ -311,6 +323,43 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         broadcastSnapshot(io, result.lobby)
         emitStartedGame(io, lobbyId, result)
         return {}
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.DAY_NOMINATION_PROPOSE, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayNominationProposeCommandSchema, rawCommand)
+        const result = await serviceFor(socket).proposeDayNomination({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.DAY_NOMINATION_APPROVE, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayNominationDecisionCommandSchema, rawCommand)
+        const result = await serviceFor(socket).approveDayNomination({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        scheduleDayVoteExpiry(io, serviceFor(socket), getLobbyId(socket), result.dayVote?.closesAt ?? null)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.DAY_NOMINATION_REJECT, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayNominationDecisionCommandSchema, rawCommand)
+        const result = await serviceFor(socket).rejectDayNomination({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        return result
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.DAY_VOTE_SUBMIT, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayVoteSubmitCommandSchema, rawCommand)
+        const result = await serviceFor(socket).submitDayVote({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        return result
       }, onUnexpectedError)
     })
 

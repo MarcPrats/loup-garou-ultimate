@@ -27,6 +27,7 @@ import {
   type GameLogEventType,
   type GameStartedEvent,
   type GameStartPreview,
+  type DayVoteChoice,
   type HostDashboard,
   type NotificationEvent,
   type PlayerId,
@@ -93,6 +94,10 @@ export interface LobbyGateway {
   recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   editGameLogEvent(eventId: string, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   deleteGameLogEvent(eventId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  proposeDayNomination(targetPlayerId: PlayerId, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  approveDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  rejectDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  submitDayVote(choice: DayVoteChoice, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
 }
 
@@ -417,6 +422,38 @@ export class SocketLobbyGateway implements LobbyGateway {
         gameLogDeleteCommandSchema.parse({ eventId, expectedRevision }),
         callback,
       ),
+    )
+  }
+
+  proposeDayNomination(targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'propose day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_PROPOSE, { targetPlayerId, expectedRevision }, callback),
+    )
+  }
+
+  approveDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'approve day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_APPROVE, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  rejectDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'reject day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_REJECT, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  submitDayVote(choice: DayVoteChoice, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'submit day vote',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_VOTE_SUBMIT, { choice, expectedRevision }, callback),
     )
   }
 

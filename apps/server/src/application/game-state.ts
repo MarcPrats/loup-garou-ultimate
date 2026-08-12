@@ -81,5 +81,21 @@ export function createStoredGameState(
     ),
     startedAt,
     gameLog: [],
+    dayVoting: {
+      day: 1,
+      status: 'idle',
+      nominatedByIds: [],
+      nominatedTargetIds: [],
+      nomination: null,
+      eligibleVoterIds: [],
+      ballots: [],
+      livingPlayerCount: 0,
+      yesCount: 0,
+      noCount: 0,
+      threshold: 1,
+      closesAt: null,
+      result: null,
+    },
+    ghostFinalVoteUsedIds: [],
   }
 }

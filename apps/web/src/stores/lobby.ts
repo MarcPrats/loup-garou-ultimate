@@ -12,6 +12,7 @@ import {
   type ErrorCode,
   type GameLogEventType,
   type GameStartPreview,
+  type DayVoteChoice,
   type HostDashboard,
   type NotificationLevel,
   type PlayerId,
@@ -746,6 +747,77 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function proposeDayNomination(targetPlayerId: string): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || isHost.value) return false
+      clearError()
+      try {
+        const response = await getGateway().proposeDayNomination(targetPlayerId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function decideDayNomination(decision: 'approve' | 'reject'): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      const nominationId = lobby.value?.dayVote?.nomination?.id
+      if (expectedRevision === undefined || !isHost.value || !nominationId) return false
+      clearError()
+      try {
+        const response = decision === 'approve'
+          ? await getGateway().approveDayNomination(nominationId, expectedRevision)
+          : await getGateway().rejectDayNomination(nominationId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function approveDayNomination(): Promise<boolean> {
+      return decideDayNomination('approve')
+    }
+
+    async function rejectDayNomination(): Promise<boolean> {
+      return decideDayNomination('reject')
+    }
+
+    async function submitDayVote(choice: DayVoteChoice): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined) return false
+      clearError()
+      try {
+        const response = await getGateway().submitDayVote(choice, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
     async function sendKeepAlive(): Promise<void> {
       const expectedEpoch = sessionEpoch
       try {
@@ -931,6 +1003,10 @@ export function createLobbyStoreDefinition(
       recordGameLogEvent,
       editGameLogEvent,
       deleteGameLogEvent,
+      proposeDayNomination,
+      approveDayNomination,
+      rejectDayNomination,
+      submitDayVote,
       clearError,
       clearSession,
       showCopiedNotice,

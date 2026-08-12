@@ -1,5 +1,11 @@
 import { z } from 'zod'
 
+import {
+  dayNominationDecisionCommandSchema,
+  dayNominationProposeCommandSchema,
+  dayVoteSubmitCommandSchema,
+} from './day-voting'
+
 import { LOBBY_ID } from './constants'
 
 import {
@@ -49,3 +55,13 @@ export type LobbyJoinCommand = z.infer<typeof lobbyJoinCommandSchema>
 export type SessionResumeCommand = z.infer<typeof sessionResumeCommandSchema>
 export type HostKickCommand = z.infer<typeof hostKickCommandSchema>
 export type GamePhaseAdvanceCommand = z.infer<typeof gamePhaseAdvanceCommandSchema>
+export {
+  dayNominationDecisionCommandSchema,
+  dayNominationProposeCommandSchema,
+  dayVoteSubmitCommandSchema,
+}
+export type {
+  DayNominationDecisionCommand,
+  DayNominationProposeCommand,
+  DayVoteSubmitCommand,
+} from './day-voting'

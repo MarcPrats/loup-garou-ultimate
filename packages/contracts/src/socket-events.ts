@@ -8,6 +8,11 @@ import type {
   LobbyJoinCommand,
   SessionResumeCommand,
 } from './commands'
+import type {
+  DayNominationDecisionCommand,
+  DayNominationProposeCommand,
+  DayVoteSubmitCommand,
+} from './day-voting'
 import { SOCKET_EVENT } from './constants'
 import type {
   GameLogDeleteCommand,
@@ -106,6 +111,22 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.GAME_LOG_DELETE]: (
     command: GameLogDeleteCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_PROPOSE]: (
+    command: DayNominationProposeCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_APPROVE]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_REJECT]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_VOTE_SUBMIT]: (
+    command: DayVoteSubmitCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (
