@@ -7,7 +7,7 @@ import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
-import DayVotingPanel from '../components/DayVotingPanel.vue'
+import DayVotingPanel from '../features/day-voting/DayVotingPanel.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'

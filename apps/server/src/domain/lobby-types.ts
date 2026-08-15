@@ -9,15 +9,14 @@ import type {
   GamePhase,
   LobbyPhase,
   SessionToken,
-  DayNomination,
-  DayVoteBallot,
   DayVoteChoice,
-  DayVoteResult,
 } from '@lgu/contracts'
 import type {
   AssignablePlayer,
   AssignmentResult,
 } from '@lgu/game-core'
+import type { DayVotingState } from './day-voting/day-voting-state'
+export type { DayVotingState } from './day-voting/day-voting-state'
 
 export type ConnectionId = string
 
@@ -48,22 +47,6 @@ export interface StoredGameState {
   gameLog: GameLogEntry[]
   dayVoting: DayVotingState
   ghostFinalVoteUsedIds: PlayerId[]
-}
-
-export interface DayVotingState {
-  day: number
-  status: 'idle' | 'nomination-pending' | 'active' | 'resolved'
-  nominatedByIds: PlayerId[]
-  nominatedTargetIds: PlayerId[]
-  nomination: DayNomination | null
-  eligibleVoterIds: PlayerId[]
-  ballots: DayVoteBallot[]
-  livingPlayerCount: number
-  yesCount: number
-  noCount: number
-  threshold: number
-  closesAt: number | null
-  result: DayVoteResult | null
 }
 
 export interface GameStartPreviewState {

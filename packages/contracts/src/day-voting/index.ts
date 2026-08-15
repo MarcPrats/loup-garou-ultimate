@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-import { playerIdSchema, playerNameSchema, revisionSchema, timestampSchema } from './identifiers'
+import { playerIdSchema, playerNameSchema, revisionSchema, timestampSchema } from '../identifiers'
 
 export const DAY_VOTE_CHOICE = {
   YES: 'yes',
