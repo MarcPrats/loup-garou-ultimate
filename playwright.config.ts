@@ -16,7 +16,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm build:v3 && PORT=3101 HOST=127.0.0.1 WEB_ORIGIN=http://127.0.0.1:3101 node apps/server/dist/index.js',
+    command: 'PORT=3101 HOST=127.0.0.1 WEB_ORIGIN=http://127.0.0.1:3101 WEB_ROOT=apps/web/dist node apps/server/dist/index.js',
     url: 'http://127.0.0.1:3101/api/health',
     timeout: 120_000,
     reuseExistingServer: false,
