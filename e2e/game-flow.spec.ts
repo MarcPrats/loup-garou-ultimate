@@ -1,10 +1,10 @@
 import { expect, test, type BrowserContext, type Page } from '@playwright/test'
 
 async function enterGame(page: Page, name: string): Promise<void> {
-  await page.goto('/waiting_room')
+  await page.goto('/lobbies')
   await page.getByPlaceholder('Votre nom...').fill(name)
-  await expect(page.getByRole('button', { name: 'Continuer' })).toBeEnabled()
-  await page.getByRole('button', { name: 'Continuer' }).click()
+  await expect(page.getByRole('button', { name: '➕ Créer une partie' })).toBeEnabled()
+  await page.getByRole('button', { name: '➕ Créer une partie' }).click()
   await expect(page.getByRole('heading', { name: "Salle d'Attente" })).toBeVisible()
 }
 
@@ -21,14 +21,14 @@ test('runs the complete production game flow with private views and V3 rules', a
       '🧪 Simulateur',
       '📚 Wiki des règles',
     ])
-    await expect(home.locator('#entry-btn')).toHaveAttribute('href', '/waiting_room')
-    await expect(home.getByRole('link', { name: '📜 Règles' })).toHaveAttribute('href', '/reference')
+    await expect(home.locator('#lobbies-btn')).toHaveAttribute('href', '/lobbies')
+    await expect(home.getByRole('link', { name: '📜 Règles' })).toHaveAttribute('href', '/rules')
     await expect(home.getByRole('link', { name: '📚 Wiki des règles' })).toHaveAttribute('href', 'https://wiki.bloodontheclocktower.com/Trouble_Brewing')
 
     const rules = await homeContext.newPage()
-    await rules.goto('/reference')
+    await rules.goto('/rules')
     await expect(rules).toHaveTitle(/Référence/)
-    await expect(rules.getByText('Ordre de la première nuit')).toBeVisible()
+    await expect(rules.getByText('Fiche de référence')).toBeVisible()
     const rolePage = await homeContext.newPage()
     await rolePage.goto('/rules/role/voyante')
     await expect(rolePage).toHaveTitle(/Voyante — Loup Garou Ultime/)
