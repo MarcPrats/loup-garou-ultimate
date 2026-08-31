@@ -14,8 +14,7 @@
     "typecheck": "pnpm -r --if-present run typecheck",
     "test": "pnpm -r --if-present run test",
     "test:e2e": "playwright test",
-    "test:e2e:simulator": "playwright test --config playwright.simulator.config.ts",
-    "test:e2e:all": "pnpm test:e2e && pnpm test:e2e:simulator",
+    "test:e2e:demo": "playwright test --config playwright.demo.config.ts --headed",
     "heroku-postbuild": "pnpm build"
   },
   "keywords": [
