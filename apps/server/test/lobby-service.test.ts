@@ -532,7 +532,7 @@ describe('LobbyService', () => {
     const enabled = await service.setDayVotingEnabled({
       sessionToken: host.session.sessionToken,
       connectionId: 'host',
-      expectedRevision: host.lobby.revision,
+      expectedRevision: players[players.length - 1]!.lobby.revision,
       enabled: true,
     })
     expect(enabled.dayVotingEnabled).toBe(true)
@@ -593,7 +593,7 @@ describe('LobbyService', () => {
     const enabled = await service.setDayVotingEnabled({
       sessionToken: host.session.sessionToken,
       connectionId: 'host',
-      expectedRevision: host.lobby.revision,
+      expectedRevision: players[players.length - 1]!.lobby.revision,
       enabled: true,
     })
     const started = await service.start({
