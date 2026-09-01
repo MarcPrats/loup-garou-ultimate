@@ -31,6 +31,7 @@ async function confirmLeave(): Promise<void> {
       />
 
       <DayVotingPanel
+        v-if="lobby.lobby?.dayVotingEnabled"
         :day-vote="lobby.lobby?.dayVote ?? null"
         :players="lobby.lobby?.players ?? []"
         :is-host="true"

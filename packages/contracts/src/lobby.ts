@@ -41,6 +41,7 @@ export const lobbySnapshotSchema = z.object({
   phase: lobbyPhaseSchema,
   gamePhase: gamePhaseSchema.nullable(),
   gameLog: z.array(gameLogEntrySchema),
+  dayVotingEnabled: z.boolean(),
   dayVote: dayVoteSnapshotSchema.nullable(),
   revision: revisionSchema,
   players: z.array(publicPlayerSchema),

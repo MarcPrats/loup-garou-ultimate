@@ -42,6 +42,7 @@ function createLobby(revision = 1): LobbySnapshot {
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
     gameLog: [],
+    dayVotingEnabled: false,
     dayVote: null,
     revision,
     players: [
@@ -100,6 +101,7 @@ class FakeGateway implements LobbyGateway {
   readonly joinLobby = vi.fn(async (_lobbyId: string, _name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createLobby(2)))
+  readonly setDayVotingEnabled = vi.fn(async (_enabled: boolean, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVotingEnabled: _enabled }))
   readonly start = vi.fn(async (): Promise<Ack<GameStartPreview>> => ackSuccess({
     players: [],
     playerCount: 1,
@@ -250,6 +252,17 @@ describe('lobby store', () => {
 
     gateway.handlers?.onLobbySnapshot(createLobby(3))
     expect(store.lobby?.revision).toBe(4)
+    store.dispose()
+  })
+
+  it('allows the MJ to toggle voting from the lobby', async () => {
+    const gateway = new FakeGateway()
+    const store = createStore(gateway, new FakeStorage(SESSION))
+    await store.initialize()
+
+    expect(await store.setDayVotingEnabled(true)).toBe(true)
+    expect(gateway.setDayVotingEnabled).toHaveBeenCalledWith(true, 1)
+    expect(store.lobby?.dayVotingEnabled).toBe(true)
     store.dispose()
   })
 

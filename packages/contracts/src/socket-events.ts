@@ -12,6 +12,7 @@ import type {
   DayNominationDecisionCommand,
   DayNominationProposeCommand,
   DayVoteSubmitCommand,
+  DayVotingEnabledCommand,
 } from './day-voting'
 import { SOCKET_EVENT } from './constants'
 import type {
@@ -131,6 +132,10 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.DAY_VOTE_START]: (
     command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.LOBBY_DAY_VOTING_SET]: (
+    command: DayVotingEnabledCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (

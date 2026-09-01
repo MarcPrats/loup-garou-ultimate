@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ERROR_CODE,
+  DAY_VOTE_CHOICE,
+  type DayVoteChoice,
   GAME_LOG_EVENT_TYPE,
   LOBBY_CLOSED_REASON,
   ROLE_ACCESS_VIEW,
@@ -520,6 +522,163 @@ describe('LobbyService', () => {
       }),
       ERROR_CODE.NOT_GAME_MASTER,
     )
+  })
+
+  it('lets the host configure voting and keeps it disabled by default', async () => {
+    const { service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+
+    expect(host.lobby.dayVotingEnabled).toBe(false)
+    const enabled = await service.setDayVotingEnabled({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: host.lobby.revision,
+      enabled: true,
+    })
+    expect(enabled.dayVotingEnabled).toBe(true)
+
+    await expectLobbyError(
+      service.setDayVotingEnabled({
+        sessionToken: players[0]!.session.sessionToken,
+        connectionId: 'player-1',
+        expectedRevision: enabled.revision,
+        enabled: false,
+      }),
+      ERROR_CODE.NOT_GAME_MASTER,
+    )
+
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    await expectLobbyError(
+      service.setDayVotingEnabled({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: started.lobby.revision,
+        enabled: false,
+      }),
+      ERROR_CODE.GAME_ALREADY_STARTED,
+    )
+  })
+
+  it('rejects voting commands when the lobby option is disabled', async () => {
+    const { service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    const day = await service.advanceGamePhase({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: started.lobby.revision,
+    })
+
+    await expectLobbyError(
+      service.proposeDayNomination({
+        sessionToken: players[0]!.session.sessionToken,
+        connectionId: 'player-1',
+        expectedRevision: day.revision,
+        targetPlayerId: players[1]!.session.playerId,
+      }),
+      ERROR_CODE.INVALID_GAME_EVENT,
+    )
+    expect(day.dayVote).toBeNull()
+  })
+
+  it('supports several vote rounds and selects the unique highest majority without eliminating automatically', async () => {
+    const { service } = createFixture()
+    const { host, players } = await fillMinimumGame(service)
+    const enabled = await service.setDayVotingEnabled({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: host.lobby.revision,
+      enabled: true,
+    })
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    const day = await service.advanceGamePhase({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: started.lobby.revision,
+    })
+
+    const runRound = async (
+      snapshot: typeof day,
+      nominatorIndex: number,
+      targetIndex: number,
+      choices: readonly DayVoteChoice[],
+    ) => {
+      let next = await service.proposeDayNomination({
+        sessionToken: players[nominatorIndex]!.session.sessionToken,
+        connectionId: `player-${nominatorIndex + 1}`,
+        expectedRevision: snapshot.revision,
+        targetPlayerId: players[targetIndex]!.session.playerId,
+      })
+      next = await service.approveDayNomination({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: next.revision,
+        nominationId: next.dayVote!.nomination!.id,
+      })
+      next = await service.startDayVote({
+        sessionToken: host.session.sessionToken,
+        connectionId: 'host',
+        expectedRevision: next.revision,
+        nominationId: next.dayVote!.nomination!.id,
+      })
+      for (let index = 0; index < players.length; index += 1) {
+        next = await service.submitDayVote({
+          sessionToken: players[index]!.session.sessionToken,
+          connectionId: `player-${index + 1}`,
+          expectedRevision: next.revision,
+          choice: choices[index]!,
+        })
+      }
+      return next
+    }
+
+    const firstRound = await runRound(day, 0, 1, [
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.NO,
+      DAY_VOTE_CHOICE.NO,
+    ])
+    expect(firstRound.dayVote?.dailyResult).toMatchObject({
+      status: 'winner',
+      targetId: players[1]!.session.playerId,
+      yesCount: 3,
+    })
+
+    const secondRound = await runRound(firstRound, 2, 3, [
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.YES,
+      DAY_VOTE_CHOICE.NO,
+    ])
+    expect(secondRound.dayVote?.completedRounds).toHaveLength(2)
+    expect(secondRound.dayVote?.dailyResult).toMatchObject({
+      status: 'winner',
+      targetId: players[3]!.session.playerId,
+      yesCount: 4,
+    })
+    expect(secondRound.players.find((player) => player.id === players[3]!.session.playerId)?.alive).toBe(true)
+    expect(secondRound.gameLog.filter((entry) => entry.eventType === 'day-vote')).toHaveLength(2)
+
+    const execution = await service.recordGameLogEvent({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+      expectedRevision: secondRound.revision,
+      eventType: 'day-execution',
+      targetPlayerId: players[3]!.session.playerId,
+    })
+    expect(execution.players.find((player) => player.id === players[3]!.session.playerId)?.alive).toBe(false)
+    expect(enabled.dayVotingEnabled).toBe(true)
   })
 
   it('records, publishes, and corrects night kills and daytime executions', async () => {

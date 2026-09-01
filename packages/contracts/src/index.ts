@@ -75,6 +75,7 @@ export {
 export {
   DAY_VOTE_CHOICE,
   DAY_VOTE_STATUS,
+  DAY_VOTE_DAILY_RESULT_STATUS,
   dayNominationDecisionCommandSchema,
   dayNominationProposeCommandSchema,
   dayNominationSchema,
@@ -83,7 +84,11 @@ export {
   dayVoteResultSchema,
   dayVoteSnapshotSchema,
   dayVoteStatusSchema,
+  dayVoteDailyResultStatusSchema,
+  dayVoteRoundSchema,
+  dayVoteDailyResultSchema,
   dayVoteSubmitCommandSchema,
+  dayVotingEnabledCommandSchema,
   type DayNomination,
   type DayNominationDecisionCommand,
   type DayNominationProposeCommand,
@@ -93,6 +98,10 @@ export {
   type DayVoteSnapshot,
   type DayVoteStatus,
   type DayVoteSubmitCommand,
+  type DayVoteRound,
+  type DayVoteDailyResult,
+  type DayVoteDailyResultStatus,
+  type DayVotingEnabledCommand,
 } from './day-voting'
 export {
   createInitialGamePhase,

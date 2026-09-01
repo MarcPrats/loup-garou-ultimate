@@ -141,6 +141,7 @@ export const SOCKET_EVENT = {
   DAY_NOMINATION_REJECT: 'day:nomination-reject',
   DAY_VOTE_SUBMIT: 'day:vote-submit',
   DAY_VOTE_START: 'day:vote-start',
+  LOBBY_DAY_VOTING_SET: 'lobby:day-voting-set',
   KEEP_ALIVE: 'session:keep-alive',
   LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',

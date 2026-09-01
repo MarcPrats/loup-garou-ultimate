@@ -1,5 +1,6 @@
 export {
   assertDayPhase,
+  assertDayVotingEnabled,
   getLivingRegularPlayers,
   resetDayVoting,
   resolveDayVote,

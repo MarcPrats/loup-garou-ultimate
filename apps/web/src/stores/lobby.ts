@@ -92,6 +92,7 @@ export function createLobbyStoreDefinition(
     const advancingPhase = ref(false)
     const updatingGameLog = ref(false)
     const kickingPlayerId = ref<PlayerId | null>(null)
+    const updatingDayVoting = ref(false)
 
     let initializePromise: Promise<void> | null = null
     let resumePromise: Promise<void> | null = null
@@ -526,6 +527,29 @@ export function createLobbyStoreDefinition(
         return false
       } finally {
         kickingPlayerId.value = null
+      }
+    }
+
+    async function setDayVotingEnabled(enabled: boolean): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value || !isLobby.value) return false
+      updatingDayVoting.value = true
+      clearError()
+      try {
+        const response = await getGateway().setDayVotingEnabled(enabled, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        updatingDayVoting.value = false
       }
     }
 
@@ -1000,6 +1024,7 @@ export function createLobbyStoreDefinition(
       advancingPhase,
       updatingGameLog,
       kickingPlayerId,
+      updatingDayVoting,
       currentPlayer,
       isHost,
       host,
@@ -1015,6 +1040,7 @@ export function createLobbyStoreDefinition(
       joinLobby,
       leave,
       kick,
+      setDayVotingEnabled,
       start,
       confirmStart,
       cancelStartPreview,

@@ -32,7 +32,7 @@ import { PLAYER_COUNT, ROLE_ID } from '@lgu/game-core'
 
 import { LOBBY_TIME_LIMIT } from '../config/lobby-constants'
 import { LobbyError } from '../domain/lobby-error'
-import { assertDayPhase, getLivingRegularPlayers, resetDayVoting, resolveDayVote } from '../domain/day-voting'
+import { assertDayPhase, assertDayVotingEnabled, getLivingRegularPlayers, resetDayVoting, resolveDayVote } from '../domain/day-voting'
 import type {
   Clock,
   AdvanceGamePhaseCommand,
@@ -47,6 +47,7 @@ import type {
   DayNominationDecisionServerCommand,
   DayNominationProposeServerCommand,
   DayVoteSubmitServerCommand,
+  DayVotingEnabledServerCommand,
   ResumeSessionCommand,
   LobbyRepository,
   SessionCommand,
@@ -379,6 +380,7 @@ export class LobbyService {
           closedAt: null,
           closeReason: null,
           gamePhase: null,
+          dayVotingEnabled: false,
           gameStartPreview: null,
           game: null,
         }
@@ -814,6 +816,20 @@ export class LobbyService {
     return this.start(command)
   }
 
+  setDayVotingEnabled(command: DayVotingEnabledServerCommand): Promise<LobbySnapshot> {
+    assertConnectionId(command.connectionId)
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+      assertLobbyPhase(lobby)
+      assertExpectedRevision(lobby, command.expectedRevision)
+      const host = authenticateConnectedSession(lobby, command)
+      assertHost(host)
+      lobby.dayVotingEnabled = command.enabled
+      touchLobby(lobby, this.dependencies.clock.now())
+      return { lobby, result: toLobbySnapshot(lobby) }
+    })
+  }
+
   proposeDayNomination(command: DayNominationProposeServerCommand): Promise<LobbySnapshot> {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
@@ -821,6 +837,7 @@ export class LobbyService {
       assertStartedGame(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
+      assertDayVotingEnabled(lobby)
       const player = authenticateConnectedSession(lobby, command)
       if (player.isHost) throw new LobbyError(ERROR_CODE.NOT_GAME_MASTER, 'Le maître du jeu ne peut pas nominer.')
       const game = lobby.game!
@@ -869,6 +886,7 @@ export class LobbyService {
       assertStartedGame(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
+      assertDayVotingEnabled(lobby)
       const host = authenticateConnectedSession(lobby, command)
       assertHost(host)
       const game = lobby.game!
@@ -900,6 +918,7 @@ export class LobbyService {
       assertStartedGame(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
+      assertDayVotingEnabled(lobby)
       const host = authenticateConnectedSession(lobby, command)
       assertHost(host)
       const game = lobby.game!
@@ -937,6 +956,7 @@ export class LobbyService {
       assertStartedGame(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
+      assertDayVotingEnabled(lobby)
       const player = authenticateConnectedSession(lobby, command)
       const game = lobby.game!
       if (game.dayVoting.status !== DAY_VOTE_STATUS.ACTIVE || !game.dayVoting.nomination) {

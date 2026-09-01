@@ -62,12 +62,14 @@ function toDayVoteSnapshot(game: NonNullable<LobbyState['game']>): DayVoteSnapsh
     nominatedTargetIds: game.dayVoting.nominatedTargetIds,
     eligibleVoterIds: game.dayVoting.eligibleVoterIds,
     ballots: game.dayVoting.ballots,
+    completedRounds: game.dayVoting.completedRounds,
     livingPlayerCount: game.dayVoting.livingPlayerCount,
     yesCount: game.dayVoting.yesCount,
     noCount: game.dayVoting.noCount,
     threshold: game.dayVoting.threshold,
     closesAt: game.dayVoting.closesAt,
     result: game.dayVoting.result,
+    dailyResult: game.dayVoting.dailyResult,
   }
 }
 
@@ -79,7 +81,8 @@ export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
     phase: lobby.phase,
     gamePhase: lobby.gamePhase,
     gameLog: lobby.game?.gameLog ?? [],
-    dayVote: lobby.gamePhase?.period === 'day'
+    dayVotingEnabled: lobby.dayVotingEnabled,
+    dayVote: lobby.dayVotingEnabled && lobby.gamePhase?.period === 'day'
       ? lobby.game ? toDayVoteSnapshot(lobby.game) : null
       : null,
     revision: lobby.revision,

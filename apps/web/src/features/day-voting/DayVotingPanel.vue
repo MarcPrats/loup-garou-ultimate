@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import {
   DAY_VOTE_CHOICE,
+  DAY_VOTE_DAILY_RESULT_STATUS,
   DAY_VOTE_STATUS,
   type DayVoteChoice,
   type DayVoteSnapshot,
@@ -81,7 +82,7 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
 </script>
 
 <template>
-  <section v-if="dayVote" class="app-day-voting-panel" aria-live="polite">
+  <section v-if="dayVote" class="app-day-voting-panel" aria-live="polite" data-testid="day-voting-panel">
     <header class="app-day-voting-header">
       <p class="app-kicker">🗳️ Vote du Village</p>
       <h3>Jour {{ dayVote.day }}</h3>
@@ -119,6 +120,26 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
     <div v-if="dayVote.status === DAY_VOTE_STATUS.RESOLVED && dayVote.result" class="app-day-voting-result">
       <strong>{{ dayVote.result.passed ? '✅ Majorité atteinte' : '❌ Majorité non atteinte' }}</strong>
       <span>{{ dayVote.result.yesCount }} Oui, {{ dayVote.result.noCount }} Non, majorité requise : {{ dayVote.result.threshold }}.</span>
+    </div>
+
+    <div v-if="dayVote.completedRounds.length" class="app-day-voting-daily-summary" data-testid="day-voting-daily-summary">
+      <strong>📊 Résultat provisoire de la journée</strong>
+      <p v-if="dayVote.dailyResult.status === DAY_VOTE_DAILY_RESULT_STATUS.WINNER">
+        Candidat retenu : <strong>{{ dayVote.dailyResult.targetName }}</strong> avec {{ dayVote.dailyResult.yesCount }} Oui.
+        L’exécution doit être enregistrée manuellement par le MJ.
+      </p>
+      <p v-else-if="dayVote.dailyResult.status === DAY_VOTE_DAILY_RESULT_STATUS.TIE">
+        ⚖️ Égalité entre plusieurs nominations à {{ dayVote.dailyResult.yesCount }} Oui. Aucun candidat n’est retenu.
+      </p>
+      <p v-else>
+        ❌ Aucune nomination n’a atteint la majorité. Aucun candidat n’est retenu.
+      </p>
+      <ol class="app-day-voting-rounds">
+        <li v-for="round in dayVote.completedRounds" :key="round.nomination.id">
+          <span>{{ round.nomination.targetName }} : {{ round.result.yesCount }} Oui, {{ round.result.noCount }} Non</span>
+          <span>{{ round.result.passed ? 'Majorité atteinte' : 'Majorité non atteinte' }}</span>
+        </li>
+      </ol>
     </div>
 
     <Teleport to="body">
@@ -177,6 +198,12 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
 .app-day-voting-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .app-day-voting-form-row .app-input { min-width: 0; flex: 1 1 220px; }
 .app-day-voting-info { color: #fbbf4a; font-weight: 700; }
+.app-day-voting-daily-summary { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(251, 191, 74, .12); }
+.app-day-voting-daily-summary p { margin: 0; line-height: 1.45; }
+.app-day-voting-rounds { display: grid; gap: 5px; margin: 0; padding-left: 20px; color: #d9e5f3; font-size: .9rem; }
+.app-day-voting-rounds li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.app-day-voting-rounds li span:last-child { color: #fbbf4a; font-weight: 700; }
+
 .app-day-voting-public-status, .app-day-voting-result { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .08); }
 .app-day-voting-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: rgba(2, 10, 20, .78); backdrop-filter: blur(8px); }
 .app-day-voting-modal { display: grid; width: min(100%, 560px); max-height: calc(100dvh - 32px); overflow-y: auto; gap: 16px; margin: auto; padding: 28px; border: 2px solid rgba(251, 191, 74, .65); border-radius: 28px; background: #10243a; box-shadow: 0 24px 80px rgba(0, 0, 0, .45); text-align: center; }

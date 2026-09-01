@@ -57,6 +57,7 @@ async function confirmLeave(): Promise<void> {
       <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
 
       <DayVotingPanel
+        v-if="lobby.lobby?.dayVotingEnabled"
         :day-vote="lobby.lobby?.dayVote ?? null"
         :players="lobby.lobby?.players ?? []"
         :current-player-id="lobby.currentPlayer?.id ?? null"

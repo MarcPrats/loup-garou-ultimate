@@ -16,7 +16,7 @@ import type {
   AssignmentResult,
 } from '@lgu/game-core'
 import type { DayVotingState } from './day-voting/day-voting-state'
-export type { DayVotingState } from './day-voting/day-voting-state'
+export type { DayVotingState, AssignmentResult } from './day-voting/day-voting-state'
 
 export type ConnectionId = string
 
@@ -64,6 +64,7 @@ export interface LobbyState {
   closedAt: number | null
   closeReason: LobbyClosedReason | null
   gamePhase: GamePhase | null
+  dayVotingEnabled: boolean
   gameStartPreview: GameStartPreviewState | null
   game: StoredGameState | null
 }
@@ -123,6 +124,11 @@ export interface DayNominationProposeServerCommand extends SessionCommand {
 export interface DayNominationDecisionServerCommand extends SessionCommand {
   readonly expectedRevision: number
   readonly nominationId: string
+}
+
+export interface DayVotingEnabledServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly enabled: boolean
 }
 
 export interface DayVoteSubmitServerCommand extends SessionCommand {

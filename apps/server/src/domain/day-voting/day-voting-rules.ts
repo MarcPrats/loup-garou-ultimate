@@ -1,5 +1,6 @@
 import {
   DAY_VOTE_CHOICE,
+  DAY_VOTE_DAILY_RESULT_STATUS,
   DAY_VOTE_STATUS,
   ERROR_CODE,
   GAME_LOG_EVENT_TYPE,
@@ -12,6 +13,12 @@ import type { LobbyPlayerState, LobbyState } from '../lobby-types'
 export function assertDayPhase(lobby: LobbyState): void {
   if (lobby.gamePhase?.period !== GAME_PHASE_PERIOD.DAY) {
     throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Le vote est disponible uniquement pendant le jour.')
+  }
+}
+
+export function assertDayVotingEnabled(lobby: LobbyState): void {
+  if (!lobby.dayVotingEnabled) {
+    throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Le vote du Village est désactivé pour cette partie.')
   }
 }
 
@@ -34,12 +41,60 @@ export function resetDayVoting(lobby: LobbyState, day: number): void {
     nomination: null,
     eligibleVoterIds: [],
     ballots: [],
+    completedRounds: [],
     livingPlayerCount,
     yesCount: 0,
     noCount: 0,
     threshold: Math.floor(livingPlayerCount / 2) + 1,
     closesAt: null,
     result: null,
+    dailyResult: {
+      status: DAY_VOTE_DAILY_RESULT_STATUS.NONE,
+      targetId: null,
+      targetName: null,
+      yesCount: null,
+    },
+  }
+}
+
+function getDailyResult(lobby: LobbyState): NonNullable<LobbyState['game']>['dayVoting']['dailyResult'] {
+  const rounds = lobby.game?.dayVoting.completedRounds ?? []
+  if (rounds.length === 0) {
+    return {
+      status: DAY_VOTE_DAILY_RESULT_STATUS.NONE,
+      targetId: null,
+      targetName: null,
+      yesCount: null,
+    }
+  }
+
+  const qualified = rounds.filter((round) => round.result.passed)
+  if (qualified.length === 0) {
+    return {
+      status: DAY_VOTE_DAILY_RESULT_STATUS.NO_MAJORITY,
+      targetId: null,
+      targetName: null,
+      yesCount: null,
+    }
+  }
+
+  const highestYesCount = Math.max(...qualified.map((round) => round.result.yesCount))
+  const leaders = qualified.filter((round) => round.result.yesCount === highestYesCount)
+  if (leaders.length !== 1) {
+    return {
+      status: DAY_VOTE_DAILY_RESULT_STATUS.TIE,
+      targetId: null,
+      targetName: null,
+      yesCount: highestYesCount,
+    }
+  }
+
+  const winner = leaders[0]!
+  return {
+    status: DAY_VOTE_DAILY_RESULT_STATUS.WINNER,
+    targetId: winner.nomination.targetId,
+    targetName: winner.nomination.targetName,
+    yesCount: winner.result.yesCount,
   }
 }
 
@@ -62,6 +117,13 @@ export function resolveDayVote(lobby: LobbyState, now: number): void {
   }
   game.dayVoting.status = DAY_VOTE_STATUS.RESOLVED
   game.dayVoting.closesAt = now
+  const completedRound = {
+    nomination: game.dayVoting.nomination,
+    ballots: [...game.dayVoting.ballots],
+    result: game.dayVoting.result,
+  }
+  game.dayVoting.completedRounds = [...game.dayVoting.completedRounds, completedRound]
+  game.dayVoting.dailyResult = getDailyResult(lobby)
   game.gameLog.push({
     id: `game-event-${lobby.revision + 1}`,
     eventType: GAME_LOG_EVENT_TYPE.DAY_VOTE,

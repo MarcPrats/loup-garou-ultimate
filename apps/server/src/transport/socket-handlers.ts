@@ -15,6 +15,7 @@ import {
   dayNominationDecisionCommandSchema,
   dayNominationProposeCommandSchema,
   dayVoteSubmitCommandSchema,
+  dayVotingEnabledCommandSchema,
   gameLogDeleteCommandSchema,
   gameLogEditCommandSchema,
   gameLogRecordCommandSchema,
@@ -323,6 +324,15 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         broadcastSnapshot(io, result.lobby)
         emitStartedGame(io, lobbyId, result)
         return {}
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.LOBBY_DAY_VOTING_SET, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        const command = parseCommand(dayVotingEnabledCommandSchema, rawCommand)
+        const result = await serviceFor(socket).setDayVotingEnabled({ ...getSessionCommand(socket), ...command })
+        broadcastSnapshot(io, result)
+        return result
       }, onUnexpectedError)
     })
 

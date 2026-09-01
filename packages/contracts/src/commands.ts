@@ -4,6 +4,7 @@ import {
   dayNominationDecisionCommandSchema,
   dayNominationProposeCommandSchema,
   dayVoteSubmitCommandSchema,
+  dayVotingEnabledCommandSchema,
 } from './day-voting'
 
 import { LOBBY_ID } from './constants'
@@ -59,9 +60,11 @@ export {
   dayNominationDecisionCommandSchema,
   dayNominationProposeCommandSchema,
   dayVoteSubmitCommandSchema,
+  dayVotingEnabledCommandSchema,
 }
 export type {
   DayNominationDecisionCommand,
   DayNominationProposeCommand,
   DayVoteSubmitCommand,
+  DayVotingEnabledCommand,
 } from './day-voting'

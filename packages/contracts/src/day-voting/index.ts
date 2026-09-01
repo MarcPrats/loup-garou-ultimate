@@ -17,11 +17,21 @@ export const DAY_VOTE_STATUS = {
 } as const
 export type DayVoteStatus = typeof DAY_VOTE_STATUS[keyof typeof DAY_VOTE_STATUS]
 
+export const DAY_VOTE_DAILY_RESULT_STATUS = {
+  NONE: 'none',
+  WINNER: 'winner',
+  NO_MAJORITY: 'no-majority',
+  TIE: 'tie',
+} as const
+export type DayVoteDailyResultStatus = typeof DAY_VOTE_DAILY_RESULT_STATUS[keyof typeof DAY_VOTE_DAILY_RESULT_STATUS]
+
 const choiceValues = Object.values(DAY_VOTE_CHOICE) as [DayVoteChoice, ...DayVoteChoice[]]
 const statusValues = Object.values(DAY_VOTE_STATUS) as [DayVoteStatus, ...DayVoteStatus[]]
+const dailyResultStatusValues = Object.values(DAY_VOTE_DAILY_RESULT_STATUS) as [DayVoteDailyResultStatus, ...DayVoteDailyResultStatus[]]
 
 export const dayVoteChoiceSchema = z.enum(choiceValues)
 export const dayVoteStatusSchema = z.enum(statusValues)
+export const dayVoteDailyResultStatusSchema = z.enum(dailyResultStatusValues)
 
 export const dayNominationSchema = z.object({
   id: z.string().min(1),
@@ -46,6 +56,19 @@ export const dayVoteResultSchema = z.object({
   passed: z.boolean(),
 }).strict()
 
+export const dayVoteRoundSchema = z.object({
+  nomination: dayNominationSchema,
+  ballots: z.array(dayVoteBallotSchema),
+  result: dayVoteResultSchema,
+}).strict()
+
+export const dayVoteDailyResultSchema = z.object({
+  status: dayVoteDailyResultStatusSchema,
+  targetId: playerIdSchema.nullable(),
+  targetName: playerNameSchema.nullable(),
+  yesCount: z.number().int().nonnegative().nullable(),
+}).strict()
+
 export const dayVoteSnapshotSchema = z.object({
   status: dayVoteStatusSchema,
   day: z.number().int().positive(),
@@ -54,12 +77,14 @@ export const dayVoteSnapshotSchema = z.object({
   nominatedTargetIds: z.array(playerIdSchema),
   eligibleVoterIds: z.array(playerIdSchema),
   ballots: z.array(dayVoteBallotSchema),
+  completedRounds: z.array(dayVoteRoundSchema),
   livingPlayerCount: z.number().int().positive(),
   yesCount: z.number().int().nonnegative(),
   noCount: z.number().int().nonnegative(),
   threshold: z.number().int().positive(),
   closesAt: timestampSchema.nullable(),
   result: dayVoteResultSchema.nullable(),
+  dailyResult: dayVoteDailyResultSchema,
 }).strict()
 
 export const dayNominationProposeCommandSchema = z.object({
@@ -77,10 +102,18 @@ export const dayVoteSubmitCommandSchema = z.object({
   choice: dayVoteChoiceSchema,
 }).strict()
 
+export const dayVotingEnabledCommandSchema = z.object({
+  expectedRevision: revisionSchema,
+  enabled: z.boolean(),
+}).strict()
+
 export type DayNomination = z.infer<typeof dayNominationSchema>
 export type DayVoteBallot = z.infer<typeof dayVoteBallotSchema>
 export type DayVoteResult = z.infer<typeof dayVoteResultSchema>
+export type DayVoteRound = z.infer<typeof dayVoteRoundSchema>
+export type DayVoteDailyResult = z.infer<typeof dayVoteDailyResultSchema>
 export type DayVoteSnapshot = z.infer<typeof dayVoteSnapshotSchema>
 export type DayNominationProposeCommand = z.infer<typeof dayNominationProposeCommandSchema>
 export type DayNominationDecisionCommand = z.infer<typeof dayNominationDecisionCommandSchema>
 export type DayVoteSubmitCommand = z.infer<typeof dayVoteSubmitCommandSchema>
+export type DayVotingEnabledCommand = z.infer<typeof dayVotingEnabledCommandSchema>
