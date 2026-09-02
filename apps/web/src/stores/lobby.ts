@@ -13,6 +13,7 @@ import {
   type GameLogEventType,
   type GameStartPreview,
   type DayVoteChoice,
+  type DayVotePrivateStatus,
   type HostDashboard,
   type NotificationLevel,
   type PlayerId,
@@ -77,6 +78,7 @@ export function createLobbyStoreDefinition(
       dependencies.storage.load(),
     )
     const lobby = ref<LobbySnapshot | null>(null)
+    const dayVotePrivateStatus = ref<DayVotePrivateStatus | null>(null)
     const availableLobbies = ref<LobbySnapshot[]>([])
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
@@ -172,6 +174,7 @@ export function createLobbyStoreDefinition(
       if (snapshot.createdAt !== lobby.value.createdAt) return
       if (snapshot.revision < lobby.value.revision) return
       lobby.value = snapshot
+      if (!snapshot.dayVote) dayVotePrivateStatus.value = null
       if (snapshot.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
       if (snapshot.phase === LOBBY_PHASE.STARTED) startPreview.value = null
       if (hostDashboard.value) {
@@ -203,6 +206,7 @@ export function createLobbyStoreDefinition(
       credentials.value = session
       dependencies.storage.save(session)
       lobby.value = nextLobby
+      dayVotePrivateStatus.value = null
       destination.value = nextDestination
       startPreview.value = null
       restoringSession.value = false
@@ -224,6 +228,7 @@ export function createLobbyStoreDefinition(
       sessionEpoch += 1
       credentials.value = null
       lobby.value = null
+      dayVotePrivateStatus.value = null
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
@@ -332,6 +337,10 @@ export function createLobbyStoreDefinition(
           if (realtimeSuspended) return
           startPreview.value = null
           showNotice(NOTIFICATION_LEVEL.SUCCESS, MESSAGE.GAME_STARTED)
+        },
+        onDayVotePrivateStatus: (status) => {
+          if (realtimeSuspended) return
+          dayVotePrivateStatus.value = status
         },
         onPrivateAssignment: (assignment) => {
           if (realtimeSuspended) return
@@ -1010,6 +1019,7 @@ export function createLobbyStoreDefinition(
       initialized,
       credentials,
       lobby,
+      dayVotePrivateStatus,
       availableLobbies,
       destination,
       privateAssignment,

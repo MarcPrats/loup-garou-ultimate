@@ -1,15 +1,42 @@
 import { expect, test, type Browser, type BrowserContext, type Page } from '@playwright/test'
 
-async function enterGame(page: Page, name: string): Promise<void> {
+async function createLobbyAsHost(page: Page, name: string): Promise<string> {
   await page.goto('/lobbies')
   await page.getByPlaceholder('Votre nom...').fill(name)
   await expect(page.getByRole('button', { name: '➕ Créer une partie' })).toBeEnabled()
   await page.getByRole('button', { name: '➕ Créer une partie' }).click()
-  await expect(page.getByRole('heading', { name: "Salle d'Attente" })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Lobby' })).toBeVisible()
+  const inviteUrl = await page.getByLabel('Lien d'invitation').inputValue()
+  const match = inviteUrl.match(/(?:lobby\/|lobby=)([a-zA-Z0-9_-]+)/)
+  if (!match?.[1]) throw new Error(`Unable to extract lobby id from ${inviteUrl}`)
+  return match[1]
+}
+
+async function joinLobby(page: Page, lobbyId: string, name: string): Promise<void> {
+  await page.goto(`/lobby/${lobbyId}`)
+  await page.getByPlaceholder('Votre nom...').fill(name)
+  await page.getByRole('button', { name: 'Rejoindre la partie' }).click()
+  await expect(page.getByRole('heading', { name: 'Lobby' })).toBeVisible()
+}
+
+async function closeGame(game: { host: Page | null }): Promise<void> {
+  try {
+    if (!game.host) return
+    const closeButton = game.host.getByRole('button', { name: 'Fermer la partie', exact: true })
+    if (await closeButton.count() === 0) return
+    await closeButton.click()
+    const dialog = game.host.getByRole('alertdialog')
+    if (await dialog.count() > 0) {
+      await dialog.getByRole('button', { name: 'Fermer la partie', exact: true }).click()
+    }
+  } catch {
+    // Context cleanup below remains best effort if the browser is already closed.
+  }
 }
 
 test('runs the complete production game flow with private views and V3 rules', async ({ browser, request }) => {
   const contexts: BrowserContext[] = []
+  let host: Page | null = null
   try {
     const homeContext = await browser.newContext()
     contexts.push(homeContext)
@@ -39,8 +66,8 @@ test('runs the complete production game flow with private views and V3 rules', a
 
     const hostContext = await browser.newContext()
     contexts.push(hostContext)
-    const host = await hostContext.newPage()
-    await enterGame(host, 'Le MJ')
+    host = await hostContext.newPage()
+    const lobbyId = await createLobbyAsHost(host, 'Le MJ')
     await expect(host.getByText('Le MJ').first()).toBeVisible()
 
     const playerPages: Page[] = []
@@ -48,7 +75,7 @@ test('runs the complete production game flow with private views and V3 rules', a
       const context = await browser.newContext()
       contexts.push(context)
       const page = await context.newPage()
-      await enterGame(page, `Joueur ${index}`)
+      await joinLobby(page, lobbyId, `Joueur ${index}`)
       playerPages.push(page)
     }
 
@@ -56,7 +83,7 @@ test('runs the complete production game flow with private views and V3 rules', a
     await expect(host.getByRole('button', { name: '🎮 Démarrer la Partie' })).toBeEnabled()
 
     await playerPages[0]!.reload()
-    await expect(playerPages[0]!.getByRole('heading', { name: "Salle d'Attente" })).toBeVisible()
+    await expect(playerPages[0]!.getByRole('heading', { name: "Lobby" })).toBeVisible()
     await expect(playerPages[0]!.getByText('Joueur 1').first()).toBeVisible()
     await expect(playerPages[0]!.locator('.app-player-card')).toHaveCount(6)
 
@@ -84,6 +111,7 @@ test('runs the complete production game flow with private views and V3 rules', a
     await expect(playerPages[0]!.getByLabel('Lien privé vers cette vue')).toHaveCount(0)
 
   } finally {
+    await closeGame({ host: host! })
     for (const context of contexts) {
       await context.close().catch(() => undefined)
     }
@@ -102,14 +130,14 @@ async function createVotingGame(browser: Browser, enabled: boolean): Promise<Vot
   const hostContext = await browser.newContext()
   contexts.push(hostContext)
   const host = await hostContext.newPage()
-  await enterGame(host, 'Le MJ')
+  const lobbyId = await createLobbyAsHost(host, 'Le MJ')
 
   const players: Page[] = []
   for (let index = 1; index <= 5; index += 1) {
     const context = await browser.newContext()
     contexts.push(context)
     const page = await context.newPage()
-    await enterGame(page, `Joueur ${index}`)
+    await joinLobby(page, lobbyId, `Joueur ${index}`)
     players.push(page)
   }
 
@@ -184,6 +212,7 @@ test('hides the voting system when the MJ leaves it disabled', async ({ browser 
     await expect(game.host.getByTestId('day-voting-panel')).toHaveCount(0)
     await expect(game.players[0]!.getByTestId('day-voting-panel')).toHaveCount(0)
   } finally {
+    await closeGame(game)
     for (const context of game.contexts) await context.close().catch(() => undefined)
   }
 })
@@ -200,6 +229,7 @@ test('runs a successful single nomination and leaves execution to the MJ', async
     await game.host.getByTestId('record-game-log-event').click()
     await expect(game.players[1]!.locator('.app-ghost-status-panel')).toBeVisible()
   } finally {
+    await closeGame(game)
     for (const context of game.contexts) await context.close().catch(() => undefined)
   }
 })
@@ -216,6 +246,7 @@ test('runs a failed nomination and allows another nomination during the same day
     await expect(game.host.getByTestId('day-voting-daily-summary')).toContainText('Joueur 4 : 2 Oui')
     await expect(game.host.getByTestId('day-voting-daily-summary')).toContainText('Aucune nomination n’a atteint la majorité')
   } finally {
+    await closeGame(game)
     for (const context of game.contexts) await context.close().catch(() => undefined)
   }
 })
@@ -232,6 +263,25 @@ test('keeps several nominations and selects the highest qualifying vote', async 
     await expect(game.host.getByTestId('day-voting-daily-summary')).toContainText('Joueur 4 : 4 Oui')
     await expect(game.players[3]!.locator('.app-ghost-status-panel')).toHaveCount(0)
   } finally {
+    await closeGame(game)
+    for (const context of game.contexts) await context.close().catch(() => undefined)
+  }
+})
+
+test('resolves missing active votes when the MJ advances the phase', async ({ browser }) => {
+  const game = await createVotingGame(browser, true)
+  try {
+    await advanceToDay(game.host)
+    await nominate(game.players[0]!, 'Joueur 2')
+    await approveAndStartVote(game.host)
+    await game.players[0]!.getByRole('button', { name: '👍 Oui' }).click()
+
+    await game.host.getByTestId('advance-game-phase').click()
+    await expect(game.host.getByTestId('game-phase-panel')).toContainText('🌙 Nuit 2')
+    await expect(game.host.getByTestId('game-log-entries')).toContainText('Joueur 2')
+    await expect(game.host.getByTestId('game-log-entries')).toContainText('Joueur 5')
+  } finally {
+    await closeGame(game)
     for (const context of game.contexts) await context.close().catch(() => undefined)
   }
 })
@@ -260,6 +310,7 @@ test('does not select an execution when qualifying nominations are tied', async 
     await expect(game.players[0]!.locator('.app-ghost-status-panel')).toHaveCount(0)
     await expect(game.players[1]!.locator('.app-ghost-status-panel')).toHaveCount(0)
   } finally {
+    await closeGame(game)
     for (const context of game.contexts) await context.close().catch(() => undefined)
   }
 })

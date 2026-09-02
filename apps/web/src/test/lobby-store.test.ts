@@ -41,6 +41,7 @@ function createLobby(revision = 1): LobbySnapshot {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameEnded: false,
     gameLog: [],
     dayVotingEnabled: false,
     dayVote: null,
@@ -311,6 +312,9 @@ describe('lobby store', () => {
     const storage = new FakeStorage(SESSION)
     const store = createStore(gateway, storage)
     await store.initialize()
+
+    gateway.handlers?.onDayVotePrivateStatus({ day: 1, nominationId: 'nomination-1', choice: 'yes' })
+    expect(store.dayVotePrivateStatus?.choice).toBe('yes')
 
     gateway.handlers?.onPrivateAssignment({
       player: { id: SESSION.playerId, name: 'Marc' },

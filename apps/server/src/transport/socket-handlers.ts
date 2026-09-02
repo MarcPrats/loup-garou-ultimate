@@ -150,6 +150,13 @@ function emitStartedGame(io: GameSocketServer, lobbyId: LobbyId, result: Awaited
   io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
 }
 
+async function emitDayVotePrivateStatus(socket: GameSocket, service: LobbyService): Promise<void> {
+  socket.emit(
+    SOCKET_EVENT.DAY_VOTE_PRIVATE_STATUS,
+    await service.getDayVotePrivateStatus(getSessionCommand(socket)),
+  )
+}
+
 async function emitResumedPrivateView(socket: GameSocket, service: LobbyService, destination: string): Promise<void> {
   if (destination === SESSION_DESTINATION.PLAYER_ROLE) {
     const assignment = await service.getPrivateAssignment(getSessionCommand(socket))
@@ -252,6 +259,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         if (result.replacedConnectionId) io.in(result.replacedConnectionId).disconnectSockets(true)
         if (result.publicStateChanged) broadcastSnapshot(io, result.response.lobby)
         await emitResumedPrivateView(socket, service, result.response.destination)
+        if (result.response.destination !== SESSION_DESTINATION.LOBBY) await emitDayVotePrivateStatus(socket, service)
         return result.response
       }, onUnexpectedError)
     })
@@ -379,6 +387,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         const command = parseCommand(dayVoteSubmitCommandSchema, rawCommand)
         const result = await serviceFor(socket).submitDayVote({ ...getSessionCommand(socket), ...command })
         broadcastSnapshot(io, result)
+        await emitDayVotePrivateStatus(socket, serviceFor(socket))
         return result
       }, onUnexpectedError)
     })

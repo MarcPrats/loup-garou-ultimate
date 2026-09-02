@@ -29,6 +29,16 @@ export function getLivingRegularPlayers(lobby: LobbyState): LobbyPlayerState[] {
   return lobby.players.filter((player) => !player.isHost && !deadPlayerIds.has(player.id))
 }
 
+export function synchronizeGameTerminalState(lobby: LobbyState): void {
+  const game = lobby.game
+  if (!game) return
+  const deadPlayerIds = new Set(game.gameLog
+    .filter((event) => event.eventType !== GAME_LOG_EVENT_TYPE.DAY_VOTE)
+    .map((event) => event.targetPlayerId))
+  game.ghostFinalVoteUsedIds = game.ghostFinalVoteUsedIds.filter((playerId) => deadPlayerIds.has(playerId))
+  game.gameEnded = getLivingRegularPlayers(lobby).length <= 2
+}
+
 export function resetDayVoting(lobby: LobbyState, day: number): void {
   const game = lobby.game
   if (!game) return

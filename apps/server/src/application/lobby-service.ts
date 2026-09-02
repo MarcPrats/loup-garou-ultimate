@@ -18,6 +18,7 @@ import {
   type GameLogEventType,
   type DayNomination,
   type DayVoteBallot,
+  type DayVotePrivateStatus,
   type GameStartPreview,
   type EmptyResponse,
   type HostDashboard,
@@ -32,7 +33,7 @@ import { PLAYER_COUNT, ROLE_ID } from '@lgu/game-core'
 
 import { LOBBY_TIME_LIMIT } from '../config/lobby-constants'
 import { LobbyError } from '../domain/lobby-error'
-import { assertDayPhase, assertDayVotingEnabled, getLivingRegularPlayers, resetDayVoting, resolveDayVote } from '../domain/day-voting'
+import { assertDayPhase, assertDayVotingEnabled, getLivingRegularPlayers, resetDayVoting, resolveDayVote, synchronizeGameTerminalState } from '../domain/day-voting'
 import type {
   Clock,
   AdvanceGamePhaseCommand,
@@ -189,6 +190,13 @@ function assertStartedGame(lobby: LobbyState): void {
       ERROR_CODE.GAME_NOT_STARTED,
       'La partie n’a pas encore commencé.',
     )
+  }
+}
+
+function assertGameInProgress(lobby: LobbyState): void {
+  assertStartedGame(lobby)
+  if (lobby.game?.gameEnded) {
+    throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'La partie est terminée.')
   }
 }
 
@@ -834,7 +842,7 @@ export class LobbyService {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
       if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
       assertDayVotingEnabled(lobby)
@@ -883,7 +891,7 @@ export class LobbyService {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
       if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
       assertDayVotingEnabled(lobby)
@@ -915,7 +923,7 @@ export class LobbyService {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
       if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
       assertDayVotingEnabled(lobby)
@@ -953,7 +961,7 @@ export class LobbyService {
     assertConnectionId(command.connectionId)
     return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
       if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       assertExpectedRevision(lobby, command.expectedRevision)
       assertDayPhase(lobby)
       assertDayVotingEnabled(lobby)
@@ -983,6 +991,21 @@ export class LobbyService {
     })
   }
 
+  async getDayVotePrivateStatus(command: SessionCommand): Promise<DayVotePrivateStatus> {
+    assertConnectionId(command.connectionId)
+    const lobby = await this.dependencies.repository.read()
+    if (!lobby) throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
+    assertStartedGame(lobby)
+    const player = authenticateConnectedSession(lobby, command)
+    const dayVote = lobby.game!.dayVoting
+    const ballot = dayVote.ballots.find((candidate) => candidate.voterId === player.id)
+    return {
+      day: dayVote.day,
+      nominationId: dayVote.nomination?.id ?? null,
+      choice: ballot?.choice ?? null,
+    }
+  }
+
   expireDayVote(lobbyId: string): Promise<LobbySnapshot | null> {
     return this.dependencies.repository.mutate<LobbySnapshot | null>((lobby) => {
       if (!lobby || lobby.id !== lobbyId || !lobby.game || lobby.gamePhase?.period !== GAME_PHASE_PERIOD.DAY) {
@@ -1004,7 +1027,7 @@ export class LobbyService {
       if (!lobby) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
 
       const host = authenticateConnectedSession(lobby, command)
       assertHost(host)
@@ -1021,9 +1044,13 @@ export class LobbyService {
         )
       }
 
+      const now = this.dependencies.clock.now()
+      if (lobby.gamePhase.period === GAME_PHASE_PERIOD.DAY && lobby.game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
+        resolveDayVote(lobby, now)
+      }
       lobby.gamePhase = getNextGamePhase(lobby.gamePhase)
       resetDayVoting(lobby, lobby.gamePhase.number)
-      touchLobby(lobby, this.dependencies.clock.now())
+      touchLobby(lobby, now)
       return { lobby, result: toLobbySnapshot(lobby) }
     })
   }
@@ -1034,7 +1061,7 @@ export class LobbyService {
       if (!lobby) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       const host = authenticateConnectedSession(lobby, command)
       assertHost(host)
       assertExpectedRevision(lobby, command.expectedRevision)
@@ -1058,7 +1085,7 @@ export class LobbyService {
       if (!lobby) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
-      assertStartedGame(lobby)
+      assertGameInProgress(lobby)
       const host = authenticateConnectedSession(lobby, command)
       assertHost(host)
       assertExpectedRevision(lobby, command.expectedRevision)
@@ -1090,6 +1117,7 @@ export class LobbyService {
       }
       game.gameLog = [...currentEntries, entry]
       validateGameLog(lobby, game.gameLog)
+      synchronizeGameTerminalState(lobby)
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })
@@ -1133,6 +1161,7 @@ export class LobbyService {
       ))
       validateGameLog(lobby, editedEntries)
       game.gameLog = editedEntries
+      synchronizeGameTerminalState(lobby)
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })
@@ -1161,6 +1190,7 @@ export class LobbyService {
       const remainingEntries = game.gameLog.filter((_, index) => index !== eventIndex)
       validateGameLog(lobby, remainingEntries)
       game.gameLog = remainingEntries
+      synchronizeGameTerminalState(lobby)
       touchLobby(lobby, this.dependencies.clock.now())
       return { lobby, result: toLobbySnapshot(lobby) }
     })

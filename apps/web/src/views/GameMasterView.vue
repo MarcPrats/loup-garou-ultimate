@@ -23,8 +23,9 @@ async function confirmLeave(): Promise<void> {
     <div class="app-screen app-gm-container">
       <GamePhasePanel
         :phase="lobby.lobby?.gamePhase ?? null"
-        :can-advance="lobby.isHost"
-        :can-rewind="lobby.lobby?.gamePhase?.period === 'day' || (lobby.lobby?.gamePhase?.number ?? 1) > 1"
+        :game-ended="lobby.lobby?.gameEnded ?? false"
+        :can-advance="lobby.isHost && !lobby.lobby?.gameEnded"
+        :can-rewind="!lobby.lobby?.gameEnded && (lobby.lobby?.gamePhase?.period === 'day' || (lobby.lobby?.gamePhase?.number ?? 1) > 1)"
         :advancing="lobby.advancingPhase"
         @advance="lobby.advanceGamePhase"
         @rewind="lobby.rewindGamePhase"
@@ -45,6 +46,7 @@ async function confirmLeave(): Promise<void> {
         :players="lobby.lobby?.players ?? []"
         :phase="lobby.lobby?.gamePhase ?? null"
         :can-edit="lobby.isHost"
+        :can-record="lobby.isHost && !lobby.lobby?.gameEnded"
         :busy="lobby.updatingGameLog"
         @record="lobby.recordGameLogEvent"
         @edit="lobby.editGameLogEvent"

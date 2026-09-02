@@ -81,6 +81,7 @@ export function createStoredGameState(
     ),
     startedAt,
     gameLog: [],
+    gameEnded: false,
     dayVoting: {
       day: 1,
       status: 'idle',

@@ -62,6 +62,12 @@ export const dayVoteRoundSchema = z.object({
   result: dayVoteResultSchema,
 }).strict()
 
+export const dayVotePrivateStatusSchema = z.object({
+  day: z.number().int().positive(),
+  nominationId: z.string().min(1).nullable(),
+  choice: dayVoteChoiceSchema.nullable(),
+}).strict()
+
 export const dayVoteDailyResultSchema = z.object({
   status: dayVoteDailyResultStatusSchema,
   targetId: playerIdSchema.nullable(),
@@ -112,6 +118,7 @@ export type DayVoteBallot = z.infer<typeof dayVoteBallotSchema>
 export type DayVoteResult = z.infer<typeof dayVoteResultSchema>
 export type DayVoteRound = z.infer<typeof dayVoteRoundSchema>
 export type DayVoteDailyResult = z.infer<typeof dayVoteDailyResultSchema>
+export type DayVotePrivateStatus = z.infer<typeof dayVotePrivateStatusSchema>
 export type DayVoteSnapshot = z.infer<typeof dayVoteSnapshotSchema>
 export type DayNominationProposeCommand = z.infer<typeof dayNominationProposeCommandSchema>
 export type DayNominationDecisionCommand = z.infer<typeof dayNominationDecisionCommandSchema>

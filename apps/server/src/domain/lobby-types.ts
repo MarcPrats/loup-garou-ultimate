@@ -45,6 +45,7 @@ export interface StoredGameState {
   readonly roleAccessGrants: RoleAccessGrant[]
   readonly startedAt: number
   gameLog: GameLogEntry[]
+  gameEnded: boolean
   dayVoting: DayVotingState
   ghostFinalVoteUsedIds: PlayerId[]
 }

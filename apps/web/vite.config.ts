@@ -20,6 +20,5 @@ export default defineConfig(() => ({
     host: '0.0.0.0',
     port: 5173,
     proxy: backendProxy(),
-    allowedHosts: ["pluteal-beatrice-dorsal.ngrok-free.dev"]
   },
 }))

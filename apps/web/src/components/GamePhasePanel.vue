@@ -6,12 +6,16 @@ import {
   type GamePhase,
 } from '@lgu/contracts'
 
-const props = withDefaults(defineProps<{
+interface Props {
   phase: GamePhase | null
+  gameEnded?: boolean
   canAdvance?: boolean
   canRewind?: boolean
   advancing?: boolean
-}>(), {
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  gameEnded: false,
   canAdvance: false,
   canRewind: false,
   advancing: false,
@@ -49,10 +53,10 @@ const phaseDescription = computed(() => {
           🎭 État de la partie
         </p>
         <h2 class="mt-2 font-display text-3xl font-black text-white">
-          {{ phaseLabel }}
+          {{ props.gameEnded ? '🏁 Partie terminée' : phaseLabel }}
         </h2>
         <p class="mt-2 text-sm text-slate-300">
-          {{ phaseDescription }}
+          {{ props.gameEnded ? 'La partie est terminée : il reste deux joueurs ou moins en vie.' : phaseDescription }}
         </p>
       </div>
 

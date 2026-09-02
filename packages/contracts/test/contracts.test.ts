@@ -165,6 +165,7 @@ describe('lobby contracts', () => {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameEnded: false,
     gameLog: [],
     dayVotingEnabled: false,
     dayVote: null,

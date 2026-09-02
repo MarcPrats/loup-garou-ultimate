@@ -13,6 +13,7 @@ import type {
   DayNominationProposeCommand,
   DayVoteSubmitCommand,
   DayVotingEnabledCommand,
+  DayVotePrivateStatus,
 } from './day-voting'
 import { SOCKET_EVENT } from './constants'
 import type {
@@ -38,6 +39,7 @@ import type {
 } from './lobby'
 
 export interface ServerToClientEvents {
+  [SOCKET_EVENT.DAY_VOTE_PRIVATE_STATUS]: (status: DayVotePrivateStatus) => void
   [SOCKET_EVENT.SYSTEM_READY]: (event: SystemReadyEvent) => void
   [SOCKET_EVENT.LOBBY_SNAPSHOT]: (snapshot: LobbySnapshot) => void
   [SOCKET_EVENT.GAME_STARTED]: (event: GameStartedEvent) => void

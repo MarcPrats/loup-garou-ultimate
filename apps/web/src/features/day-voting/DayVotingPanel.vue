@@ -15,8 +15,9 @@ const props = withDefaults(defineProps<{
   dayVote: DayVoteSnapshot | null
   players: readonly PublicPlayer[]
   currentPlayerId?: PlayerId | null
+  myVoteChoice?: DayVoteChoice | null
   isHost?: boolean
-}>(), { currentPlayerId: null, isHost: false })
+}>(), { currentPlayerId: null, myVoteChoice: null, isHost: false })
 
 const emit = defineEmits<{
   propose: [targetPlayerId: PlayerId]
@@ -36,7 +37,7 @@ const livingPlayers = computed(() => props.players.filter((player) => !player.is
 const availableTargets = computed(() => livingPlayers.value.filter((player) => (
   player.id !== props.currentPlayerId && !props.dayVote?.nominatedTargetIds.includes(player.id)
 )))
-const currentBallot = computed(() => props.dayVote?.ballots.find((ballot) => ballot.voterId === props.currentPlayerId) ?? null)
+const currentBallot = computed(() => props.myVoteChoice ? { choice: props.myVoteChoice } : null)
 const alreadyNominated = computed(() => Boolean(props.currentPlayerId && props.dayVote?.nominatedByIds.includes(props.currentPlayerId)))
 const canNominate = computed(() => Boolean(
   !props.isHost && currentPlayer.value?.alive && props.dayVote
@@ -46,6 +47,7 @@ const canNominate = computed(() => Boolean(
 const canVote = computed(() => Boolean(
   !props.isHost && props.dayVote?.status === DAY_VOTE_STATUS.ACTIVE
   && props.dayVote.eligibleVoterIds.includes(props.currentPlayerId ?? ('' as PlayerId))
+  && !props.myVoteChoice
 ))
 const remainingSeconds = computed(() => {
   if (!props.dayVote?.closesAt || props.dayVote.status !== DAY_VOTE_STATUS.ACTIVE) return 0

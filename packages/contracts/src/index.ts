@@ -87,6 +87,7 @@ export {
   dayVoteDailyResultStatusSchema,
   dayVoteRoundSchema,
   dayVoteDailyResultSchema,
+  dayVotePrivateStatusSchema,
   dayVoteSubmitCommandSchema,
   dayVotingEnabledCommandSchema,
   type DayNomination,
@@ -100,6 +101,7 @@ export {
   type DayVoteSubmitCommand,
   type DayVoteRound,
   type DayVoteDailyResult,
+  type DayVotePrivateStatus,
   type DayVoteDailyResultStatus,
   type DayVotingEnabledCommand,
 } from './day-voting'
