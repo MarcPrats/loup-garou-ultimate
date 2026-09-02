@@ -6,7 +6,7 @@ async function createLobbyAsHost(page: Page, name: string): Promise<string> {
   await expect(page.getByRole('button', { name: '➕ Créer une partie' })).toBeEnabled()
   await page.getByRole('button', { name: '➕ Créer une partie' }).click()
   await expect(page.getByRole('heading', { name: 'Lobby' })).toBeVisible()
-  const inviteUrl = await page.getByLabel('Lien d'invitation').inputValue()
+  const inviteUrl = await page.getByLabel('Lien d\'invitation').inputValue()
   const match = inviteUrl.match(/(?:lobby\/|lobby=)([a-zA-Z0-9_-]+)/)
   if (!match?.[1]) throw new Error(`Unable to extract lobby id from ${inviteUrl}`)
   return match[1]
