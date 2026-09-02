@@ -15,8 +15,12 @@
     "test": "pnpm -r --if-present run test",
     "test:e2e": "playwright test",
     "test:e2e:demo": "playwright test --config playwright.demo.config.ts --headed",
+<<<<<<< HEAD
     "test:e2e:simulator": "playwright test --config playwright.simulator.config.ts",
     "test:e2e:all": "pnpm test:e2e && pnpm test:e2e:simulator"
+=======
+    "heroku-postbuild": "pnpm build"
+>>>>>>> origin/main
   },
   "keywords": [
     "loup-garou",
