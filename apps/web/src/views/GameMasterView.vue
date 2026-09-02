@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import DayVotingPanel from '../features/day-voting/DayVotingPanel.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
@@ -22,11 +23,22 @@ async function confirmLeave(): Promise<void> {
     <div class="app-screen app-gm-container">
       <GamePhasePanel
         :phase="lobby.lobby?.gamePhase ?? null"
-        :can-advance="lobby.isHost"
-        :can-rewind="lobby.lobby?.gamePhase?.period === 'day' || (lobby.lobby?.gamePhase?.number ?? 1) > 1"
+        :game-ended="lobby.lobby?.gameEnded ?? false"
+        :can-advance="lobby.isHost && !lobby.lobby?.gameEnded"
+        :can-rewind="!lobby.lobby?.gameEnded && (lobby.lobby?.gamePhase?.period === 'day' || (lobby.lobby?.gamePhase?.number ?? 1) > 1)"
         :advancing="lobby.advancingPhase"
         @advance="lobby.advanceGamePhase"
         @rewind="lobby.rewindGamePhase"
+      />
+
+      <DayVotingPanel
+        v-if="lobby.lobby?.dayVotingEnabled"
+        :day-vote="lobby.lobby?.dayVote ?? null"
+        :players="lobby.lobby?.players ?? []"
+        :is-host="true"
+        @approve="lobby.approveDayNomination"
+        @reject="lobby.rejectDayNomination"
+        @start="lobby.startDayVote"
       />
 
       <GameLogPanel
@@ -34,6 +46,7 @@ async function confirmLeave(): Promise<void> {
         :players="lobby.lobby?.players ?? []"
         :phase="lobby.lobby?.gamePhase ?? null"
         :can-edit="lobby.isHost"
+        :can-record="lobby.isHost && !lobby.lobby?.gameEnded"
         :busy="lobby.updatingGameLog"
         @record="lobby.recordGameLogEvent"
         @edit="lobby.editGameLogEvent"

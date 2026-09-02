@@ -7,6 +7,7 @@ import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
+import DayVotingPanel from '../features/day-voting/DayVotingPanel.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
@@ -53,7 +54,17 @@ async function confirmLeave(): Promise<void> {
         <p class="mt-3 text-slate-300">La connexion privée est en cours de restauration.</p>
       </section>
 
-      <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" />
+      <GamePhasePanel :phase="lobby.lobby?.gamePhase ?? null" :game-ended="lobby.lobby?.gameEnded ?? false" />
+
+      <DayVotingPanel
+        v-if="lobby.lobby?.dayVotingEnabled"
+        :day-vote="lobby.lobby?.dayVote ?? null"
+        :players="lobby.lobby?.players ?? []"
+        :current-player-id="lobby.currentPlayer?.id ?? null"
+        :my-vote-choice="lobby.dayVotePrivateStatus?.nominationId === lobby.lobby?.dayVote?.nomination?.id ? lobby.dayVotePrivateStatus?.choice ?? null : null"
+        @propose="lobby.proposeDayNomination"
+        @vote="lobby.submitDayVote"
+      />
 
       <GameLogPanel
         :entries="lobby.lobby?.gameLog ?? []"

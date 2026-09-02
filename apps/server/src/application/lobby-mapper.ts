@@ -1,6 +1,8 @@
 import {
+  GAME_LOG_EVENT_TYPE,
   LOBBY_PHASE,
   SESSION_DESTINATION,
+  type DayVoteSnapshot,
   type LobbySnapshot,
   type SessionDestination,
 } from '@lgu/contracts'
@@ -46,7 +48,29 @@ export function getSessionDestination(
 }
 
 function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
-  return new Set(lobby.game?.gameLog.map((event) => event.targetPlayerId) ?? [])
+  return new Set(lobby.game?.gameLog
+    .filter((event) => event.eventType !== GAME_LOG_EVENT_TYPE.DAY_VOTE)
+    .map((event) => event.targetPlayerId) ?? [])
+}
+
+function toDayVoteSnapshot(game: NonNullable<LobbyState['game']>): DayVoteSnapshot {
+  return {
+    status: game.dayVoting.status,
+    day: game.dayVoting.day,
+    nomination: game.dayVoting.nomination,
+    nominatedByIds: game.dayVoting.nominatedByIds,
+    nominatedTargetIds: game.dayVoting.nominatedTargetIds,
+    eligibleVoterIds: game.dayVoting.eligibleVoterIds,
+    ballots: game.dayVoting.status === 'resolved' ? game.dayVoting.ballots : [],
+    completedRounds: game.dayVoting.completedRounds,
+    livingPlayerCount: game.dayVoting.livingPlayerCount,
+    yesCount: game.dayVoting.yesCount,
+    noCount: game.dayVoting.noCount,
+    threshold: game.dayVoting.threshold,
+    closesAt: game.dayVoting.closesAt,
+    result: game.dayVoting.result,
+    dailyResult: game.dayVoting.dailyResult,
+  }
 }
 
 export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
@@ -56,7 +80,12 @@ export function toLobbySnapshot(lobby: LobbyState): LobbySnapshot {
     id: lobby.id,
     phase: lobby.phase,
     gamePhase: lobby.gamePhase,
+    gameEnded: lobby.game?.gameEnded ?? false,
     gameLog: lobby.game?.gameLog ?? [],
+    dayVotingEnabled: lobby.dayVotingEnabled,
+    dayVote: lobby.dayVotingEnabled && lobby.gamePhase?.period === 'day'
+      ? lobby.game ? toDayVoteSnapshot(lobby.game) : null
+      : null,
     revision: lobby.revision,
     players: [...lobby.players]
       .sort((left, right) => left.joinOrder - right.joinOrder)

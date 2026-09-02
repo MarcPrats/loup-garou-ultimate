@@ -12,6 +12,8 @@ import {
   type ErrorCode,
   type GameLogEventType,
   type GameStartPreview,
+  type DayVoteChoice,
+  type DayVotePrivateStatus,
   type HostDashboard,
   type NotificationLevel,
   type PlayerId,
@@ -76,6 +78,7 @@ export function createLobbyStoreDefinition(
       dependencies.storage.load(),
     )
     const lobby = ref<LobbySnapshot | null>(null)
+    const dayVotePrivateStatus = ref<DayVotePrivateStatus | null>(null)
     const availableLobbies = ref<LobbySnapshot[]>([])
     const destination = ref<SessionDestination | null>(null)
     const privateAssignment = ref<PrivateAssignment | null>(null)
@@ -91,6 +94,7 @@ export function createLobbyStoreDefinition(
     const advancingPhase = ref(false)
     const updatingGameLog = ref(false)
     const kickingPlayerId = ref<PlayerId | null>(null)
+    const updatingDayVoting = ref(false)
 
     let initializePromise: Promise<void> | null = null
     let resumePromise: Promise<void> | null = null
@@ -170,6 +174,7 @@ export function createLobbyStoreDefinition(
       if (snapshot.createdAt !== lobby.value.createdAt) return
       if (snapshot.revision < lobby.value.revision) return
       lobby.value = snapshot
+      if (!snapshot.dayVote) dayVotePrivateStatus.value = null
       if (snapshot.phase === LOBBY_PHASE.STARTED) schedulePrivateViewRecovery()
       if (snapshot.phase === LOBBY_PHASE.STARTED) startPreview.value = null
       if (hostDashboard.value) {
@@ -201,6 +206,7 @@ export function createLobbyStoreDefinition(
       credentials.value = session
       dependencies.storage.save(session)
       lobby.value = nextLobby
+      dayVotePrivateStatus.value = null
       destination.value = nextDestination
       startPreview.value = null
       restoringSession.value = false
@@ -222,6 +228,7 @@ export function createLobbyStoreDefinition(
       sessionEpoch += 1
       credentials.value = null
       lobby.value = null
+      dayVotePrivateStatus.value = null
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
@@ -330,6 +337,10 @@ export function createLobbyStoreDefinition(
           if (realtimeSuspended) return
           startPreview.value = null
           showNotice(NOTIFICATION_LEVEL.SUCCESS, MESSAGE.GAME_STARTED)
+        },
+        onDayVotePrivateStatus: (status) => {
+          if (realtimeSuspended) return
+          dayVotePrivateStatus.value = status
         },
         onPrivateAssignment: (assignment) => {
           if (realtimeSuspended) return
@@ -525,6 +536,29 @@ export function createLobbyStoreDefinition(
         return false
       } finally {
         kickingPlayerId.value = null
+      }
+    }
+
+    async function setDayVotingEnabled(enabled: boolean): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || !isHost.value || !isLobby.value) return false
+      updatingDayVoting.value = true
+      clearError()
+      try {
+        const response = await getGateway().setDayVotingEnabled(enabled, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      } finally {
+        updatingDayVoting.value = false
       }
     }
 
@@ -746,6 +780,98 @@ export function createLobbyStoreDefinition(
       }
     }
 
+    async function proposeDayNomination(targetPlayerId: string): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined || isHost.value) return false
+      clearError()
+      try {
+        const response = await getGateway().proposeDayNomination(targetPlayerId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function decideDayNomination(decision: 'approve' | 'reject'): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      const nominationId = lobby.value?.dayVote?.nomination?.id
+      if (expectedRevision === undefined || !isHost.value || !nominationId) return false
+      clearError()
+      try {
+        const response = decision === 'approve'
+          ? await getGateway().approveDayNomination(nominationId, expectedRevision)
+          : await getGateway().rejectDayNomination(nominationId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function approveDayNomination(): Promise<boolean> {
+      return decideDayNomination('approve')
+    }
+
+    async function startDayVote(): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      const nominationId = lobby.value?.dayVote?.nomination?.id
+      if (expectedRevision === undefined || !isHost.value || !nominationId) return false
+      clearError()
+      try {
+        const response = await getGateway().startDayVote(nominationId, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function rejectDayNomination(): Promise<boolean> {
+      return decideDayNomination('reject')
+    }
+
+    async function submitDayVote(choice: DayVoteChoice): Promise<boolean> {
+      const expectedEpoch = sessionEpoch
+      const expectedRevision = lobby.value?.revision
+      if (expectedRevision === undefined) return false
+      clearError()
+      try {
+        const response = await getGateway().submitDayVote(choice, expectedRevision)
+        if (sessionEpoch !== expectedEpoch) return false
+        if (!response.ok) {
+          handleAckError(response.error)
+          return false
+        }
+        applyLobbySnapshot(response.data)
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
     async function sendKeepAlive(): Promise<void> {
       const expectedEpoch = sessionEpoch
       try {
@@ -893,6 +1019,7 @@ export function createLobbyStoreDefinition(
       initialized,
       credentials,
       lobby,
+      dayVotePrivateStatus,
       availableLobbies,
       destination,
       privateAssignment,
@@ -907,6 +1034,7 @@ export function createLobbyStoreDefinition(
       advancingPhase,
       updatingGameLog,
       kickingPlayerId,
+      updatingDayVoting,
       currentPlayer,
       isHost,
       host,
@@ -922,6 +1050,7 @@ export function createLobbyStoreDefinition(
       joinLobby,
       leave,
       kick,
+      setDayVotingEnabled,
       start,
       confirmStart,
       cancelStartPreview,
@@ -931,6 +1060,11 @@ export function createLobbyStoreDefinition(
       recordGameLogEvent,
       editGameLogEvent,
       deleteGameLogEvent,
+      proposeDayNomination,
+      approveDayNomination,
+      startDayVote,
+      rejectDayNomination,
+      submitDayVote,
       clearError,
       clearSession,
       showCopiedNotice,

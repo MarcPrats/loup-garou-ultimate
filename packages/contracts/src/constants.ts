@@ -68,6 +68,7 @@ export const SPECIAL_INFORMATION_TYPE = {
 export const GAME_LOG_EVENT_TYPE = {
   NIGHT_KILL: 'night-kill',
   DAY_EXECUTION: 'day-execution',
+  DAY_VOTE: 'day-vote',
 } as const
 export type SpecialInformationType = ValueOf<typeof SPECIAL_INFORMATION_TYPE>
 
@@ -135,6 +136,13 @@ export const SOCKET_EVENT = {
   GAME_LOG_RECORD: 'game-log:record',
   GAME_LOG_EDIT: 'game-log:edit',
   GAME_LOG_DELETE: 'game-log:delete',
+  DAY_NOMINATION_PROPOSE: 'day:nomination-propose',
+  DAY_NOMINATION_APPROVE: 'day:nomination-approve',
+  DAY_NOMINATION_REJECT: 'day:nomination-reject',
+  DAY_VOTE_SUBMIT: 'day:vote-submit',
+  DAY_VOTE_START: 'day:vote-start',
+  DAY_VOTE_PRIVATE_STATUS: 'day:vote-private-status',
+  LOBBY_DAY_VOTING_SET: 'lobby:day-voting-set',
   KEEP_ALIVE: 'session:keep-alive',
   LOBBY_SNAPSHOT: 'lobby:snapshot',
   GAME_STARTED: 'game:started',

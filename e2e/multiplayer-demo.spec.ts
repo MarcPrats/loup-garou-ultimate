@@ -3,7 +3,7 @@ import { expect, test, type Browser, type BrowserContext, type Page } from '@pla
 // Helper to extract lobby ID from invite link on the page
 async function getInviteLobbyId(page: Page): Promise<string | null> {
   const inviteInput = page.getByLabel('Lien d\'invitation')
-  const inviteUrl = await inviteInput.getAttribute('value')
+  const inviteUrl = await inviteInput.inputValue()
   if (!inviteUrl) return null
   const match = inviteUrl.match(/(?:lobby\/|lobby=)([a-zA-Z0-9_-]+)/)
   return match ? match[1] : null
@@ -100,7 +100,7 @@ test('demo: launch game with 1 host and 12 players joining the same lobby', asyn
 
     // Pause to keep browser open in headed mode
     // Run with: npx playwright test --config playwright.demo.config.ts --headed
-    await host.pause()
+    if (process.env.PLAYWRIGHT_DEMO_PAUSE === 'true') await host.pause()
 
   } finally {
     // Clean up contexts (only if not paused)

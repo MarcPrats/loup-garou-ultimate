@@ -18,6 +18,7 @@ import {
   lobbyEntryResponseSchema,
   lobbyListResponseSchema,
   lobbySnapshotSchema,
+  dayVotePrivateStatusSchema,
   sessionEndedEventSchema,
   sessionResumeResponseSchema,
   systemReadyEventSchema,
@@ -27,6 +28,8 @@ import {
   type GameLogEventType,
   type GameStartedEvent,
   type GameStartPreview,
+  type DayVoteChoice,
+  type DayVotePrivateStatus,
   type HostDashboard,
   type NotificationEvent,
   type PlayerId,
@@ -64,6 +67,7 @@ export interface LobbyGatewayHandlers {
   readonly onLobbySnapshot: (snapshot: LobbySnapshot) => void
   readonly onGameStarted: (event: GameStartedEvent) => void
   readonly onPrivateAssignment: (assignment: PrivateAssignment) => void
+  readonly onDayVotePrivateStatus: (status: DayVotePrivateStatus) => void
   readonly onHostDashboard: (dashboard: HostDashboard) => void
   readonly onStartPreview: (preview: GameStartPreview) => void
   readonly onLobbyClosed: (event: LobbyClosedEvent) => void
@@ -93,6 +97,12 @@ export interface LobbyGateway {
   recordGameLogEvent(eventType: GameLogEventType, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   editGameLogEvent(eventId: string, targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   deleteGameLogEvent(eventId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  proposeDayNomination(targetPlayerId: PlayerId, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  approveDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  startDayVote(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  rejectDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  submitDayVote(choice: DayVoteChoice, expectedRevision: number): Promise<Ack<LobbySnapshot>>
+  setDayVotingEnabled(enabled: boolean, expectedRevision: number): Promise<Ack<LobbySnapshot>>
   keepAlive(): Promise<Ack<EmptyResponse>>
 }
 
@@ -179,6 +189,9 @@ export class SocketLobbyGateway implements LobbyGateway {
     const onPrivateAssignment = (value: unknown) => {
       deliverEvent(privateAssignmentSchema, value, handlers.onPrivateAssignment, handlers.onProtocolError)
     }
+    const onDayVotePrivateStatus = (value: unknown) => {
+      deliverEvent(dayVotePrivateStatusSchema, value, handlers.onDayVotePrivateStatus, handlers.onProtocolError)
+    }
     const onHostDashboard = (value: unknown) => {
       deliverEvent(hostDashboardSchema, value, handlers.onHostDashboard, handlers.onProtocolError)
     }
@@ -203,6 +216,7 @@ export class SocketLobbyGateway implements LobbyGateway {
     this.socket.on(SOCKET_EVENT.LOBBY_SNAPSHOT, onLobbySnapshot)
     this.socket.on(SOCKET_EVENT.GAME_STARTED, onGameStarted)
     this.socket.on(SOCKET_EVENT.PRIVATE_ASSIGNMENT, onPrivateAssignment)
+    this.socket.on(SOCKET_EVENT.DAY_VOTE_PRIVATE_STATUS, onDayVotePrivateStatus)
     this.socket.on(SOCKET_EVENT.HOST_DASHBOARD, onHostDashboard)
     this.socket.on(SOCKET_EVENT.HOST_START_PREVIEW, onStartPreview)
     this.socket.on(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
@@ -218,6 +232,7 @@ export class SocketLobbyGateway implements LobbyGateway {
       this.socket.off(SOCKET_EVENT.LOBBY_SNAPSHOT, onLobbySnapshot)
       this.socket.off(SOCKET_EVENT.GAME_STARTED, onGameStarted)
       this.socket.off(SOCKET_EVENT.PRIVATE_ASSIGNMENT, onPrivateAssignment)
+      this.socket.off(SOCKET_EVENT.DAY_VOTE_PRIVATE_STATUS, onDayVotePrivateStatus)
       this.socket.off(SOCKET_EVENT.HOST_DASHBOARD, onHostDashboard)
       this.socket.off(SOCKET_EVENT.HOST_START_PREVIEW, onStartPreview)
       this.socket.off(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
@@ -415,6 +430,58 @@ export class SocketLobbyGateway implements LobbyGateway {
       (callback) => this.socket.emit(
         SOCKET_EVENT.GAME_LOG_DELETE,
         gameLogDeleteCommandSchema.parse({ eventId, expectedRevision }),
+        callback,
+      ),
+    )
+  }
+
+  proposeDayNomination(targetPlayerId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'propose day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_PROPOSE, { targetPlayerId, expectedRevision }, callback),
+    )
+  }
+
+  approveDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'approve day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_APPROVE, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  startDayVote(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'start day vote',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_VOTE_START, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  rejectDayNomination(nominationId: string, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'reject day nomination',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_NOMINATION_REJECT, { nominationId, expectedRevision }, callback),
+    )
+  }
+
+  submitDayVote(choice: DayVoteChoice, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'submit day vote',
+      gamePhaseAdvanceAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.DAY_VOTE_SUBMIT, { choice, expectedRevision }, callback),
+    )
+  }
+
+  setDayVotingEnabled(enabled: boolean, expectedRevision: number): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'set day voting enabled',
+      gameLogAckSchema,
+      (callback) => this.socket.emit(
+        SOCKET_EVENT.LOBBY_DAY_VOTING_SET,
+        { enabled, expectedRevision },
         callback,
       ),
     )

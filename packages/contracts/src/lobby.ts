@@ -9,6 +9,7 @@ import {
 } from './constants'
 import { gameLogEntrySchema } from './game-log'
 import { gamePhaseSchema } from './game-phase'
+import { dayVoteSnapshotSchema } from './day-voting'
 import {
   playerIdSchema,
   playerNameSchema,
@@ -39,7 +40,10 @@ export const lobbySnapshotSchema = z.object({
   id: lobbyIdSchema,
   phase: lobbyPhaseSchema,
   gamePhase: gamePhaseSchema.nullable(),
+  gameEnded: z.boolean(),
   gameLog: z.array(gameLogEntrySchema),
+  dayVotingEnabled: z.boolean(),
+  dayVote: dayVoteSnapshotSchema.nullable(),
   revision: revisionSchema,
   players: z.array(publicPlayerSchema),
   minimumPlayers: z.number().int().positive(),

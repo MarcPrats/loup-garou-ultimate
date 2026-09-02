@@ -9,11 +9,14 @@ import type {
   GamePhase,
   LobbyPhase,
   SessionToken,
+  DayVoteChoice,
 } from '@lgu/contracts'
 import type {
   AssignablePlayer,
   AssignmentResult,
 } from '@lgu/game-core'
+import type { DayVotingState } from './day-voting/day-voting-state'
+export type { DayVotingState, AssignmentResult } from './day-voting/day-voting-state'
 
 export type ConnectionId = string
 
@@ -42,6 +45,9 @@ export interface StoredGameState {
   readonly roleAccessGrants: RoleAccessGrant[]
   readonly startedAt: number
   gameLog: GameLogEntry[]
+  gameEnded: boolean
+  dayVoting: DayVotingState
+  ghostFinalVoteUsedIds: PlayerId[]
 }
 
 export interface GameStartPreviewState {
@@ -59,6 +65,7 @@ export interface LobbyState {
   closedAt: number | null
   closeReason: LobbyClosedReason | null
   gamePhase: GamePhase | null
+  dayVotingEnabled: boolean
   gameStartPreview: GameStartPreviewState | null
   game: StoredGameState | null
 }
@@ -108,6 +115,26 @@ export interface EditGameLogEventCommand extends SessionCommand {
 export interface DeleteGameLogEventCommand extends SessionCommand {
   readonly expectedRevision: number
   readonly eventId: string
+}
+
+export interface DayNominationProposeServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly targetPlayerId: PlayerId
+}
+
+export interface DayNominationDecisionServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly nominationId: string
+}
+
+export interface DayVotingEnabledServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly enabled: boolean
+}
+
+export interface DayVoteSubmitServerCommand extends SessionCommand {
+  readonly expectedRevision: number
+  readonly choice: DayVoteChoice
 }
 
 export interface SessionCommand {

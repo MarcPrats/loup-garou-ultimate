@@ -12,6 +12,7 @@ import {
   type EmptyResponse,
   type GameLogEventType,
   type GameStartPreview,
+  type DayVoteChoice,
   type PlayerId,
   type LobbyEntryResponse,
   type LobbyListResponse,
@@ -40,7 +41,10 @@ function createLobby(revision = 1): LobbySnapshot {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameEnded: false,
     gameLog: [],
+    dayVotingEnabled: false,
+    dayVote: null,
     revision,
     players: [
       {
@@ -98,6 +102,7 @@ class FakeGateway implements LobbyGateway {
   readonly joinLobby = vi.fn(async (_lobbyId: string, _name: string) => this.enterResponse)
   readonly leave = vi.fn(async (): Promise<Ack<EmptyResponse>> => ackSuccess({}))
   readonly kick = vi.fn(async (_id: PlayerId) => ackSuccess(createLobby(2)))
+  readonly setDayVotingEnabled = vi.fn(async (_enabled: boolean, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVotingEnabled: _enabled }))
   readonly start = vi.fn(async (): Promise<Ack<GameStartPreview>> => ackSuccess({
     players: [],
     playerCount: 1,
@@ -112,6 +117,11 @@ class FakeGateway implements LobbyGateway {
     werewolfCount: 0,
     villagerTeamCount: 1,
   }))
+  readonly proposeDayNomination = vi.fn(async (_targetPlayerId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly approveDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly startDayVote = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly rejectDayNomination = vi.fn(async (_nominationId: string, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
+  readonly submitDayVote = vi.fn(async (_choice: DayVoteChoice, revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({ ...createLobby(revision + 1), dayVote: null }))
   readonly advanceGamePhase = vi.fn(async (revision: number): Promise<Ack<LobbySnapshot>> => ackSuccess({
     ...createLobby(revision + 1),
     phase: LOBBY_PHASE.STARTED,
@@ -246,6 +256,17 @@ describe('lobby store', () => {
     store.dispose()
   })
 
+  it('allows the MJ to toggle voting from the lobby', async () => {
+    const gateway = new FakeGateway()
+    const store = createStore(gateway, new FakeStorage(SESSION))
+    await store.initialize()
+
+    expect(await store.setDayVotingEnabled(true)).toBe(true)
+    expect(gateway.setDayVotingEnabled).toHaveBeenCalledWith(true, 1)
+    expect(store.lobby?.dayVotingEnabled).toBe(true)
+    store.dispose()
+  })
+
   it('advances the public phase through the MJ gateway action', async () => {
     const gateway = new FakeGateway()
     const storage = new FakeStorage(SESSION)
@@ -291,6 +312,9 @@ describe('lobby store', () => {
     const storage = new FakeStorage(SESSION)
     const store = createStore(gateway, storage)
     await store.initialize()
+
+    gateway.handlers?.onDayVotePrivateStatus({ day: 1, nominationId: 'nomination-1', choice: 'yes' })
+    expect(store.dayVotePrivateStatus?.choice).toBe('yes')
 
     gateway.handlers?.onPrivateAssignment({
       player: { id: SESSION.playerId, name: 'Marc' },

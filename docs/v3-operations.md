@@ -52,7 +52,6 @@ A healthy process returns HTTP 200 with the V3 application identifier and curren
 The repository includes:
 
 - `Dockerfile` for a Node 24 multi-stage V3 build.
-- `Procfile` for platforms that consume a process declaration. `heroku-postbuild` builds V3 before the process starts.
 - `nixpacks.toml` for pnpm-based Nixpacks builds.
 - `render.yaml` for Render deployment and `/api/health` checks.
 

@@ -54,6 +54,11 @@ async function confirmLeave(): Promise<void> {
   confirmingLeave.value = false
   await lobby.leave()
 }
+function toggleDayVoting(event: Event): void {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement)) return
+  void lobby.setDayVotingEnabled(target.checked)
+}
 </script>
 
 <template>
@@ -80,6 +85,28 @@ async function confirmLeave(): Promise<void> {
             <span class="app-host-badge">Hôte</span>
           </div>
         </div>
+      </section>
+
+      <section v-if="lobby.isHost" class="app-lobby-option-panel" aria-labelledby="lobby-options-title">
+        <div>
+          <p class="app-lobby-option-kicker">⚙️ Options de la partie</p>
+          <h3 id="lobby-options-title">Vote du Village</h3>
+          <p class="app-lobby-option-description">Autoriser les nominations et les votes pendant les journées.</p>
+        </div>
+        <label class="app-lobby-toggle">
+          <span>Activer le vote</span>
+          <input
+            type="checkbox"
+            class="app-lobby-toggle-input"
+            :checked="lobby.lobby?.dayVotingEnabled ?? false"
+            :disabled="lobby.updatingDayVoting"
+            data-testid="day-voting-toggle"
+            @change="toggleDayVoting"
+          >
+          <span class="app-lobby-toggle-track" aria-hidden="true">
+            <span class="app-lobby-toggle-thumb" />
+          </span>
+        </label>
       </section>
 
       <section class="app-roster-section">
@@ -189,6 +216,29 @@ async function confirmLeave(): Promise<void> {
   justify-content: flex-end;
   gap: 12px;
 }
+.app-lobby-option-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 22px 0;
+  padding: 18px 20px;
+  border: 1px solid rgba(75, 144, 214, .45);
+  border-radius: 18px;
+  background: rgba(18, 40, 66, .7);
+}
+.app-lobby-option-kicker { margin: 0 0 4px; color: var(--app-accent, #fbbf4a); font-size: .78rem; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; }
+.app-lobby-option-panel h3, .app-lobby-option-description { margin: 0; }
+.app-lobby-option-description { margin-top: 5px; color: var(--app-muted, #aebaca); font-size: .9rem; }
+.app-lobby-toggle { position: relative; display: inline-flex; align-items: center; gap: 10px; color: var(--app-text, #fff); font-weight: 800; white-space: nowrap; }
+.app-lobby-toggle-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.app-lobby-toggle-input:focus-visible + .app-lobby-toggle-track { outline: 3px solid rgba(251, 191, 74, .65); outline-offset: 3px; }
+.app-lobby-toggle-track { position: relative; display: inline-flex; width: 48px; height: 28px; align-items: center; padding: 3px; border-radius: 999px; background: #475569; transition: background .18s ease; }
+.app-lobby-toggle-thumb { display: block; width: 22px; height: 22px; border-radius: 50%; background: #f8fafc; box-shadow: 0 2px 5px rgba(0, 0, 0, .3); transition: transform .18s ease; }
+.app-lobby-toggle-input:checked + .app-lobby-toggle-track { background: #d97706; }
+.app-lobby-toggle-input:checked + .app-lobby-toggle-track .app-lobby-toggle-thumb { transform: translateX(20px); }
+.app-lobby-toggle-input:disabled + .app-lobby-toggle-track { cursor: wait; opacity: .6; }
+@media (max-width: 899px) { .app-lobby-option-panel { align-items: flex-start; flex-direction: column; } }
 @media (max-width: 899px) {
   .app-start-preview-panel { padding: 16px 12px; border-radius: 18px; }
   .app-start-preview-actions { display: grid; grid-template-columns: 1fr; }

@@ -142,7 +142,10 @@ export function createSimulatorScenario(
       id: LOBBY_ID.MAIN,
       phase: LOBBY_PHASE.STARTED,
       gamePhase: createInitialGamePhase(),
+      gameEnded: false,
       gameLog: [],
+      dayVotingEnabled: false,
+      dayVote: null,
       revision: 1,
       players: displayState.players.map((player) => ({
         id: player.id,

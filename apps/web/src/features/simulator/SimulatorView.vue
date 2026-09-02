@@ -311,6 +311,7 @@ generate()
             :players="scenario.lobby.players"
             :phase="scenario.lobby.gamePhase"
             :can-edit="activeView === SIMULATOR_VIEW.HOST"
+            :can-record="activeView === SIMULATOR_VIEW.HOST"
             @record="recordSimulatorGameLogEvent"
             @edit="editSimulatorGameLogEvent"
             @delete="deleteSimulatorGameLogEvent"

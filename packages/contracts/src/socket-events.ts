@@ -8,6 +8,13 @@ import type {
   LobbyJoinCommand,
   SessionResumeCommand,
 } from './commands'
+import type {
+  DayNominationDecisionCommand,
+  DayNominationProposeCommand,
+  DayVoteSubmitCommand,
+  DayVotingEnabledCommand,
+  DayVotePrivateStatus,
+} from './day-voting'
 import { SOCKET_EVENT } from './constants'
 import type {
   GameLogDeleteCommand,
@@ -32,6 +39,7 @@ import type {
 } from './lobby'
 
 export interface ServerToClientEvents {
+  [SOCKET_EVENT.DAY_VOTE_PRIVATE_STATUS]: (status: DayVotePrivateStatus) => void
   [SOCKET_EVENT.SYSTEM_READY]: (event: SystemReadyEvent) => void
   [SOCKET_EVENT.LOBBY_SNAPSHOT]: (snapshot: LobbySnapshot) => void
   [SOCKET_EVENT.GAME_STARTED]: (event: GameStartedEvent) => void
@@ -106,6 +114,30 @@ export interface ClientToServerEvents {
   ) => void
   [SOCKET_EVENT.GAME_LOG_DELETE]: (
     command: GameLogDeleteCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_PROPOSE]: (
+    command: DayNominationProposeCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_APPROVE]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_NOMINATION_REJECT]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_VOTE_SUBMIT]: (
+    command: DayVoteSubmitCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.DAY_VOTE_START]: (
+    command: DayNominationDecisionCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.LOBBY_DAY_VOTING_SET]: (
+    command: DayVotingEnabledCommand,
     callback: AckCallback<LobbySnapshot>,
   ) => void
   [SOCKET_EVENT.KEEP_ALIVE]: (

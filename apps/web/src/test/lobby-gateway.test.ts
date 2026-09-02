@@ -27,7 +27,10 @@ const ENTRY: LobbyEntryResponse = {
     id: LOBBY_ID.MAIN,
     phase: LOBBY_PHASE.LOBBY,
     gamePhase: null,
+    gameEnded: false,
     gameLog: [],
+    dayVotingEnabled: false,
+    dayVote: null,
     revision: 1,
     players: [{
       id: 'player_1',
@@ -104,6 +107,7 @@ function createHandlers(): LobbyGatewayHandlers {
     onLobbySnapshot: vi.fn(),
     onGameStarted: vi.fn(),
     onPrivateAssignment: vi.fn(),
+    onDayVotePrivateStatus: vi.fn(),
     onHostDashboard: vi.fn(),
     onStartPreview: vi.fn(),
     onLobbyClosed: vi.fn(),
