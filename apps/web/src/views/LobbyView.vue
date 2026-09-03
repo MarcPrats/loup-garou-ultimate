@@ -8,6 +8,7 @@ import FeedbackBanner from '../components/FeedbackBanner.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import AppButton from '../components/ui/AppButton.vue'
 import AppCard from '../components/ui/AppCard.vue'
+import AppInput from '../components/ui/AppInput.vue'
 import AppSwitch from '../components/ui/AppSwitch.vue'
 import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
@@ -69,7 +70,7 @@ async function confirmLeave(): Promise<void> {
         <div class="app-invitation-container">
           <p class="app-invitation-label">🔗 Lien d'invitation</p>
           <div class="app-invitation-group">
-            <input :value="inviteUrl" readonly class="app-invitation-link" aria-label="Lien d'invitation">
+            <AppInput :display-value="inviteUrl" readonly class="app-invitation-link" aria-label="Lien d'invitation" />
             <AppButton size="sm" class="app-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</AppButton>
           </div>
           <p v-if="copyError" class="app-copy-error" role="alert">Copie impossible. Sélectionnez le lien et copiez-le manuellement.</p>

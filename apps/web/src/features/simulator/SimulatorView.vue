@@ -17,6 +17,7 @@ import GameLogPanel from '../../components/GameLogPanel.vue'
 import GamePhasePanel from '../../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../../components/PlayerAssignmentPanel.vue'
+import { AppButton, AppCard, AppSelect } from '../../components/ui'
 import { ROUTE_NAME, ROUTE_PATH } from '../../constants/app'
 import { appPath } from '../../constants/paths'
 import {
@@ -29,10 +30,17 @@ const SIMULATOR_VIEW = {
   HOST: 'host',
 } as const
 
-const playerCount = ref(PLAYER_COUNT_LIMIT.MINIMUM)
+const playerCount = ref<number>(PLAYER_COUNT_LIMIT.MINIMUM)
 const scenario = ref<SimulatorScenario | null>(null)
 const activeView = ref<string>(SIMULATOR_VIEW.HOST)
 const errorMessage = ref<string | null>(null)
+
+const selectedPlayerCount = computed<string>({
+  get: () => String(playerCount.value),
+  set: (value) => {
+    playerCount.value = Number(value)
+  },
+})
 
 const playerCountOptions = Array.from(
   {
@@ -229,48 +237,43 @@ generate()
         </RouterLink>
       </header>
 
-      <section class="mt-8 rounded-3xl border border-white/10 bg-slate-900/80 p-6 shadow-xl sm:p-8">
+      <AppCard as="section" elevated class="mt-8 rounded-3xl p-6 sm:p-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div class="sm:w-64">
               <label for="simulator-player-count" class="text-sm font-bold text-slate-300">
                 Nombre de joueurs
               </label>
-              <select
+              <AppSelect
                 id="simulator-player-count"
-                v-model.number="playerCount"
-                class="mt-2 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-white"
+                v-model="selectedPlayerCount"
+                class="mt-2"
               >
                 <option v-for="count in playerCountOptions" :key="count" :value="count">
                   {{ count }} joueurs
                 </option>
-              </select>
+              </AppSelect>
             </div>
 
-            <button
-              type="button"
-              class="rounded-xl bg-gradient-to-r from-lgu-orange to-lgu-blue px-6 py-3 font-black text-white hover:brightness-110"
-              @click="generate"
-            >
+            <AppButton variant="primary" size="lg" @click="generate">
               Générer
-            </button>
+            </AppButton>
           </div>
 
           <div v-if="scenario" class="flex flex-col gap-2 lg:items-end">
             <span class="text-sm font-bold text-slate-300">Vue à afficher</span>
             <div class="flex flex-col gap-2 sm:flex-row">
-              <button
-                type="button"
-                class="rounded-xl px-4 py-2 font-bold"
-                :class="activeView === SIMULATOR_VIEW.HOST ? 'bg-lgu-orange text-white' : 'bg-white/10 text-slate-200'"
+              <AppButton
+                size="sm"
+                :variant="activeView === SIMULATOR_VIEW.HOST ? 'primary' : 'secondary'"
                 @click="activeView = SIMULATOR_VIEW.HOST"
               >
                 Vue MJ
-              </button>
-              <select
+              </AppButton>
+              <AppSelect
                 aria-label="Choisir une vue joueur"
-                class="rounded-xl border border-white/10 bg-slate-800 px-4 py-2 font-bold text-white"
                 v-model="selectedPlayerId"
+                class="app-simulator-player-select"
               >
                 <option value="">Vue d’un joueur…</option>
                 <option
@@ -280,11 +283,11 @@ generate()
                 >
                   {{ player.name }}
                 </option>
-              </select>
+              </AppSelect>
             </div>
           </div>
         </div>
-      </section>
+      </AppCard>
 
       <FeedbackBanner
         v-if="errorMessage"

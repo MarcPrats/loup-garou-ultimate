@@ -10,6 +10,7 @@ import {
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import { AppButton } from '../components/ui'
 import { fetchRoleAccess } from '../services/role-access'
 
 const route = useRoute()
@@ -84,20 +85,16 @@ onBeforeUnmount(() => controller?.abort())
         <p class="text-5xl" aria-hidden="true">🔒</p>
         <h1 class="mt-4 font-display text-3xl font-bold">Lien inaccessible</h1>
         <FeedbackBanner class="mt-5 text-left" :message="errorMessage" variant="error" />
-        <button
-          type="button"
-          class="mt-6 rounded-xl bg-white/10 px-5 py-3 font-bold hover:bg-white/15"
-          @click="load"
-        >
+        <AppButton class="mt-6" @click="load">
           Réessayer
-        </button>
+        </AppButton>
       </section>
 
       <div v-else-if="response?.view === ROLE_ACCESS_VIEW.PLAYER">
         <div class="mb-5 flex justify-end">
-          <button type="button" class="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15" @click="load">
+          <AppButton size="sm" @click="load">
             Actualiser
-          </button>
+          </AppButton>
         </div>
         <PlayerAssignmentPanel
           :assignment="response.assignment"
@@ -106,9 +103,9 @@ onBeforeUnmount(() => controller?.abort())
 
       <div v-else-if="response?.view === ROLE_ACCESS_VIEW.GAME_MASTER">
         <div class="mb-5 flex justify-end">
-          <button type="button" class="rounded-xl bg-white/10 px-4 py-2 text-sm font-bold hover:bg-white/15" @click="load">
+          <AppButton size="sm" @click="load">
             Actualiser
-          </button>
+          </AppButton>
         </div>
         <HostDashboardPanel
           :dashboard="response.dashboard"

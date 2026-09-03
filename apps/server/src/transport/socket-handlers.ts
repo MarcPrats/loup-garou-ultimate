@@ -318,8 +318,8 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
     socket.on(SOCKET_EVENT.GAME_START_CANCEL, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
         parseCommand(emptyCommandSchema, rawCommand)
-        const result = await serviceFor(socket).cancelStartPreview(getSessionCommand(socket))
-        broadcastSnapshot(io, result.lobby)
+        const snapshot = await serviceFor(socket).cancelStartPreview(getSessionCommand(socket))
+        broadcastSnapshot(io, snapshot)
         return {}
       }, onUnexpectedError)
     })

@@ -126,9 +126,9 @@ onUnmounted(() => {
           {{ joiningLobbyId ? 'Connexion…' : 'Rejoindre la partie' }}
         </AppButton>
       </form>
-      <button type="button" class="app-btn app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
+      <AppButton class="app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
         Retour
-      </button>
+      </AppButton>
     </section>
 
     <section v-else-if="lobby.hasStoredSession && !lobby.hasSession" class="app-screen app-home-container" aria-live="polite">
@@ -137,12 +137,12 @@ onUnmounted(() => {
       <p class="app-subtitle">Nous essayons de retrouver votre place dans la partie.</p>
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
       <div class="app-button-group">
-        <button type="button" class="app-btn app-btn-primary" :disabled="lobby.restoringSession" @click="lobby.retryRestoration">
+        <AppButton variant="primary" :disabled="lobby.restoringSession" @click="lobby.retryRestoration">
           {{ lobby.restoringSession ? 'Restauration…' : 'Réessayer' }}
-        </button>
-        <button type="button" class="app-btn app-btn-back" @click="lobby.startNewSession">
+        </AppButton>
+        <AppButton class="app-btn-back" @click="lobby.startNewSession">
           Abandonner cette session
-        </button>
+        </AppButton>
       </div>
     </section>
 
@@ -168,16 +168,16 @@ onUnmounted(() => {
 
       <div class="app-lobby-list-header">
         <h3>Parties disponibles</h3>
-        <button type="button" class="app-btn app-btn-back app-btn-compact app-lobby-refresh" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies" aria-label="Actualiser la liste des lobbies">
+        <AppButton size="sm" class="app-btn-back app-btn-compact app-lobby-refresh" :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies" aria-label="Actualiser la liste des lobbies">
           Actualiser
-        </button>
+        </AppButton>
       </div>
 
       <div v-if="inviteLobbyId" class="app-lobby-invite-hint">
         <p>Vous avez reçu le lien du lobby <strong>{{ inviteLobbyId }}</strong>.</p>
-        <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null" @click="joinInviteLobby">
+        <AppButton variant="primary" :disabled="!canSubmit || joiningLobbyId !== null" :loading="joiningLobbyId !== null" @click="joinInviteLobby">
           {{ joiningLobbyId === inviteLobbyId ? 'Connexion…' : 'Rejoindre ce lobby' }}
-        </button>
+        </AppButton>
       </div>
       <p v-if="lobby.availableLobbies.length === 0" class="app-lobby-empty">
         Aucune partie en attente. Créez la première.
@@ -193,16 +193,16 @@ onUnmounted(() => {
             <strong>{{ availableLobby.players.find((player) => player.isHost)?.name ?? 'Partie' }}</strong>
             <span>{{ lobbyPlayerCount(availableLobby) }} / {{ availableLobby.maximumPlayers }} joueurs</span>
           </div>
-          <button type="button" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null" @click="joinLobby(availableLobby)">
+          <AppButton variant="primary" :disabled="!canSubmit || joiningLobbyId !== null" :loading="joiningLobbyId === availableLobby.id" @click="joinLobby(availableLobby)">
             {{ joiningLobbyId === availableLobby.id ? 'Connexion…' : 'Rejoindre' }}
-          </button>
+          </AppButton>
         </article>
       </div>
 
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-      <button type="button" class="app-btn app-btn-back app-btn-secondary-action" @click="enteringName = false">
+      <AppButton class="app-btn-back app-btn-secondary-action" @click="enteringName = false">
         Retour
-      </button>
+      </AppButton>
     </section>
 
     <section v-else class="app-home-shell">
