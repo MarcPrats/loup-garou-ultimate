@@ -1,0 +1,69 @@
+/* LGU design tokens. Components should consume semantic roles, not raw colors. */
+:root {
+  color-scheme: dark;
+
+  /* Color roles */
+  --lgu-color-bg-app: #0b1422;
+  --lgu-color-bg-app-deep: #070d17;
+  --lgu-color-surface-1: #14243a;
+  --lgu-color-surface-2: #1c3048;
+  --lgu-color-surface-3: #263b52;
+  --lgu-color-surface-soft: rgb(255 255 255 / 6%);
+
+  --lgu-color-text-primary: #f4f7fb;
+  --lgu-color-text-secondary: #c6d0e0;
+  --lgu-color-text-muted: #94a4b8;
+  --lgu-color-text-disabled: #718197;
+
+  --lgu-color-border-subtle: rgb(255 255 255 / 12%);
+  --lgu-color-border-default: #45627f;
+  --lgu-color-border-strong: #668db8;
+  --lgu-color-focus: #f2b34b;
+
+  --lgu-color-brand-primary: #f2b34b;
+  --lgu-color-brand-primary-hover: #ffc866;
+  --lgu-color-brand-primary-pressed: #d9952d;
+  --lgu-color-brand-on-primary: #17202d;
+
+  --lgu-color-info: #5b9ee8;
+  --lgu-color-info-soft: rgb(91 158 232 / 15%);
+  --lgu-color-success: #55c77a;
+  --lgu-color-success-soft: rgb(85 199 122 / 15%);
+  --lgu-color-warning: #e6aa43;
+  --lgu-color-warning-soft: rgb(230 170 67 / 15%);
+  --lgu-color-danger: #e56a68;
+  --lgu-color-danger-soft: rgb(229 106 104 / 15%);
+  --lgu-color-special: #a98ade;
+
+  /* Semantic surfaces */
+  --lgu-surface-page: linear-gradient(145deg, #17263b 0%, var(--lgu-color-bg-app) 54%, var(--lgu-color-bg-app-deep) 100%);
+  --lgu-surface-card: linear-gradient(145deg, rgb(32 52 78 / 94%), rgb(17 29 47 / 96%));
+  --lgu-surface-card-soft: rgb(255 255 255 / 5%);
+  --lgu-surface-input: rgb(255 255 255 / 7%);
+  --lgu-surface-overlay: rgb(5 13 25 / 88%);
+
+  /* Shape, spacing, and elevation */
+  --lgu-radius-sm: 8px;
+  --lgu-radius-md: 12px;
+  --lgu-radius-lg: 16px;
+  --lgu-radius-xl: 24px;
+  --lgu-radius-pill: 999px;
+
+  --lgu-space-1: 4px;
+  --lgu-space-2: 8px;
+  --lgu-space-3: 12px;
+  --lgu-space-4: 16px;
+  --lgu-space-5: 20px;
+  --lgu-space-6: 24px;
+  --lgu-space-8: 32px;
+  --lgu-space-10: 40px;
+
+  --lgu-shadow-card: 0 14px 30px rgb(8 18 34 / 28%), inset 0 1px 0 rgb(255 255 255 / 5%);
+  --lgu-shadow-floating: 0 24px 80px rgb(0 0 0 / 42%);
+  --lgu-focus-ring: 0 0 0 3px rgb(242 179 75 / 32%);
+
+  /* Motion */
+  --lgu-motion-fast: 140ms ease;
+  --lgu-motion-standard: 180ms ease;
+  --lgu-motion-slow: 260ms ease;
+}

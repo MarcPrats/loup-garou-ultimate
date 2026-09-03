@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import AppButton from './ui/AppButton.vue'
+
 import {
   GAME_PHASE_PERIOD,
   type GamePhase,
@@ -61,25 +63,27 @@ const phaseDescription = computed(() => {
       </div>
 
       <div v-if="canAdvance" class="app-game-phase-actions">
-        <button
+        <AppButton
           v-if="canRewind"
-          type="button"
+          variant="secondary"
+          size="sm"
           class="app-game-phase-rewind-btn"
           :disabled="advancing"
           data-testid="rewind-game-phase"
           @click="emit('rewind')"
         >
           ← <span>Phase précédente</span>
-        </button>
-        <button
-          type="button"
-          class="app-btn app-btn-primary app-game-phase-advance-btn shrink-0"
+        </AppButton>
+        <AppButton
+          variant="primary"
+          class="app-game-phase-advance-btn shrink-0"
           :disabled="advancing"
+          :loading="advancing"
           data-testid="advance-game-phase"
           @click="emit('advance')"
         >
           {{ advancing ? 'Passage en cours…' : 'Passer à la phase suivante' }}
-        </button>
+        </AppButton>
       </div>
     </div>
   </section>

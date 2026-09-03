@@ -754,3 +754,182 @@ button:disabled {
   .app-game-container .app-role-reveal .app-section-header h4 { font-size: 1rem; }
   .app-game-container .app-role-reveal .app-section-text { font-size: .98rem; line-height: 1.55; }
 }
+
+/* Design system foundation. Keep screen-specific selectors below this layer only when
+   the component has a genuinely different semantic state. */
+.app-page {
+  --app-primary: var(--lgu-color-bg-app);
+  --app-secondary: var(--lgu-color-surface-1);
+  --app-surface: var(--lgu-color-surface-2);
+  --app-surface-soft: var(--lgu-color-surface-soft);
+  --app-accent: var(--lgu-color-brand-primary);
+  --app-blue: var(--lgu-color-info);
+  --app-success: var(--lgu-color-success);
+  --app-danger: var(--lgu-color-danger);
+  --app-text: var(--lgu-color-text-primary);
+  --app-muted: var(--lgu-color-text-muted);
+  --app-border: var(--lgu-color-border-default);
+  --app-radius: var(--lgu-radius-lg);
+  --app-shadow: var(--lgu-shadow-card);
+  background: var(--lgu-surface-page);
+}
+
+.app-screen,
+.app-home-shell,
+.app-home-actions,
+.app-game-phase-panel,
+.app-game-log-panel {
+  border-radius: var(--lgu-radius-lg);
+  box-shadow: var(--lgu-shadow-card);
+}
+
+.app-btn,
+.app-input,
+.app-text-input,
+.app-game-log-target-select,
+.app-game-log-edit-btn,
+.app-game-log-delete-btn {
+  transition-duration: var(--lgu-motion-standard);
+}
+
+.app-btn:focus-visible,
+.app-input:focus-visible,
+.app-text-input:focus-visible,
+.app-game-log-target-select:focus-visible,
+.app-game-log-edit-btn:focus-visible,
+.app-game-log-delete-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--lgu-focus-ring);
+}
+
+.app-btn-primary {
+  color: var(--lgu-color-brand-on-primary);
+  background: linear-gradient(135deg, var(--lgu-color-brand-primary), var(--lgu-color-brand-primary-pressed));
+}
+
+.app-btn-primary:hover:not(:disabled),
+.app-btn-primary:focus-visible {
+  background: linear-gradient(135deg, var(--lgu-color-brand-primary-hover), var(--lgu-color-brand-primary));
+}
+
+.app-btn-secondary,
+.app-btn-back {
+  color: var(--lgu-color-text-primary);
+  border-color: var(--lgu-color-border-default);
+  background: var(--lgu-color-surface-soft);
+}
+
+.app-btn-secondary:hover:not(:disabled),
+.app-btn-secondary:focus-visible,
+.app-btn-back:hover:not(:disabled),
+.app-btn-back:focus-visible {
+  border-color: var(--lgu-color-brand-primary);
+  background: rgb(255 255 255 / 10%);
+}
+
+.app-input,
+.app-text-input,
+.app-game-log-compose .app-input,
+.app-game-log-target-select {
+  color: var(--lgu-color-text-primary);
+  background-color: var(--lgu-surface-input);
+}
+
+.app-input::placeholder,
+.app-text-input::placeholder {
+  color: var(--lgu-color-text-muted);
+}
+
+.app-input:focus,
+.app-text-input:focus,
+.app-game-log-compose .app-input:focus,
+.app-game-log-target-select:focus-visible {
+  border-color: var(--lgu-color-brand-primary);
+  background-color: rgb(255 255 255 / 10%);
+}
+
+.app-game-log-panel {
+  border-color: var(--lgu-color-border-strong) !important;
+  background: var(--lgu-surface-card) !important;
+}
+
+.app-game-log-kicker,
+.app-game-log-entry-phase {
+  color: var(--lgu-color-brand-primary) !important;
+}
+
+.app-game-log-title,
+.app-game-log-entry-text strong {
+  color: var(--lgu-color-text-primary) !important;
+}
+
+.app-game-log-entry {
+  border-color: var(--lgu-color-border-subtle) !important;
+}
+
+/* Shared UI primitives */
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lgu-space-2);
+  min-height: 44px;
+  border: 1px solid transparent;
+  border-radius: var(--lgu-radius-md);
+  padding: 0 var(--lgu-space-4);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background var(--lgu-motion-standard), border-color var(--lgu-motion-standard), color var(--lgu-motion-standard), transform var(--lgu-motion-fast), box-shadow var(--lgu-motion-standard);
+}
+.app-button:hover:not(:disabled) { transform: translateY(-1px); }
+.app-button:active:not(:disabled) { transform: translateY(0); }
+.app-button:disabled { cursor: not-allowed; opacity: .55; }
+.app-button-sm { min-height: 36px; padding-inline: var(--lgu-space-3); font-size: .88rem; }
+.app-button-md { min-height: 44px; }
+.app-button-lg { min-height: 52px; padding-inline: var(--lgu-space-5); font-size: 1.04rem; }
+.app-button-block { width: 100%; }
+.app-button-ghost, .app-btn-ghost { color: var(--lgu-color-text-secondary); border-color: transparent; background: transparent; }
+.app-button-ghost:hover:not(:disabled) { color: var(--lgu-color-text-primary); background: var(--lgu-color-surface-soft); }
+.app-button-danger, .app-btn-danger { color: var(--lgu-color-text-primary); border-color: rgb(229 106 104 / 45%); background: var(--lgu-color-danger-soft); }
+.app-button-danger:hover:not(:disabled) { background: rgb(229 106 104 / 28%); }
+.app-button-spinner { width: 14px; height: 14px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: app-button-spin .7s linear infinite; }
+@keyframes app-button-spin { to { transform: rotate(360deg); } }
+
+.app-card { border: 1px solid var(--lgu-color-border-subtle); border-radius: var(--lgu-radius-lg); background: var(--lgu-color-surface-1); }
+.app-card-elevated { box-shadow: var(--lgu-shadow-card); background: var(--lgu-surface-card); }
+
+.app-alert { display: flex; align-items: flex-start; gap: var(--lgu-space-3); border: 1px solid; border-radius: var(--lgu-radius-md); padding: var(--lgu-space-3) var(--lgu-space-4); font-size: .94rem; line-height: 1.5; }
+.app-alert-icon { display: inline-grid; flex: 0 0 22px; width: 22px; height: 22px; place-items: center; border-radius: 50%; font-weight: 900; }
+.app-alert-error { border-color: rgb(229 106 104 / 45%); color: #ffd8d7; background: var(--lgu-color-danger-soft); }
+.app-alert-error .app-alert-icon { background: var(--lgu-color-danger); color: var(--lgu-color-bg-app-deep); }
+.app-alert-info { border-color: rgb(91 158 232 / 45%); color: #dceeff; background: var(--lgu-color-info-soft); }
+.app-alert-info .app-alert-icon { background: var(--lgu-color-info); color: var(--lgu-color-bg-app-deep); }
+.app-alert-warning { border-color: rgb(230 170 67 / 45%); color: #ffedc2; background: var(--lgu-color-warning-soft); }
+.app-alert-warning .app-alert-icon { background: var(--lgu-color-warning); color: var(--lgu-color-bg-app-deep); }
+.app-alert-success { border-color: rgb(85 199 122 / 45%); color: #d8ffe4; background: var(--lgu-color-success-soft); }
+.app-alert-success .app-alert-icon { background: var(--lgu-color-success); color: var(--lgu-color-bg-app-deep); }
+
+.app-badge { display: inline-flex; align-items: center; gap: var(--lgu-space-2); border: 1px solid var(--lgu-color-border-subtle); border-radius: var(--lgu-radius-pill); padding: var(--lgu-space-2) var(--lgu-space-3); font-size: .86rem; font-weight: 800; }
+.app-badge-neutral { color: var(--lgu-color-text-secondary); background: var(--lgu-color-surface-soft); }
+.app-badge-info { color: #dceeff; border-color: rgb(91 158 232 / 45%); background: var(--lgu-color-info-soft); }
+.app-badge-success { color: #d8ffe4; border-color: rgb(85 199 122 / 45%); background: var(--lgu-color-success-soft); }
+.app-badge-warning { color: #ffedc2; border-color: rgb(230 170 67 / 45%); background: var(--lgu-color-warning-soft); }
+.app-badge-danger { color: #ffd8d7; border-color: rgb(229 106 104 / 45%); background: var(--lgu-color-danger-soft); }
+.app-badge-special { color: #eee5ff; border-color: rgb(169 138 222 / 45%); background: rgb(169 138 222 / 15%); }
+.app-status-dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.app-status-dot-pulse { animation: app-status-pulse 1.4s ease-in-out infinite; }
+@keyframes app-status-pulse { 50% { opacity: .45; transform: scale(.82); } }
+
+.app-switch { position: relative; display: inline-flex; align-items: center; gap: var(--lgu-space-3); color: var(--lgu-color-text-primary); cursor: pointer; }
+.app-switch-copy { display: grid; gap: 2px; }
+.app-switch-label { font-weight: 800; }
+.app-switch-description { color: var(--lgu-color-text-muted); font-size: .86rem; font-weight: 500; }
+.app-switch-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.app-switch-input:focus-visible + .app-switch-track { outline: 3px solid rgb(242 179 75 / 45%); outline-offset: 3px; }
+.app-switch-input:disabled + .app-switch-track { cursor: wait; opacity: .6; }
+.app-switch-track { position: relative; display: inline-flex; flex: 0 0 auto; width: 48px; height: 28px; align-items: center; padding: 3px; border-radius: var(--lgu-radius-pill); background: var(--lgu-color-surface-3); transition: background var(--lgu-motion-standard); }
+.app-switch-thumb { display: block; width: 22px; height: 22px; border-radius: 50%; background: var(--lgu-color-text-primary); box-shadow: 0 2px 5px rgb(0 0 0 / 30%); transition: transform var(--lgu-motion-standard); }
+.app-switch-input:checked + .app-switch-track { background: var(--lgu-color-brand-primary-pressed); }
+.app-switch-input:checked + .app-switch-track .app-switch-thumb { transform: translateX(20px); }

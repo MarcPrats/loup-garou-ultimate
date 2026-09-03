@@ -220,9 +220,9 @@ function isVoteEntry(entry: GameLogEntry): boolean {
     line-height: 1.35;
   }
   .app-game-log-event-description { flex: 1 1 120px; min-width: 0; }
-  .app-game-log-vote-details { flex: 1 1 100%; width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; color: #d9e5f3; font-size: .9rem; }
+  .app-game-log-vote-details { flex: 1 1 100%; width: 100%; min-width: 0; display: flex; flex-direction: column; gap: 10px; margin-top: 8px; color: var(--lgu-color-text-secondary); font-size: .9rem; }
   .app-game-log-vote-details span { display: block; }
-  .app-game-log-entry-vote { border-left: 3px solid #fbbf4a; padding-left: 10px; }
+  .app-game-log-entry-vote { border-left: 3px solid var(--lgu-color-brand-primary); padding-left: 10px; }
   .app-game-log-edit-controls { grid-column: 2; width: auto; }
   .app-game-log-target-select {
     flex: 0 1 190px;

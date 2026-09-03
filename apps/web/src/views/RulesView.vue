@@ -156,7 +156,7 @@ onBeforeUnmount(() => {
         <div class="rules-overview-heading">
           <span class="rules-overview-icon" aria-hidden="true"><span class="rules-emoji">📖</span></span>
           <div>
-            <p class="rules-overview-kicker">Le principe en un coup d’œil</p>
+            <p class="rules-overview-kicker">Les principes</p>
             <h2 id="rules-overview-title">Comment jouer au Loup Garou Ultime ?</h2>
           </div>
         </div>
@@ -171,13 +171,13 @@ onBeforeUnmount(() => {
           <article class="rules-overview-card rules-overview-card-day">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">☀️</span></span>
             <h3>Le jour</h3>
-            <p>Discutez, observez les comportements et lancez pour des nominations pour éliminer quelqu'un.</p>
+            <p>Discutez, observez les comportements et lancez des nominations pour éliminer quelqu'un.</p>
           </article>
 
           <article class="rules-overview-card rules-overview-card-night">
             <span class="rules-overview-card-icon" aria-hidden="true"><span class="rules-emoji">🌙</span></span>
             <h3>La nuit</h3>
-            <p>Le Maître du Jeu réveille les différents rôles dans l’ordre. Les pouvoirs s’activent et il y aura probablement une victime.</p>
+            <p>Le Maître du Jeu réveille les différents personnages. Y aura-t-il une victime ?</p>
           </article>
 
           <article class="rules-overview-card rules-overview-card-goal">

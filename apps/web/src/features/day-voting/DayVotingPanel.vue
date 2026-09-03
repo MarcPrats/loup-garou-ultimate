@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import AppButton from '../../components/ui/AppButton.vue'
+
 import {
   DAY_VOTE_CHOICE,
   DAY_VOTE_DAILY_RESULT_STATUS,
@@ -100,9 +102,9 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
           <option value="">Choisir une cible vivante</option>
           <option v-for="player in availableTargets" :key="player.id" :value="player.id">{{ player.name }}</option>
         </select>
-        <button type="button" class="app-btn app-btn-primary" :disabled="!selectedTargetId || alreadyNominated" @click="proposeSelectedTarget">
+        <AppButton variant="primary" :disabled="!selectedTargetId || alreadyNominated" @click="proposeSelectedTarget">
           Nominer
-        </button>
+        </AppButton>
       </div>
     </div>
     <p v-else-if="!props.isHost && currentPlayer?.alive && alreadyNominated" class="app-day-voting-info">
@@ -151,8 +153,8 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
         <h3 id="nomination-modal-title">{{ dayVote.nomination.nominatorName }} propose {{ dayVote.nomination.targetName }}</h3>
         <p>Validez-vous cette nomination pour préparer le vote du Village ?</p>
         <div class="app-day-voting-modal-actions">
-          <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-secondary" @click="emit('reject')">❌ Refuser</button>
-          <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('approve')">✅ Valider</button>
+          <AppButton variant="secondary" class="app-day-voting-modal-button app-day-voting-modal-button-secondary" @click="emit('reject')">❌ Refuser</AppButton>
+          <AppButton variant="primary" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('approve')">✅ Valider</AppButton>
         </div>
       </section>
     </div>
@@ -162,7 +164,7 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
         <p class="app-kicker">✅ Nomination validée</p>
         <h3 id="start-vote-modal-title">Lancer le vote pour {{ dayVote.nomination.targetName }}</h3>
         <p>Les joueurs ne peuvent pas encore voter.</p>
-        <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('start')">▶️ Lancer le compte à rebours</button>
+        <AppButton variant="primary" block class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('start')">▶️ Lancer le compte à rebours</AppButton>
       </section>
     </div>
 
@@ -174,8 +176,8 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
         <div class="app-day-voting-tally-large"><span>👍 {{ dayVote.yesCount }}</span><span>👎 {{ dayVote.noCount }}</span></div>
         <div v-if="currentBallot" class="app-day-voting-info">Votre vote est enregistré.</div>
         <div v-else class="app-day-voting-modal-actions app-day-voting-modal-actions-vote">
-          <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-secondary" @click="emit('vote', DAY_VOTE_CHOICE.NO)">👎 Non</button>
-          <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('vote', DAY_VOTE_CHOICE.YES)">👍 Oui</button>
+          <AppButton variant="secondary" class="app-day-voting-modal-button app-day-voting-modal-button-secondary" @click="emit('vote', DAY_VOTE_CHOICE.NO)">👎 Non</AppButton>
+          <AppButton variant="primary" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="emit('vote', DAY_VOTE_CHOICE.YES)">👍 Oui</AppButton>
         </div>
       </section>
     </div>
@@ -185,7 +187,7 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
         <p class="app-kicker">⚠️ Nomination impossible</p>
         <h3>Cette personne a déjà été nominée aujourd’hui.</h3>
         <p>Choisissez une autre cible vivante.</p>
-        <button type="button" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="duplicateTargetPopup = false">Compris</button>
+        <AppButton variant="primary" class="app-day-voting-modal-button app-day-voting-modal-button-primary" @click="duplicateTargetPopup = false">Compris</AppButton>
       </section>
     </div>
     </Teleport>
@@ -193,30 +195,30 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
 </template>
 
 <style scoped>
-.app-day-voting-panel { display: grid; gap: 16px; padding: 20px; border: 1px solid rgba(75, 144, 214, .55); border-radius: 20px; background: rgba(18, 40, 66, .78); }
+.app-day-voting-panel { display: grid; gap: 16px; padding: 20px; border: 1px solid var(--lgu-color-border-strong); border-radius: 20px; background: var(--lgu-surface-card); }
 .app-day-voting-header, .app-day-voting-nomination, .app-day-voting-result { display: grid; gap: 8px; }
 .app-day-voting-header p, .app-day-voting-header h3, .app-day-voting-nomination p, .app-day-voting-result span, .app-day-voting-result strong { margin: 0; }
-.app-day-voting-header .app-kicker { color: #fbbf4a; font-size: .8rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.app-day-voting-header .app-kicker { color: var(--lgu-color-brand-primary); font-size: .8rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
 .app-day-voting-form-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .app-day-voting-form-row .app-input { min-width: 0; flex: 1 1 220px; }
-.app-day-voting-info { color: #fbbf4a; font-weight: 700; }
-.app-day-voting-daily-summary { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: rgba(251, 191, 74, .12); }
+.app-day-voting-info { color: var(--lgu-color-brand-primary); font-weight: 700; }
+.app-day-voting-daily-summary { display: grid; gap: 8px; padding: 14px; border-radius: 14px; background: var(--lgu-color-warning-soft); }
 .app-day-voting-daily-summary p { margin: 0; line-height: 1.45; }
-.app-day-voting-rounds { display: grid; gap: 5px; margin: 0; padding-left: 20px; color: #d9e5f3; font-size: .9rem; }
+.app-day-voting-rounds { display: grid; gap: 5px; margin: 0; padding-left: 20px; color: var(--lgu-color-text-secondary); font-size: .9rem; }
 .app-day-voting-rounds li { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.app-day-voting-rounds li span:last-child { color: #fbbf4a; font-weight: 700; }
+.app-day-voting-rounds li span:last-child { color: var(--lgu-color-brand-primary); font-weight: 700; }
 
-.app-day-voting-public-status, .app-day-voting-result { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, .08); }
-.app-day-voting-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: rgba(2, 10, 20, .78); backdrop-filter: blur(8px); }
-.app-day-voting-modal { display: grid; width: min(100%, 560px); max-height: calc(100dvh - 32px); overflow-y: auto; gap: 16px; margin: auto; padding: 28px; border: 2px solid rgba(251, 191, 74, .65); border-radius: 28px; background: #10243a; box-shadow: 0 24px 80px rgba(0, 0, 0, .45); text-align: center; }
+.app-day-voting-public-status, .app-day-voting-result { display: grid; gap: 6px; padding: 12px 14px; border-radius: 14px; background: var(--lgu-color-surface-soft); }
+.app-day-voting-modal-backdrop { position: fixed; z-index: 1000; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); background: var(--lgu-surface-overlay); backdrop-filter: blur(8px); }
+.app-day-voting-modal { display: grid; width: min(100%, 560px); max-height: calc(100dvh - 32px); overflow-y: auto; gap: 16px; margin: auto; padding: 28px; border: 2px solid var(--lgu-color-brand-primary); border-radius: 28px; background: var(--lgu-color-surface-1); box-shadow: 0 24px 80px rgb(0 0 0 / 45%); text-align: center; }
 .app-day-voting-modal h3, .app-day-voting-modal p { margin: 0; }
-.app-day-voting-modal .app-kicker { color: #fbbf4a; font-size: .85rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
+.app-day-voting-modal .app-kicker { color: var(--lgu-color-brand-primary); font-size: .85rem; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
 .app-day-voting-modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .app-day-voting-modal-button { min-height: 76px; border: 0; border-radius: 18px; padding: 16px; color: #fff; font-size: 1.25rem; font-weight: 900; cursor: pointer; }
-.app-day-voting-modal-button-primary { background: linear-gradient(135deg, #d97725, #f3a83b); }
-.app-day-voting-modal-button-secondary { background: #334155; }
+.app-day-voting-modal-button-primary { background: linear-gradient(135deg, var(--lgu-color-brand-primary-pressed), var(--lgu-color-brand-primary-hover)); }
+.app-day-voting-modal-button-secondary { background: var(--lgu-color-surface-3); }
 .app-day-voting-vote-modal { width: min(100%, 620px); }
-.app-day-voting-countdown { color: #fbbf4a; font-size: clamp(2.2rem, 8vw, 4rem); font-weight: 950; line-height: 1; }
+.app-day-voting-countdown { color: var(--lgu-color-brand-primary); font-size: clamp(2.2rem, 8vw, 4rem); font-weight: 950; line-height: 1; }
 .app-day-voting-tally-large { display: flex; justify-content: center; gap: 24px; font-size: 1.5rem; font-weight: 900; }
 @media (max-width: 600px) { .app-day-voting-modal-backdrop { place-items: start center; padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: max(12px, env(safe-area-inset-bottom)); } .app-day-voting-modal { max-height: calc(100dvh - 24px); padding: 22px 16px; } .app-day-voting-modal-actions { grid-template-columns: 1fr; } .app-day-voting-modal-button { min-height: 68px; } .app-day-voting-form-row { display: grid; grid-template-columns: 1fr; } .app-day-voting-form-row .app-btn { width: 100%; } }
 </style>
