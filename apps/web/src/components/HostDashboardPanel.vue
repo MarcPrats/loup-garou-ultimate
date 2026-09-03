@@ -19,10 +19,12 @@ const props = withDefaults(defineProps<{
   showNightOrder?: boolean
   showRulesLink?: boolean
   showHeader?: boolean
+  embedded?: boolean
 }>(), {
   showNightOrder: true,
   showRulesLink: true,
   showHeader: true,
+  embedded: false,
 })
 
 const assignments = computed(() => props.dashboard.players.map((assignment) => ({
@@ -37,7 +39,7 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
 </script>
 
 <template>
-  <div class="app-gm-view">
+  <div :class="embedded ? 'app-private-dashboard' : 'app-gm-view'">
     <header v-if="showHeader" class="app-gm-header">
       <h2>👑 Maître du Jeu</h2>
       <p class="app-subtitle">Vue d'ensemble de tous les rôles</p>

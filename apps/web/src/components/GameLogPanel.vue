@@ -11,6 +11,9 @@ import {
   type PublicPlayer,
 } from '@lgu/contracts'
 
+import AppButton from './ui/AppButton.vue'
+import AppSelect from './ui/AppSelect.vue'
+
 const props = withDefaults(defineProps<{
   entries: readonly GameLogEntry[]
   players: readonly PublicPlayer[]
@@ -117,27 +120,29 @@ function isVoteEntry(entry: GameLogEntry): boolean {
         {{ currentEventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'Enregistrer une mort cette nuit' : 'Enregistrer une exécution aujourd’hui' }}
       </p>
       <div class="app-game-log-compose-controls">
-        <select
+        <AppSelect
           v-model="selectedTargetId"
-          class="app-input min-w-0 flex-1"
+          class="min-w-0 flex-1"
           data-testid="game-log-target"
         >
           <option value="">Choisir un joueur vivant</option>
           <option v-for="player in aliveTargets" :key="player.id" :value="player.id">
             {{ player.name }}
           </option>
-        </select>
-        <button
-          type="button"
+        </AppSelect>
+        <AppButton
+          variant="primary"
+          size="lg"
           class="app-game-log-record-btn"
           :disabled="!selectedTargetId || busy"
+          :loading="busy"
           :aria-label="currentEventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'Enregistrer une mort' : 'Enregistrer une exécution'"
           :title="currentEventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? 'Enregistrer une mort' : 'Enregistrer une exécution'"
           data-testid="record-game-log-event"
           @click="recordSelected"
         >
-          <span aria-hidden="true">{{ busy ? '…' : '+' }}</span>
-        </button>
+          <span aria-hidden="true">+</span>
+        </AppButton>
       </div>
     </div>
 
@@ -175,8 +180,9 @@ function isVoteEntry(entry: GameLogEntry): boolean {
           </div>
         </span>
         <div v-if="canEdit && !isVoteEntry(entry)" class="app-game-log-edit-controls">
-          <button
-            type="button"
+          <AppButton
+            variant="danger"
+            size="sm"
             class="app-game-log-delete-btn"
             :disabled="busy"
             :aria-label="`Supprimer l’événement concernant ${entry.targetPlayerName}`"
@@ -185,7 +191,7 @@ function isVoteEntry(entry: GameLogEntry): boolean {
             @click="deleteSelected(entry)"
           >
             <span aria-hidden="true">×</span>
-          </button>
+          </AppButton>
         </div>
       </li>
     </ol>

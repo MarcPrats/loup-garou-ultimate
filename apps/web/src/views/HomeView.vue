@@ -5,6 +5,8 @@ import { useRoute, useRouter } from 'vue-router'
 import type { LobbySnapshot } from '@lgu/contracts'
 
 import FeedbackBanner from '../components/FeedbackBanner.vue'
+import AppButton from '../components/ui/AppButton.vue'
+import AppInput from '../components/ui/AppInput.vue'
 import {
   CONNECTION_STATE,
   PUBLIC_LINK,
@@ -110,20 +112,19 @@ onUnmounted(() => {
 
       <form class="app-lobby-create-form" @submit.prevent="submit">
         <label for="player-name-input">Votre nom</label>
-        <input
+        <AppInput
           id="player-name-input"
           v-model="playerName"
-          type="text"
           maxlength="20"
           autocomplete="off"
           placeholder="Votre nom..."
           class="app-text-input"
           autofocus
-        >
+        />
         <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit || joiningLobbyId !== null">
+        <AppButton type="submit" variant="primary" :disabled="!canSubmit || joiningLobbyId !== null" :loading="joiningLobbyId !== null">
           {{ joiningLobbyId ? 'Connexion…' : 'Rejoindre la partie' }}
-        </button>
+        </AppButton>
       </form>
       <button type="button" class="app-btn app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">
         Retour
@@ -151,19 +152,18 @@ onUnmounted(() => {
 
       <form class="app-lobby-create-form" @submit.prevent="submit">
         <label for="player-name-input">Votre nom</label>
-        <input
+        <AppInput
           id="player-name-input"
           v-model="playerName"
-          type="text"
           maxlength="20"
           autocomplete="off"
           placeholder="Votre nom..."
           class="app-text-input"
           autofocus
-        >
-        <button type="submit" class="app-btn app-btn-primary" :disabled="!canSubmit">
+        />
+        <AppButton type="submit" variant="primary" :disabled="!canSubmit" :loading="submitting">
           {{ submitting ? 'Création…' : '➕ Créer une partie' }}
-        </button>
+        </AppButton>
       </form>
 
       <div class="app-lobby-list-header">

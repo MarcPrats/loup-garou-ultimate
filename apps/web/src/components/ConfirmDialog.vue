@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
+import AppButton from './ui/AppButton.vue'
+
 const props = withDefaults(defineProps<{
   title: string
   description: string
@@ -16,13 +18,12 @@ const emit = defineEmits<{
 }>()
 
 const dialog = ref<HTMLElement | null>(null)
-const cancelButton = ref<HTMLButtonElement | null>(null)
 let previouslyFocused: HTMLElement | null = null
 
 onMounted(async () => {
   previouslyFocused = document.activeElement as HTMLElement | null
   await nextTick()
-  cancelButton.value?.focus()
+  dialog.value?.querySelector<HTMLButtonElement>('button:not([disabled])')?.focus()
 })
 
 onBeforeUnmount(() => previouslyFocused?.focus())
@@ -73,22 +74,18 @@ function handleKeydown(event: KeyboardEvent): void {
         {{ props.description }}
       </p>
       <div class="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-        <button
-          ref="cancelButton"
-          type="button"
-          class="rounded-xl border border-white/15 px-5 py-3 font-semibold text-slate-200 transition hover:bg-white/10"
+        <AppButton
+          variant="secondary"
           @click="emit('cancel')"
         >
           Annuler
-        </button>
-        <button
-          type="button"
-          class="rounded-xl px-5 py-3 font-bold text-white transition"
-          :class="destructive ? 'bg-red-600 hover:bg-red-500' : 'bg-lgu-orange hover:bg-orange-500'"
+        </AppButton>
+        <AppButton
+          :variant="destructive ? 'danger' : 'primary'"
           @click="emit('confirm')"
         >
           {{ props.confirmLabel }}
-        </button>
+        </AppButton>
       </div>
     </section>
   </div>

@@ -6,9 +6,7 @@ const props = withDefaults(defineProps<{
   disabled?: boolean
   inputTestId?: string
 }>(), {
-  description: undefined,
   disabled: false,
-  inputTestId: undefined,
 })
 
 const emit = defineEmits<{

@@ -70,7 +70,7 @@ async function confirmLeave(): Promise<void> {
           <p class="app-invitation-label">🔗 Lien d'invitation</p>
           <div class="app-invitation-group">
             <input :value="inviteUrl" readonly class="app-invitation-link" aria-label="Lien d'invitation">
-            <button type="button" class="app-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</button>
+            <AppButton size="sm" class="app-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</AppButton>
           </div>
           <p v-if="copyError" class="app-copy-error" role="alert">Copie impossible. Sélectionnez le lien et copiez-le manuellement.</p>
         </div>
@@ -106,7 +106,13 @@ async function confirmLeave(): Promise<void> {
         <div class="app-players-list">
           <div v-for="player in lobby.regularPlayers" :key="player.id" class="app-player-card">
             <span class="app-player-name">{{ player.name }}<small v-if="player.id === lobby.currentPlayer?.id"> (vous)</small></span>
-            <button v-if="lobby.isHost && player.id !== lobby.currentPlayer?.id" type="button" class="app-kick-button" @click="pendingKick = player">Expulser</button>
+            <AppButton
+              v-if="lobby.isHost && player.id !== lobby.currentPlayer?.id"
+              variant="danger"
+              size="sm"
+              class="app-kick-button"
+              @click="pendingKick = player"
+            >Expulser</AppButton>
           </div>
           <p v-if="lobby.regularPlayers.length === 0" class="app-waiting-text">Aucun joueur pour le moment.</p>
         </div>
@@ -130,43 +136,53 @@ async function confirmLeave(): Promise<void> {
         />
 
         <div class="app-start-preview-actions">
-          <button
-            type="button"
-            class="app-btn app-btn-secondary"
+          <AppButton
+            variant="secondary"
             :disabled="lobby.starting"
             @click="lobby.cancelStartPreview"
           >
             ❌ Annuler
-          </button>
-          <button
-            type="button"
-            class="app-btn app-btn-secondary"
+          </AppButton>
+          <AppButton
+            variant="secondary"
             :disabled="lobby.starting"
             @click="lobby.redistributeStartPreview"
           >
             🔀 Redistribuer
-          </button>
-          <button
-            type="button"
-            class="app-btn app-btn-primary"
+          </AppButton>
+          <AppButton
+            variant="primary"
             :disabled="lobby.starting"
+            :loading="lobby.starting"
             @click="lobby.confirmStart"
           >
             {{ lobby.starting ? 'Lancement…' : '✅ Confirmer et lancer' }}
-          </button>
+          </AppButton>
         </div>
       </section>
 
       <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
       <div v-if="!lobby.startPreview" class="app-waiting-actions">
-        <button v-if="lobby.isHost" type="button" class="app-btn app-btn-primary" :disabled="!lobby.lobby?.canStart || lobby.starting" @click="lobby.start">
+        <AppButton
+          v-if="lobby.isHost"
+          variant="primary"
+          :disabled="!lobby.lobby?.canStart || lobby.starting"
+          :loading="lobby.starting"
+          @click="lobby.start"
+        >
           {{ lobby.starting ? 'Lancement…' : '🎮 Démarrer la Partie' }}
-        </button>
+        </AppButton>
         <p v-else class="app-waiting-text">En attente du lancement par l'hôte...</p>
         <a :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary" target="_blank" rel="noopener noreferrer">📖 Consulter les règles</a>
-        <button type="button" class="app-btn app-btn-back" :disabled="lobby.leaving" @click="confirmingLeave = true">
+        <AppButton
+          variant="ghost"
+          class="app-btn-back"
+          :disabled="lobby.leaving"
+          :loading="lobby.leaving"
+          @click="confirmingLeave = true"
+        >
           {{ lobby.leaving ? 'Départ…' : 'Quitter' }}
-        </button>
+        </AppButton>
       </div>
     </section>
 

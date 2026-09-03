@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import type { PlayerId, PublicPlayer } from '@lgu/contracts'
 
+import AppBadge from './ui/AppBadge.vue'
+import AppButton from './ui/AppButton.vue'
+
 defineProps<{
   host: PublicPlayer | null
   players: PublicPlayer[]
@@ -25,12 +28,9 @@ const emit = defineEmits<{
           <p class="truncate font-bold text-white">{{ host.name }}</p>
           <p class="mt-1 text-xs text-lgu-orange">Narrateur</p>
         </div>
-        <span
-          class="rounded-full px-3 py-1 text-xs font-semibold"
-          :class="host.connected ? 'bg-emerald-400/15 text-emerald-300' : 'bg-slate-400/15 text-slate-300'"
-        >
+        <AppBadge :tone="host.connected ? 'success' : 'neutral'">
           {{ host.connected ? 'Connecté' : 'Déconnecté' }}
-        </span>
+        </AppBadge>
       </div>
     </section>
 
@@ -58,15 +58,17 @@ const emit = defineEmits<{
               {{ player.connected ? 'Connecté' : 'Déconnecté' }}
             </p>
           </div>
-          <button
+          <AppButton
             v-if="canKick && player.id !== currentPlayerId"
-            type="button"
-            class="shrink-0 rounded-xl border border-red-400/25 bg-red-400/10 px-3 py-2 text-sm font-bold text-red-200 transition hover:bg-red-400/20 disabled:opacity-50"
+            variant="danger"
+            size="sm"
+            class="shrink-0"
             :disabled="kickingPlayerId === player.id"
+            :loading="kickingPlayerId === player.id"
             @click="emit('kick', player)"
           >
             {{ kickingPlayerId === player.id ? 'Expulsion…' : 'Expulser' }}
-          </button>
+          </AppButton>
         </li>
         <li
           v-if="players.length === 0"

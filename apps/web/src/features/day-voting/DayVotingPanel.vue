@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import AppButton from '../../components/ui/AppButton.vue'
+import AppSelect from '../../components/ui/AppSelect.vue'
 
 import {
   DAY_VOTE_CHOICE,
@@ -98,10 +99,10 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
     <div v-if="canNominate" class="app-day-voting-nomination-form">
       <label for="day-vote-target">Nominer un joueur</label>
       <div class="app-day-voting-form-row">
-        <select id="day-vote-target" v-model="selectedTargetId" class="app-input">
+        <AppSelect id="day-vote-target" v-model="selectedTargetId">
           <option value="">Choisir une cible vivante</option>
           <option v-for="player in availableTargets" :key="player.id" :value="player.id">{{ player.name }}</option>
-        </select>
+        </AppSelect>
         <AppButton variant="primary" :disabled="!selectedTargetId || alreadyNominated" @click="proposeSelectedTarget">
           Nominer
         </AppButton>

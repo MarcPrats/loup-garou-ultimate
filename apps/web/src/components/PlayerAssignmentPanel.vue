@@ -74,6 +74,7 @@ const clueRole = computed(() => props.assignment.specialInformation
         :show-night-order="false"
         :show-rules-link="false"
         :show-header="false"
+        embedded
       />
     </div>
 
