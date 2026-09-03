@@ -299,7 +299,7 @@ generate()
       <template v-if="scenario">
         <div
           v-if="activeView === SIMULATOR_VIEW.HOST"
-          :key="activeView"
+          key="host"
           class="mt-8"
         >
           <GamePhasePanel
@@ -326,7 +326,7 @@ generate()
 
         <div
           v-else-if="activePlayerAssignment"
-          :key="activeView"
+          key="player"
           class="app-screen app-game-container mx-auto mt-8 w-full"
         >
           <section
@@ -366,7 +366,7 @@ generate()
             📖 Consulter les règles
           </a>
         </div>
-        <div v-else :key="activeView" class="mt-8">
+        <div v-else key="unavailable" class="mt-8">
           <FeedbackBanner
             message="La vue joueur sélectionnée est indisponible."
             variant="error"
