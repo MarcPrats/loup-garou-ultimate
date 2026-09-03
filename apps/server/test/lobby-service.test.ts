@@ -885,6 +885,29 @@ describe('LobbyService', () => {
     expect(corrected.players.find((player) => player.id === players[0]!.session.playerId)?.alive).toBe(true)
   })
 
+  it('restores the MJ session after the game has started without requesting a start preview', async () => {
+    const { service } = createFixture()
+    const { host } = await fillMinimumGame(service)
+    const started = await service.start({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host',
+    })
+    await service.resume({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host-refresh',
+    })
+
+    await expect(service.getStartPreview({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host-refresh',
+    })).resolves.toBeNull()
+    await expect(service.getHostDashboard({
+      sessionToken: host.session.sessionToken,
+      connectionId: 'host-refresh',
+    })).resolves.toBeTruthy()
+    expect(started.lobby.gamePhase).not.toBeNull()
+  })
+
   it('records, publishes, and corrects night kills and daytime executions', async () => {
     const { service } = createFixture()
     const { host, players } = await fillMinimumGame(service)

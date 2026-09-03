@@ -1248,10 +1248,10 @@ export class LobbyService {
     if (!lobby) {
       throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
     }
-    assertLobbyPhase(lobby)
+    assertLobbyOpen(lobby)
     const player = authenticateConnectedSession(lobby, command)
     assertHost(player)
-    if (!lobby.gameStartPreview) return null
+    if (lobby.phase !== LOBBY_PHASE.LOBBY || !lobby.gameStartPreview) return null
     return toGameStartPreview(lobby, lobby.gameStartPreview.assignment)
   }
 
