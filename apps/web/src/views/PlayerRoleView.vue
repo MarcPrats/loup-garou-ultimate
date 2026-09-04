@@ -12,6 +12,7 @@ import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import { AppButton } from '../components/ui'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
@@ -88,13 +89,12 @@ async function confirmLeave(): Promise<void> {
         :message="lobby.error.message"
         variant="error"
       />
-      <button
-        type="button"
-        class="app-btn app-btn-back app-leave-button"
+      <AppButton
+        class="app-btn-back app-leave-button"
         @click="confirmingLeave = true"
       >
         Quitter la partie
-      </button>
+      </AppButton>
     </div>
 
     <ConfirmDialog

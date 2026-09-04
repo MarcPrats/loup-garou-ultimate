@@ -727,9 +727,9 @@ export class LobbyService {
     })
   }
 
-  cancelStartPreview(command: SessionCommand): Promise<EmptyResponse> {
+  cancelStartPreview(command: SessionCommand): Promise<LobbySnapshot> {
     assertConnectionId(command.connectionId)
-    return this.dependencies.repository.mutate<EmptyResponse>((lobby) => {
+    return this.dependencies.repository.mutate<LobbySnapshot>((lobby) => {
       if (!lobby) {
         throw new LobbyError(ERROR_CODE.SESSION_NOT_FOUND, 'Session introuvable.')
       }
@@ -738,7 +738,7 @@ export class LobbyService {
       assertHost(host)
       lobby.gameStartPreview = null
       touchLobby(lobby, this.dependencies.clock.now())
-      return { lobby, result: {} }
+      return { lobby, result: toLobbySnapshot(lobby) }
     })
   }
 
@@ -1045,7 +1045,7 @@ export class LobbyService {
       }
 
       const now = this.dependencies.clock.now()
-      if (lobby.gamePhase.period === GAME_PHASE_PERIOD.DAY && lobby.game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
+      if (lobby.gamePhase.period === GAME_PHASE_PERIOD.DAY && lobby.game?.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
         resolveDayVote(lobby, now)
       }
       lobby.gamePhase = getNextGamePhase(lobby.gamePhase)

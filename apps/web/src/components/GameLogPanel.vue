@@ -158,10 +158,10 @@ function isVoteEntry(entry: GameLogEntry): boolean {
       <li v-for="entry in entries" :key="entry.id" class="app-game-log-entry" :class="{ 'app-game-log-entry-vote': isVoteEntry(entry) }">
         <span class="app-game-log-entry-phase">{{ phaseLabel(entry) }}</span>
         <span class="app-game-log-entry-text">
-          <select
+          <AppSelect
             v-if="canEdit && !isVoteEntry(entry)"
             class="app-game-log-target-select"
-            :value="editTargetValue(entry)"
+            :model-value="editTargetValue(entry)"
             :aria-label="`Cible de l’événement, ${entry.targetPlayerName}`"
             :data-testid="`edit-game-log-target-${entry.id}`"
             @change="editSelected(entry, $event)"
@@ -169,7 +169,7 @@ function isVoteEntry(entry: GameLogEntry): boolean {
             <option v-for="player in editOptions(entry)" :key="player.id" :value="player.id">
               {{ player.name }}
             </option>
-          </select>
+          </AppSelect>
           <strong v-else>{{ entry.targetPlayerName }}</strong>
           <span class="app-game-log-event-description">
             {{ entry.eventType === GAME_LOG_EVENT_TYPE.NIGHT_KILL ? ' 🩸 a été dévoré(e)' : isVoteEntry(entry) ? ' 🗳️ a fait l’objet d’un vote' : ' ⚔️ a été éliminé(e) par le Village' }}

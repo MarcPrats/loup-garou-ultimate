@@ -16,7 +16,8 @@ import type {
   AssignmentResult,
 } from '@lgu/game-core'
 import type { DayVotingState } from './day-voting/day-voting-state'
-export type { DayVotingState, AssignmentResult } from './day-voting/day-voting-state'
+export type { DayVotingState } from './day-voting/day-voting-state'
+export type { AssignmentResult } from '@lgu/game-core'
 
 export type ConnectionId = string
 
