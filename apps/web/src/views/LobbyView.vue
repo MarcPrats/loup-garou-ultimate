@@ -219,6 +219,22 @@ async function confirmLeave(): Promise<void> {
 .app-start-preview-header p { margin: 0; }
 .app-start-preview-header h3 { font-size: clamp(1.3rem, 3vw, 1.9rem); }
 .app-start-preview-header p:last-child { color: var(--app-text-muted, var(--lgu-color-text-muted)); }
+.app-invitation-group > .app-invitation-link {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.app-invitation-group > .app-copy-button {
+  width: auto;
+  flex: 0 0 auto;
+}
+.app-player-card .app-kick-button {
+  width: auto;
+  min-width: 0;
+  min-height: 32px;
+  padding: 6px 10px;
+  font-size: .82rem;
+}
 .app-start-preview-actions {
   display: flex;
   flex-wrap: wrap;

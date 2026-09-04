@@ -21,11 +21,11 @@ function updateValue(event: Event): void {
 
 <template>
   <input
-    :value="displayValue ?? modelValue"
+    :value="props.displayValue ?? modelValue"
     class="app-control app-input"
-    :type="type"
-    :disabled="disabled"
-    :readonly="readonly"
+    :type="props.type"
+    :disabled="props.disabled"
+    :readonly="props.readonly"
     @input="updateValue"
   >
 </template>
