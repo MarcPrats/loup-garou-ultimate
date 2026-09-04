@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
 import type { PrivateAssignment } from '@lgu/contracts'
 
 import RoleInfoPanel from './RoleInfoPanel.vue'
-import { AppButton } from './ui'
 
 defineProps<{
   assignment: PrivateAssignment
@@ -15,49 +14,44 @@ const emit = defineEmits<{
 }>()
 
 const revealed = ref(false)
+const canContinue = ref(false)
 
 function handleRevealed(): void {
   revealed.value = true
+  void nextTick(() => {
+    canContinue.value = true
+  })
+}
+
+function continueToPlayerView(): void {
+  if (!canContinue.value) return
+  emit('continue')
 }
 </script>
 
 <template>
-  <section class="app-role-reveal-page" data-testid="role-reveal-page" aria-labelledby="role-reveal-page-title">
+  <section
+    class="app-role-reveal-page"
+    :class="{ 'app-role-reveal-page-ready': canContinue }"
+    data-testid="role-reveal-page"
+    :data-state="revealed ? 'revealed' : 'hidden'"
+    aria-labelledby="role-reveal-page-title"
+    :tabindex="canContinue ? 0 : -1"
+    @click="continueToPlayerView"
+    @keydown.enter.prevent="continueToPlayerView"
+    @keydown.space.prevent="continueToPlayerView"
+  >
     <div class="app-role-reveal-stage">
-      <p class="app-role-reveal-eyebrow">🐺 Loup Garou Ultime</p>
-      <p class="app-role-reveal-player">{{ assignment.player.name }}, votre carte est prête</p>
-      <h1 id="role-reveal-page-title">Une carte vous attend</h1>
-      <p class="app-role-reveal-intro">
-        Prenez un instant pour découvrir votre rôle secret.
-      </p>
+      <h1 id="role-reveal-page-title">Révéler votre rôle</h1>
 
       <RoleInfoPanel
         :role-id="assignment.role.id"
-        title="🎭 Votre rôle"
         power-title="Votre Pouvoir"
         info-title="Autres Infos"
         compact
         revealable
         @revealed="handleRevealed"
       />
-
-      <Transition name="role-reveal-continue">
-        <div v-if="revealed" class="app-role-reveal-continue">
-          <p role="status">Votre rôle est révélé. Gardez-le secret.</p>
-          <AppButton
-            variant="primary"
-            size="lg"
-            data-testid="continue-to-player-view"
-            @click="emit('continue')"
-          >
-            Accéder à ma vue joueur
-          </AppButton>
-        </div>
-      </Transition>
-
-      <p v-if="!revealed" class="app-role-reveal-privacy">
-        🔒 Cette carte n’est visible que par vous.
-      </p>
     </div>
   </section>
 </template>

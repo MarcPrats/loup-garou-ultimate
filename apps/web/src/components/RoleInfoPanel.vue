@@ -7,6 +7,7 @@ import {
   ROLE_CATEGORY_LABEL,
   getRolePresentation,
 } from '../constants/role-presentation'
+import { appAsset } from '../constants/paths'
 
 const props = withDefaults(defineProps<{
   roleId: RoleId
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<{
   revealable: false,
 })
 const role = getRolePresentation(props.roleId)
+const roleCardBackImage = appAsset('/images/role-card-back.webp')
 const revealed = ref(!props.revealable)
 
 const emit = defineEmits<{
@@ -48,12 +50,11 @@ function reveal(): void {
           class="app-role-card app-role-card-face app-role-card-back"
           data-testid="role-reveal-card"
           aria-label="Révéler votre rôle"
-          @click="reveal"
+          @click.stop="reveal"
         >
           <span class="app-role-card-back-symbols" aria-hidden="true">✦ ✧ 🐺 ✧ ✦</span>
-          <span class="app-role-card-back-lock" aria-hidden="true">?</span>
-          <strong>Votre rôle est prêt</strong>
-          <span class="app-role-card-back-hint">Touchez la carte pour le révéler</span>
+          <img class="app-role-card-back-image" :src="roleCardBackImage" alt="">
+          <strong>Toucher la carte pour révéler votre rôle</strong>
           <span class="app-role-card-back-sparkle-line" aria-hidden="true">✦ · ✧ · ✦</span>
         </button>
         <div class="app-role-card app-role-card-face app-role-card-front" :aria-hidden="!revealed">

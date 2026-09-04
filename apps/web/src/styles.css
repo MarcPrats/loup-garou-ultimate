@@ -1010,18 +1010,13 @@ button:disabled {
   letter-spacing: .65em;
   opacity: .9;
 }
-.app-role-card-back-lock {
-  display: grid;
-  width: 64px;
-  height: 64px;
-  place-items: center;
+.app-role-card-back-image {
+  display: block;
+  width: clamp(108px, 22vw, 156px);
+  aspect-ratio: 1;
   border: 1px solid rgb(230 160 68 / 65%);
-  border-radius: 50%;
-  color: var(--lgu-color-brand-primary);
-  background: rgb(0 0 0 / 18%);
-  font-family: var(--font-display);
-  font-size: 2rem;
-  font-weight: 800;
+  border-radius: 18px;
+  object-fit: cover;
   box-shadow: 0 0 28px rgb(230 160 68 / 18%);
 }
 .app-role-card-back strong { font-size: 1.2rem; }
@@ -1108,6 +1103,7 @@ button:disabled {
   align-items: center;
   text-align: center;
 }
+.app-role-reveal-page-ready { cursor: pointer; }
 .app-role-reveal-eyebrow {
   margin: 0 0 14px;
   color: var(--lgu-color-brand-primary);
@@ -1128,12 +1124,6 @@ button:disabled {
   font-size: clamp(2rem, 7vw, 3.6rem);
   line-height: 1.05;
 }
-.app-role-reveal-intro {
-  max-width: 34rem;
-  margin: 16px 0 4px;
-  color: var(--lgu-color-text-secondary);
-  font-size: 1.05rem;
-}
 .app-role-reveal-stage > .app-role-description-container {
   width: 100%;
   margin: 22px 0 0;
@@ -1143,33 +1133,62 @@ button:disabled {
 .app-role-reveal-stage .app-role-flip-inner,
 .app-role-reveal-stage .app-role-card-face { min-height: clamp(280px, 46vh, 390px); }
 .app-role-reveal-stage .app-role-card-back { gap: 16px; }
-.app-role-reveal-stage .app-role-card-back-lock { width: 76px; height: 76px; font-size: 2.4rem; }
-.app-role-reveal-privacy,
-.app-role-reveal-continue p {
-  margin: 18px 0 0;
-  color: var(--lgu-color-text-muted);
-  font-size: .9rem;
-}
-.app-role-reveal-continue {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  margin-top: 20px;
-}
-.role-reveal-continue-enter-active,
-.role-reveal-continue-leave-active { transition: opacity 220ms ease, transform 220ms ease; }
-.role-reveal-continue-enter-from,
-.role-reveal-continue-leave-to { opacity: 0; transform: translateY(8px); }
+.app-role-reveal-stage .app-role-card-back-image { width: clamp(136px, 28vw, 190px); }
 @media (max-width: 600px) {
   .app-role-reveal-page { padding-right: 12px; padding-left: 12px; }
   .app-role-reveal-stage .app-role-flip-shell,
   .app-role-reveal-stage .app-role-flip-inner,
   .app-role-reveal-stage .app-role-card-face { min-height: 280px; }
-  .app-role-reveal-stage .app-role-reveal-continue .app-btn { width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) {
-  .role-reveal-continue-enter-active,
-  .role-reveal-continue-leave-active { transition: none; }
+
+/* Compact reveal composition: keep the interaction prominent without dominating the viewport. */
+.app-role-reveal-page {
+  padding: clamp(20px, 4vh, 40px) 16px;
+}
+.app-role-reveal-stage {
+  width: min(100%, 480px);
+}
+.app-role-reveal-stage h1 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+}
+.app-role-reveal-stage > .app-role-description-container {
+  margin-top: 14px;
+}
+.app-role-reveal-stage .app-role-flip-shell,
+.app-role-reveal-stage .app-role-flip-inner,
+.app-role-reveal-stage .app-role-card-face {
+  min-height: clamp(230px, 34vh, 320px);
+}
+.app-role-reveal-stage .app-role-card-back {
+  gap: 10px;
+  padding: 20px;
+}
+.app-role-reveal-stage .app-role-card-back-symbols { font-size: 1rem; }
+.app-role-reveal-stage .app-role-card-back-image {
+  width: clamp(96px, 20vw, 148px);
+}
+.app-role-reveal-stage .app-role-card-back strong {
+  font-size: 1rem;
+  text-align: center;
+}
+.app-role-reveal-stage .app-role-card-back-sparkle-line { font-size: .85rem; }
+
+
+@media (min-width: 900px) {
+  .app-role-reveal-stage .app-role-card-front .app-role-image-container {
+    width: clamp(140px, 20vw, 190px);
+    height: clamp(140px, 20vw, 190px);
+    margin: 0 auto 14px;
+    border-radius: 22px;
+  }
+  .app-role-reveal-stage .app-role-card-front .app-role-image-container img {
+    border-radius: inherit;
+    transform: none;
+  }
+}
+
+@media (min-width: 900px) {
+  .app-role-reveal-stage .app-role-card-front .app-role-image-container img {
+    transform: scale(1.15);
+  }
 }
