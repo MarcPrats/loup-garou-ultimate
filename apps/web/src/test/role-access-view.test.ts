@@ -65,6 +65,10 @@ describe('RoleAccessView', () => {
     resolveSecond(playerResponse('Bob', 'player_2'))
     await flushPromises()
     expect(wrapper.text()).toContain('Bob')
+    expect(wrapper.get('[data-testid="role-reveal-page"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="role-reveal-card"]').trigger('click')
+    await wrapper.get('[data-testid="continue-to-player-view"]').trigger('click')
+    expect(wrapper.find('[data-testid="role-reveal-page"]').exists()).toBe(false)
 
     resolveFirst(playerResponse('Alice', 'player_1'))
     await flushPromises()

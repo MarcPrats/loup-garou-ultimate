@@ -17,6 +17,7 @@ import GameLogPanel from '../../components/GameLogPanel.vue'
 import GamePhasePanel from '../../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../../components/PlayerAssignmentPanel.vue'
+import RoleRevealPage from '../../components/RoleRevealPage.vue'
 import { AppButton, AppCard, AppSelect } from '../../components/ui'
 import { ROUTE_NAME, ROUTE_PATH } from '../../constants/app'
 import { appPath } from '../../constants/paths'
@@ -34,6 +35,7 @@ const playerCount = ref<number>(PLAYER_COUNT_LIMIT.MINIMUM)
 const scenario = ref<SimulatorScenario | null>(null)
 const activeView = ref<string>(SIMULATOR_VIEW.HOST)
 const errorMessage = ref<string | null>(null)
+const revealedPlayerIds = ref<Set<PlayerId>>(new Set())
 
 const selectedPlayerCount = computed<string>({
   get: () => String(playerCount.value),
@@ -64,6 +66,9 @@ const activePlayerDashboard = computed(() => (
     (entry) => entry.playerId === activeView.value,
   )?.dashboard ?? null
 ))
+const activePlayerRevealed = computed(() => (
+  activePlayer.value ? revealedPlayerIds.value.has(activePlayer.value.id) : false
+))
 const playerOptions = computed(() => (
   scenario.value?.lobby.players.filter((player) => !player.isHost) ?? []
 ))
@@ -73,6 +78,10 @@ const selectedPlayerId = computed<string>({
     activeView.value = playerId || SIMULATOR_VIEW.HOST
   },
 })
+
+function completeSimulatorRoleReveal(playerId: PlayerId): void {
+  revealedPlayerIds.value = new Set([...revealedPlayerIds.value, playerId])
+}
 
 function simulatorEventType(): GameLogEventType | null {
   const phase = scenario.value?.lobby.gamePhase
@@ -203,6 +212,7 @@ function generate(): void {
       seed: createRandomSimulatorSeed(),
     })
     activeView.value = SIMULATOR_VIEW.HOST
+    revealedPlayerIds.value = new Set()
   } catch (error) {
     scenario.value = null
     errorMessage.value = error instanceof Error
@@ -329,6 +339,13 @@ generate()
           key="player"
           class="app-screen app-game-container mx-auto mt-8 w-full"
         >
+          <RoleRevealPage
+            v-if="!activePlayerRevealed"
+            :assignment="activePlayerAssignment"
+            @continue="completeSimulatorRoleReveal(activePlayerAssignment.player.id)"
+          />
+
+          <template v-else>
           <section
             v-if="activePlayer && !activePlayer.alive"
             class="app-ghost-status-panel"
@@ -344,6 +361,7 @@ generate()
             :assignment="activePlayerAssignment"
             :dashboard="activePlayerDashboard"
             :show-rules-link="false"
+            :reveal-role="false"
           />
 
           <GamePhasePanel
@@ -365,6 +383,7 @@ generate()
           >
             📖 Consulter les règles
           </a>
+          </template>
         </div>
         <div v-else key="unavailable" class="mt-8">
           <FeedbackBanner
