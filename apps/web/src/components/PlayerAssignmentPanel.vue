@@ -18,8 +18,10 @@ const props = withDefaults(defineProps<{
   assignment: PrivateAssignment
   dashboard?: HostDashboard | null
   showRulesLink?: boolean
+  revealRole?: boolean
 }>(), {
   showRulesLink: true,
+  revealRole: true,
 })
 
 
@@ -43,6 +45,7 @@ const clueRole = computed(() => props.assignment.specialInformation
       title="🎭 Votre Rôle"
       power-title="Votre Pouvoir"
       info-title="Autres Infos"
+      :revealable="revealRole"
     />
 
     <RoleInfoPanel

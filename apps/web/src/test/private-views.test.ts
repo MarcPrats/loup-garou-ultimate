@@ -64,10 +64,11 @@ describe('role presentation catalogue', () => {
 })
 
 describe('player private assignment', () => {
-  it('renders the real role, bluff and fake clue without MJ-only flags', () => {
+  it('reveals the real role, bluff and fake clue without MJ-only flags', async () => {
     const wrapper = mount(PlayerAssignmentPanel, {
       props: { assignment: createPrivateAssignment() },
     })
+    await wrapper.get('[data-testid="role-reveal-card"]').trigger('click')
     const text = wrapper.text()
 
     expect(text).toContain('Loup Garou Ultime')
@@ -108,4 +109,3 @@ describe('MJ assignment', () => {
     expect(text).toContain('Voyante')
   })
 })
-

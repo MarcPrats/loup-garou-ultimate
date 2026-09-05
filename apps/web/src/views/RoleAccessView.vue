@@ -10,6 +10,7 @@ import {
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import RoleRevealPage from '../components/RoleRevealPage.vue'
 import { AppButton } from '../components/ui'
 import { fetchRoleAccess } from '../services/role-access'
 
@@ -17,6 +18,7 @@ const route = useRoute()
 const response = ref<RoleAccessResponse | null>(null)
 const loading = ref(false)
 const errorMessage = ref<string | null>(null)
+const roleRevealComplete = ref(false)
 let controller: AbortController | null = null
 
 const token = computed(() => {
@@ -32,6 +34,7 @@ async function load(): Promise<void> {
   controller?.abort()
   controller = null
   response.value = null
+  roleRevealComplete.value = false
   errorMessage.value = null
   loading.value = false
   const requestedToken = token.value
@@ -91,14 +94,22 @@ onBeforeUnmount(() => controller?.abort())
       </section>
 
       <div v-else-if="response?.view === ROLE_ACCESS_VIEW.PLAYER">
-        <div class="mb-5 flex justify-end">
-          <AppButton size="sm" @click="load">
-            Actualiser
-          </AppButton>
-        </div>
-        <PlayerAssignmentPanel
+        <RoleRevealPage
+          v-if="!roleRevealComplete"
           :assignment="response.assignment"
+          @continue="roleRevealComplete = true"
         />
+        <template v-else>
+          <div class="mb-5 flex justify-end">
+            <AppButton size="sm" @click="load">
+              Actualiser
+            </AppButton>
+          </div>
+          <PlayerAssignmentPanel
+            :assignment="response.assignment"
+            :reveal-role="false"
+          />
+        </template>
       </div>
 
       <div v-else-if="response?.view === ROLE_ACCESS_VIEW.GAME_MASTER">

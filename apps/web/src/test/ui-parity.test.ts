@@ -55,8 +55,12 @@ describe('V3 UI parity', () => {
     }
   })
 
-  it('restores the complete player role, bluff and clue content', () => {
+  it('restores the complete player role, bluff and clue content after reveal', async () => {
     const wrapper = mount(PlayerAssignmentPanel, { props: { assignment } })
+    expect(wrapper.get('[data-testid="role-reveal-card"]').exists()).toBe(true)
+    await wrapper.get('[data-testid="role-reveal-card"]').trigger('click')
+    expect(wrapper.find('.app-role-flip-shell-revealed').exists()).toBe(true)
+    expect(wrapper.find('.app-role-sparkles').exists()).toBe(true)
     const text = wrapper.text()
     expect(text).toContain('Votre Pouvoir')
     expect(text).toContain('Autres Infos')

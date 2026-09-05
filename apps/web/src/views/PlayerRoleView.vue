@@ -12,11 +12,13 @@ import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import RoleRevealPage from '../components/RoleRevealPage.vue'
 import { AppButton } from '../components/ui'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
 const confirmingLeave = ref(false)
+const roleRevealComplete = ref(false)
 
 async function confirmLeave(): Promise<void> {
   confirmingLeave.value = false
@@ -25,7 +27,13 @@ async function confirmLeave(): Promise<void> {
 </script>
 
 <template>
-  <main class="app-page">
+  <RoleRevealPage
+    v-if="lobby.privateAssignment && !roleRevealComplete"
+    :assignment="lobby.privateAssignment"
+    @continue="roleRevealComplete = true"
+  />
+
+  <main v-else class="app-page">
     <div class="app-screen app-game-container">
       <section
         v-if="lobby.currentPlayer && !lobby.currentPlayer.alive"
@@ -43,6 +51,7 @@ async function confirmLeave(): Promise<void> {
         :assignment="lobby.privateAssignment"
         :dashboard="lobby.privateAssignment.role.id === ROLE_ID.LOUP_BLANC ? lobby.hostDashboard : null"
         :show-rules-link="false"
+        :reveal-role="false"
       />
 
       <section
