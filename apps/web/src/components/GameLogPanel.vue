@@ -104,8 +104,7 @@ function isVoteEntry(entry: GameLogEntry): boolean {
   >
     <header class="app-game-log-header">
       <div>
-        <p class="app-game-log-kicker">📜 Historique public</p>
-        <h2 class="app-game-log-title">📜 Historique de la partie</h2>
+        <p class="app-game-log-kicker">📜 Historique</p>
       </div>
       <p class="app-game-log-count">
         {{ entries.length }} événement{{ entries.length > 1 ? 's' : '' }} enregistré{{ entries.length > 1 ? 's' : '' }}
