@@ -46,11 +46,11 @@ test('runs the complete production game flow with private views and V3 rules', a
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '🧪 Simulateur',
-      '📚 Wiki des règles',
+      '📚 Règles originales (EN)',
     ])
     await expect(home.locator('#lobbies-btn')).toHaveAttribute('href', '/lobbies')
     await expect(home.getByRole('link', { name: '📜 Règles' })).toHaveAttribute('href', '/rules')
-    await expect(home.getByRole('link', { name: '📚 Wiki des règles' })).toHaveAttribute('href', 'https://wiki.bloodontheclocktower.com/Trouble_Brewing')
+    await expect(home.getByRole('link', { name: '📚 Règles originales (EN)' })).toHaveAttribute('href', 'https://wiki.bloodontheclocktower.com/Trouble_Brewing')
 
     const rules = await homeContext.newPage()
     await rules.goto('/rules')

@@ -40,7 +40,7 @@ describe('V3 UI parity', () => {
       '🎮 Créer / Rejoindre la partie',
       '📜 Règles',
       '🧪 Simulateur',
-      '📚 Wiki des règles',
+      '📚 Règles originales (EN)',
     ])
     expect(wrapper.get('#lobbies-btn').attributes('href')).toBe('/lobbies')
     expect(wrapper.get('a[href="/rules"]')).toBeTruthy()
