@@ -73,6 +73,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Lorsque vous êtes concerné(e) par une information, le Maître du Jeu peut, s'il le souhaite, vous faire apparaître comme un Loup Garou, même après votre mort.",
     info: "Votre pouvoir est entièrement contrôlé par le Maître du Jeu. Vous êtes une fausse piste pour les pouvoirs d'information : mentir sur votre rôle peut vous faire passer pour un véritable Loup Garou. Dites plutôt la vérité et, si votre présence gêne les déductions du Village, vous pouvez demander à être exécutée.",
   },
+  "enfant-de-choeur": {
+    power: "À votre mort, le Maître du Jeu choisit une personne qui devient bourrée pour le reste de la partie.",
+    info: "Essayez de garder votre rôle secret. Votre mort pénaliserait le village car le Maître du Jeu choisira probablement un Villageois. Essayez de vous faire passer pour un personnage gênant pour le Loup Garou Ultime tel que l'Ancien ou l'Ange.",
+  },
   "loup-blanc": {
     power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
     info: "Utilisez vos informations pour aider les Loups Garous sans révéler trop clairement votre véritable rôle.",
@@ -150,6 +154,10 @@ const PRESENTATION_DETAILS: Record<
   [ROLE_ID.RECLUSE]: {
     imagePath: appAsset('/images/recluse.webp'),
     fallbackSymbol: '🧍',
+  },
+  [ROLE_ID.ENFANT_DE_CHOEUR]: {
+    imagePath: appAsset('/images/enfant-de-choeur.webp'),
+    fallbackSymbol: '🕯️',
   },
   [ROLE_ID.LOUP_BLANC]: {
     imagePath: appAsset('/images/loup_blanc.webp'),

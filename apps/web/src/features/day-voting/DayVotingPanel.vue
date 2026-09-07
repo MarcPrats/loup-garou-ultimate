@@ -196,7 +196,7 @@ onBeforeUnmount(() => updateBodyScrollLock(false))
 </template>
 
 <style scoped>
-.app-day-voting-panel { display: grid; gap: 16px; padding: 20px; border: 1px solid var(--lgu-color-border-strong); border-radius: 20px; background: var(--lgu-surface-card); }
+.app-day-voting-panel { display: grid; gap: 16px; padding: 20px; border: 1px solid var(--lgu-color-border-strong); border-radius: 20px; background: var(--lgu-surface-card); margin-bottom: 1rem; }
 .app-day-voting-header, .app-day-voting-nomination, .app-day-voting-result { display: grid; gap: 8px; }
 .app-day-voting-header p, .app-day-voting-header h3, .app-day-voting-nomination p, .app-day-voting-result span, .app-day-voting-result strong { margin: 0; }
 .app-day-voting-header .app-kicker { color: var(--lgu-color-brand-primary); font-size: .8rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
