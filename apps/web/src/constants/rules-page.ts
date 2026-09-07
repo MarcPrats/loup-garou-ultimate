@@ -67,11 +67,11 @@ export const RULES_ROLE_CATEGORIES: readonly {
   readonly label: string
   readonly emoji: string
 }[] = [
-  { id: 'loup-garou-ultime', label: 'Loup Garou Ultime', emoji: '🌕' },
-  { id: 'loup-garou', label: 'Loups Garous', emoji: '🐺' },
-  { id: 'villageois', label: 'Villageois', emoji: '👥' },
-  { id: 'marginal', label: 'Marginaux', emoji: '🌀' },
-]
+    { id: 'loup-garou-ultime', label: 'Loup Garou Ultime', emoji: '🌕' },
+    { id: 'loup-garou', label: 'Loups Garous', emoji: '🐺' },
+    { id: 'villageois', label: 'Villageois', emoji: '👥' },
+    { id: 'marginal', label: 'Marginaux', emoji: '🌀' },
+  ]
 
 export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
   {
@@ -267,6 +267,15 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     summary: 'Si vous mourez par exécution, votre équipe perd.',
     available: true,
   },
+  {
+    id: 'enfant-de-choeur',
+    name: "Enfant de chœur",
+    category: 'marginal',
+    categoryLabel: 'Marginal',
+    imagePath: appAsset('/images/enfant-de-choeur.webp'),
+    summary: "Si vous mourez, une personne devient bourrée.",
+    available: true,
+  }
 ]
 
 export const RULES_DISTRIBUTION: readonly RulesDistributionRow[] = [
@@ -301,7 +310,7 @@ export const FIRST_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
     steps: [
       { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [eye("L'Infect Loup Garou désigne une personne — cette personne est empoisonnée."), normal('😴')] },
       { roleId: 'petite-fille', title: 'Petite Fille', imagePath: appAsset('/images/petite-fille.webp'), imageAlt: 'Petite Fille', lines: [eye("Montrez la carte d'un Villageois en jeu. Désignez 2 personnes dont l'une est ce Villageois."), normal('😴')] },
-      { roleId: 'bibliothecaire', title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez l\'image d’un Marginal et désignez 2 personnes dont l’une est ce Marginal. Sinon : signalez le chiffre « 0 ».') , normal('😴')] },
+      { roleId: 'bibliothecaire', title: 'Bibliothécaire', emoji: '📚', lines: [eye('Si des Marginaux sont en jeu : montrez l\'image d’un Marginal et désignez 2 personnes dont l’une est ce Marginal. Sinon : signalez le chiffre « 0 ».'), normal('😴')] },
       { roleId: 'renard', title: 'Renard', imagePath: appAsset('/images/renard.webp'), imageAlt: 'Renard', lines: [eye("Montrez l\'image d'un Loup Garou en jeu. Désignez 2 personnes dont l'une est ce Loup Garou."), normal('😴')] },
       { roleId: 'montreur-dours', title: "Montreur d'ours", imagePath: appAsset('/images/montreur-dours.webp'), imageAlt: "Montreur d'ours", lines: [eye('Signalez avec les doigts le nombre de Loups Garous voisins l\'un de l\'autre (0, 1, 2, 3, 4).'), normal('😴')] },
       { roleId: 'cupidon', title: 'Cupidon', imagePath: appAsset('/images/cupidon.webp'), imageAlt: 'Cupidon', lines: [eye('Signalez le nombre de Loups Garous vivants voisins de Cupidon (0, 1 ou 2).'), normal('😴')] },
@@ -310,7 +319,7 @@ export const FIRST_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
   },
   {
     label: 'Lever du soleil',
-    steps: [{ title: 'Lever du soleil', emoji: '☀️', lines: [normal("Attendre environ 10 secondes. Demandez à tout le monde d'ouvrir les yeux. Annoncez immédiatement les morts (s'il y en a)." )] }],
+    steps: [{ title: 'Lever du soleil', emoji: '☀️', lines: [normal("Attendre environ 10 secondes. Demandez à tout le monde d'ouvrir les yeux. Annoncez immédiatement les morts (s'il y en a).")] }],
   },
 ]
 
@@ -323,7 +332,7 @@ export const FOLLOWING_NIGHT_SECTIONS: readonly RulesNightSectionData[] = [
     label: 'Actions des rôles',
     steps: [
       { roleId: 'infect-loup', title: 'Infect Loup Garou', imagePath: appAsset('/images/infectloup.webp'), imageAlt: 'Empoisonneur', lines: [normal('La personne empoisonnée ne l\'est plus.'), eye("L'Infect Loup Garou désigne une nouvelle personne — cette personne est empoisonnée."), normal('😴')] },
-      { roleId: 'chevalier', title: 'Chevalier', imagePath: appAsset('/images/chevalier.webp'), imageAlt: 'Chevalier', lines: [normal('La personne protégée ne l\'est plus.'), eye('Le Chevalier désigne une personne (pas lui-même) — cette personne est « Protégée ».') , normal('😴')] },
+      { roleId: 'chevalier', title: 'Chevalier', imagePath: appAsset('/images/chevalier.webp'), imageAlt: 'Chevalier', lines: [normal('La personne protégée ne l\'est plus.'), eye('Le Chevalier désigne une personne (pas lui-même) — cette personne est « Protégée ».'), normal('😴')] },
       { roleId: 'loup-garou-ultime', title: 'Loup Garou Ultime', imagePath: appAsset('/images/loupgarou.webp'), imageAlt: 'Loup Garou Ultime', lines: [eye('Le Loup Garou Ultime désigne une personne — cette personne meurt.'), normal('😴')] },
       { roleId: 'sorciere', title: 'Sorcière', imagePath: appAsset('/images/sorciere.webp'), imageAlt: 'Sorcière', condition: 'Uniquement si la Sorcière est morte cette nuit :', lines: [eye('La Sorcière désigne une personne — montrez-lui la carte de cette personne.'), normal('😴')] },
       { roleId: 'enfant-sauvage', title: 'Enfant Sauvage', imagePath: appAsset('/images/enfant.webp'), imageAlt: 'Enfant Sauvage', condition: "Uniquement si une personne a été exécutée aujourd'hui :", lines: [eye("Montrez à l'Enfant Sauvage la carte de cette personne."), normal('😴')] },

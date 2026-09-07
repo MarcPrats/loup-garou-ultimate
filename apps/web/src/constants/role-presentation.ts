@@ -75,7 +75,7 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
   },
   "enfant-de-choeur": {
     power: "À votre mort, le Maître du Jeu choisit une personne qui devient bourrée pour le reste de la partie.",
-    info: "Essayer de garder votre rôle secret. Votre mort pénaliserait le village car le Maître du Jeu choisira probablement un Villageois. Essayez de vous faire passer pour un personnage gênant pour le Loup Garou Ultime tel que l'Ancien ou l'Ange.",
+    info: "Essayez de garder votre rôle secret. Votre mort pénaliserait le village car le Maître du Jeu choisira probablement un Villageois. Essayez de vous faire passer pour un personnage gênant pour le Loup Garou Ultime tel que l'Ancien ou l'Ange.",
   },
   "loup-blanc": {
     power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
