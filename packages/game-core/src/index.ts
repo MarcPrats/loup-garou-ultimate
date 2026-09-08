@@ -25,6 +25,7 @@ export {
   ROLE_CATEGORY,
   ROLE_DEFINITIONS,
   ROLE_ID,
+  type OutsiderRoleId,
   TEAM,
   getEffectiveCategory,
   getRoleDefinition,
@@ -46,6 +47,7 @@ export {
 export type {
   AssignablePlayer,
   AssignmentResult,
+  BibliothecaireInformation,
   BluffRoleAssignment,
   BluffSpecialInformation,
   PetiteFilleInformation,

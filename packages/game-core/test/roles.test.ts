@@ -12,14 +12,18 @@ import {
 
 describe('role definitions', () => {
   it('contains one unique definition for each game role', () => {
-    expect(ROLE_DEFINITIONS).toHaveLength(19)
-    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(19)
+    expect(ROLE_DEFINITIONS).toHaveLength(20)
+    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(20)
   })
 
   it('separates team and role category', () => {
     expect(getRoleDefinition(ROLE_ID.ANGEL)).toMatchObject({
       team: TEAM.VILLAGERS,
       category: ROLE_CATEGORY.OUTSIDER,
+    })
+    expect(getRoleDefinition(ROLE_ID.BIBLIOTHECAIRE)).toMatchObject({
+      team: TEAM.VILLAGERS,
+      category: ROLE_CATEGORY.VILLAGER,
     })
     expect(getRoleDefinition(ROLE_ID.ULTIMATE_WEREWOLF)).toMatchObject({
       team: TEAM.WEREWOLVES,

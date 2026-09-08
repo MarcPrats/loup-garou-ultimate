@@ -2,11 +2,11 @@
 import { computed } from 'vue'
 
 import {
-  SPECIAL_INFORMATION_TYPE,
   type SpecialInformation,
 } from '@lgu/contracts'
 
 import { getRolePresentation } from '../constants/role-presentation'
+import { getSpecialInformationPresentation } from '../constants/special-information'
 
 const props = defineProps<{
   information: SpecialInformation
@@ -14,14 +14,16 @@ const props = defineProps<{
 }>()
 
 const roleName = computed(() => (
-  getRolePresentation(props.information.roleId)?.name
-    ?? props.information.roleId
+  props.information.roleId
+    ? getRolePresentation(props.information.roleId)?.name ?? props.information.roleId
+    : null
 ))
-const title = computed(() => (
-  props.information.type === SPECIAL_INFORMATION_TYPE.RENARD
-    ? 'Indice du Renard'
-    : 'Indice de la Petite Fille'
-))
+const presentation = computed(() => getSpecialInformationPresentation(props.information.type))
+const title = computed(() => presentation.value.title)
+const description = computed(() => {
+  if (!props.information.roleId) return 'Pas d’info : aucun Marginal dans la partie.'
+  return `Parmi les joueurs suivants, l’un possède le rôle ${roleName.value}.`
+})
 </script>
 
 <template>
@@ -30,10 +32,7 @@ const title = computed(() => (
       {{ coverInformation ? 'Information de couverture' : 'Information privée' }}
     </p>
     <h3 class="mt-2 font-display text-2xl font-bold">{{ title }}</h3>
-    <p class="mt-3 leading-7 text-sky-100/90">
-      Parmi les deux joueurs suivants, l’un possède le rôle
-      <strong>{{ roleName }}</strong>.
-    </p>
+    <p class="mt-3 leading-7 text-sky-100/90">{{ description }}</p>
     <div class="mt-5 grid gap-3 sm:grid-cols-2">
       <div
         v-for="player in information.players"

@@ -2,7 +2,6 @@
 import { computed } from 'vue'
 
 import {
-  SPECIAL_INFORMATION_TYPE,
   TEAM,
   type HostDashboard,
   type PrivateAssignment,
@@ -11,6 +10,7 @@ import {
 import { ROUTE_PATH } from '../constants/app'
 import { appPath } from '../constants/paths'
 import { getRolePresentation } from '../constants/role-presentation'
+import { getSpecialInformationPresentation } from '../constants/special-information'
 import HostDashboardPanel from './HostDashboardPanel.vue'
 import RoleInfoPanel from './RoleInfoPanel.vue'
 
@@ -29,11 +29,16 @@ const clueIsBluff = computed(() => props.assignment.bluffRoleId !== null)
 const showClueKnowledgeSection = computed(() => (
   clueIsBluff.value && props.assignment.role.team === TEAM.WEREWOLVES
 ))
-const clueTitle = computed(() => props.assignment.specialInformation?.type === SPECIAL_INFORMATION_TYPE.RENARD
-  ? `🦊 Info Renard${clueIsBluff.value ? ' (Bluff)' : ''}`
-  : `👧 Info Petite Fille${clueIsBluff.value ? ' (Bluff)' : ''}`)
+const cluePresentation = computed(() => props.assignment.specialInformation
+  ? getSpecialInformationPresentation(props.assignment.specialInformation.type)
+  : null)
+const clueTitle = computed(() => cluePresentation.value
+  ? `${cluePresentation.value.label}${clueIsBluff.value ? ' (Bluff)' : ''}`
+  : '')
 const clueRole = computed(() => props.assignment.specialInformation
-  ? getRolePresentation(props.assignment.specialInformation.roleId)
+  ? props.assignment.specialInformation.roleId
+    ? getRolePresentation(props.assignment.specialInformation.roleId)
+    : null
   : null)
 </script>
 
@@ -62,8 +67,8 @@ const clueRole = computed(() => props.assignment.specialInformation
         <div v-if="showClueKnowledgeSection" class="app-section-header"><span class="app-section-icon">🎭</span><h4>Ce que vous devriez savoir</h4></div>
         <p class="app-section-text">
           <strong>{{ clueTitle }}</strong><br>
-          {{ assignment.specialInformation.type === SPECIAL_INFORMATION_TYPE.RENARD ? 'Loup' : 'Villageois' }} : {{ clueRole?.name ?? assignment.specialInformation.roleId }}<br>
-          Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}
+          {{ cluePresentation?.targetLabel }} : {{ clueRole?.name ?? (assignment.specialInformation.roleId ?? 'Pas d’info') }}<br>
+          <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
         </p>
       </section>
     </div>

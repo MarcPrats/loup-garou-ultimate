@@ -3,6 +3,7 @@ import type {
   NonUltimateWerewolfRoleId,
   RoleId,
   TrueVillagerRoleId,
+  OutsiderRoleId,
   VillageTeamRoleId,
 } from './roles'
 
@@ -31,6 +32,12 @@ export interface PetiteFilleInformation {
   readonly seenPlayerIds: readonly [PlayerId, PlayerId]
 }
 
+export interface BibliothecaireInformation {
+  readonly playerId: PlayerId
+  readonly roleId: OutsiderRoleId | null
+  readonly seenPlayerIds: readonly PlayerId[]
+}
+
 export interface BluffRoleAssignment {
   readonly playerId: PlayerId
   readonly roleId: VillageTeamRoleId
@@ -55,6 +62,7 @@ export interface AssignmentResult {
   readonly drunkPlayerId: PlayerId | null
   readonly renardInformation: RenardInformation | null
   readonly petiteFilleInformation: PetiteFilleInformation | null
+  readonly bibliothecaireInformation: BibliothecaireInformation | null
   readonly bluffRoles: readonly BluffRoleAssignment[]
   readonly voyanteDecoyPlayerId: PlayerId | null
   readonly bluffSpecialInformation: readonly BluffSpecialInformation[]

@@ -77,6 +77,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "À votre mort, le Maître du Jeu choisit une personne qui devient bourrée pour le reste de la partie.",
     info: "Essayez de garder votre rôle secret. Votre mort pénaliserait le village car le Maître du Jeu choisira probablement un Villageois. Essayez de vous faire passer pour un personnage gênant pour le Loup Garou Ultime tel que l'Ancien ou l'Ange.",
   },
+  "bibliothecaire": {
+    power: "Lors de la première nuit, le Maître du Jeu vous montrera un rôle de Marginal puis pointera deux personnes (ou zéro s'il n'y en a aucun). L'une de ces deux personnes est le Marginal précédemment montré.",
+    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations",
+  },
   "loup-blanc": {
     power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
     info: "Utilisez vos informations pour aider les Loups Garous sans révéler trop clairement votre véritable rôle.",
@@ -158,6 +162,10 @@ const PRESENTATION_DETAILS: Record<
   [ROLE_ID.ENFANT_DE_CHOEUR]: {
     imagePath: appAsset('/images/enfant-de-choeur.webp'),
     fallbackSymbol: '🕯️',
+  },
+  [ROLE_ID.BIBLIOTHECAIRE]: {
+    imagePath: appAsset('/images/bibliothecaire.webp'),
+    fallbackSymbol: '📚',
   },
   [ROLE_ID.LOUP_BLANC]: {
     imagePath: appAsset('/images/loup_blanc.webp'),

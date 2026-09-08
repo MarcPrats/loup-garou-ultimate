@@ -2,12 +2,12 @@
 import { computed } from 'vue'
 
 import {
-  SPECIAL_INFORMATION_TYPE,
   TEAM,
   type HostPlayerAssignment,
 } from '@lgu/contracts'
 
 import type { RolePresentation } from '../constants/role-presentation'
+import { getSpecialInformationPresentation } from '../constants/special-information'
 
 type MobileAssignment = HostPlayerAssignment & {
   rolePresentation: RolePresentation | null
@@ -25,15 +25,10 @@ const roleName = computed(() => (
 const teamLabel = computed(() => (
   props.assignment.role.team === TEAM.WEREWOLVES ? '🐺 Loup-Garou' : '👥 Villageois'
 ))
-const specialInformationLabel = computed(() => (
-  props.assignment.specialInformation?.type === SPECIAL_INFORMATION_TYPE.RENARD
-    ? '🦊 Info Renard'
-    : '👧 Info Petite Fille'
-))
-const specialInformationTarget = computed(() => (
-  props.assignment.specialInformation?.type === SPECIAL_INFORMATION_TYPE.RENARD
-    ? 'Loup'
-    : 'Villageois'
+const specialInformationPresentation = computed(() => (
+  props.assignment.specialInformation
+    ? getSpecialInformationPresentation(props.assignment.specialInformation.type)
+    : null
 ))
 </script>
 
@@ -71,9 +66,9 @@ const specialInformationTarget = computed(() => (
 
     <div class="app-gm-mobile-details">
       <div v-if="assignment.specialInformation" class="app-gm-detail-card clue">
-        <strong>{{ specialInformationLabel }}</strong>
-        <span>{{ specialInformationTarget }} : {{ assignment.cluePresentation?.name ?? assignment.specialInformation.roleId }}</span>
-        <span>Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
+        <strong>{{ specialInformationPresentation?.label }}</strong>
+        <span>{{ specialInformationPresentation?.targetLabel }} : {{ assignment.cluePresentation?.name ?? assignment.specialInformation.roleId ?? 'Pas d’info' }}</span>
+        <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
       </div>
     </div>
   </article>

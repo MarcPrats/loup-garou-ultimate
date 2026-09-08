@@ -134,9 +134,9 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     name: 'Bibliothécaire',
     category: 'villageois',
     categoryLabel: 'Villageois',
-    emoji: '📚',
-    summary: "Lors de la première nuit, vous savez qu'un Marginal se cache parmi deux personnes. (Ou qu'il n'y en a aucun en jeu.)",
-    available: false,
+    imagePath: appAsset('/images/bibliothecaire.webp'),
+    summary: "Lors de la première nuit, vous savez qu'un Marginal se cache parmi deux personnes, ou qu'il n'y en a aucun en jeu.",
+    available: true,
   },
   {
     id: 'renard',

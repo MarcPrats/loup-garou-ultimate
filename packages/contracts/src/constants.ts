@@ -63,6 +63,7 @@ export type RoleCategory = ValueOf<typeof ROLE_CATEGORY>
 export const SPECIAL_INFORMATION_TYPE = {
   RENARD: 'renard',
   PETITE_FILLE: 'petite-fille',
+  BIBLIOTHECAIRE: 'bibliothecaire',
 } as const
 
 export const GAME_LOG_EVENT_TYPE = {

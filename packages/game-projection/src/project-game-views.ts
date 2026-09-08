@@ -31,8 +31,9 @@ import type {
 interface CoreSpecialInformation {
   readonly type: typeof SPECIAL_INFORMATION_TYPE.RENARD
     | typeof SPECIAL_INFORMATION_TYPE.PETITE_FILLE
-  readonly roleId: RoleId
-  readonly seenPlayerIds: readonly [string, string]
+    | typeof SPECIAL_INFORMATION_TYPE.BIBLIOTHECAIRE
+  readonly roleId: RoleId | null
+  readonly seenPlayerIds: readonly string[]
 }
 
 function requirePlayer(
@@ -91,6 +92,13 @@ function getSpecialInformation(
       seenPlayerIds: assignment.petiteFilleInformation.seenPlayerIds,
     }
   }
+  if (assignment.bibliothecaireInformation?.playerId === playerId) {
+    return {
+      type: SPECIAL_INFORMATION_TYPE.BIBLIOTHECAIRE,
+      roleId: assignment.bibliothecaireInformation.roleId,
+      seenPlayerIds: assignment.bibliothecaireInformation.seenPlayerIds,
+    }
+  }
 
   const bluff = assignment.bluffSpecialInformation.find(
     (information) => information.playerId === playerId,
@@ -116,10 +124,7 @@ function toSpecialInformation(
     players: information.seenPlayerIds.map((playerId) => {
       const player = requirePlayer(state, playerId)
       return { id: player.id, name: player.name }
-    }) as [
-      { id: string; name: string },
-      { id: string; name: string },
-    ],
+    }),
   }
 }
 

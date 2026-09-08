@@ -181,6 +181,47 @@ describe('assignRoles', () => {
     expect(checked).toBeGreaterThan(0)
   })
 
+  it('gives the Bibliothécaire an outsider clue, or no info when none is in play', () => {
+    let checked = 0
+    let checkedWithOutsider = 0
+    let checkedWithoutOutsider = 0
+
+    for (const playerCount of SUPPORTED_PLAYER_COUNTS) {
+      for (let seed = 1; seed <= 1000; seed += 1) {
+        const result = assignWithSeed(playerCount, seed)
+        const bibliothecaire = result.assignments.find(
+          (assignment) => assignment.roleId === ROLE_ID.BIBLIOTHECAIRE,
+        )
+        if (!bibliothecaire) continue
+        const info = result.bibliothecaireInformation
+        expect(info).not.toBeNull()
+        if (!info) continue
+        checked += 1
+
+        if (info.roleId) {
+          checkedWithOutsider += 1
+          const seenOutsider = info.seenPlayerIds.some((playerId) => {
+            const seenAssignment = result.assignments.find((assignment) => assignment.playerId === playerId)
+            return Boolean(
+              seenAssignment
+                && (seenAssignment.isDrunk || getRoleDefinition(seenAssignment.roleId).category === ROLE_CATEGORY.OUTSIDER),
+            )
+          })
+          expect(seenOutsider).toBe(true)
+          expect(info.seenPlayerIds).toHaveLength(2)
+          expect(info.seenPlayerIds).not.toContain(info.playerId)
+        } else {
+          checkedWithoutOutsider += 1
+          expect(info.seenPlayerIds).toHaveLength(0)
+        }
+      }
+    }
+
+    expect(checked).toBeGreaterThan(0)
+    expect(checkedWithOutsider).toBeGreaterThan(0)
+    expect(checkedWithoutOutsider).toBeGreaterThan(0)
+  })
+
   it('gives a werewolf bluffing as Renard a clue about another non-ultimate werewolf', () => {
     let checked = 0
 

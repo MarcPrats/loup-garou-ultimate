@@ -14,6 +14,7 @@ import {
 import type { RandomSource } from './random'
 import {
   buildPetiteFilleInformation,
+  buildBibliothecaireInformation,
   buildRenardInformation,
   selectVoyanteDecoyPlayerId,
 } from './special-information'
@@ -52,6 +53,12 @@ export function assignRoles(
     drunkPlayerId,
     random,
   )
+  const bibliothecaireInformation = buildBibliothecaireInformation(
+    players,
+    assignments,
+    drunkPlayerId,
+    random,
+  )
   const werewolfPlayers = getWerewolfPlayers(players, assignments)
   const bluffRoles = assignBluffRoles(werewolfPlayers, assignments, random)
   const voyanteDecoyPlayerId = selectVoyanteDecoyPlayerId(
@@ -73,6 +80,7 @@ export function assignRoles(
     drunkPlayerId,
     renardInformation,
     petiteFilleInformation,
+    bibliothecaireInformation,
     bluffRoles: bluffRoles.assignments,
     voyanteDecoyPlayerId,
     bluffSpecialInformation,

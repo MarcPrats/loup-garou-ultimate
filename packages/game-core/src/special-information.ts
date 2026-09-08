@@ -5,7 +5,10 @@ import {
 } from './player-assignments'
 import { pickRandom, shuffle, type RandomSource } from './random'
 import {
+  ROLE_CATEGORY,
   ROLE_ID,
+  getEffectiveCategory,
+  getRoleDefinition,
   isNonUltimateWerewolfRole,
   isTrueVillagerRole,
   isVillageTeamRole,
@@ -14,10 +17,38 @@ import {
 } from './roles'
 import type {
   AssignablePlayer,
+  BibliothecaireInformation,
   PetiteFilleInformation,
   PlayerId,
   RenardInformation,
 } from './types'
+export function buildBibliothecaireInformation(
+  players: readonly AssignablePlayer[],
+  assignments: AssignmentMap,
+  drunkPlayerId: PlayerId | null,
+  random: RandomSource,
+): BibliothecaireInformation | null {
+  const bibliothecaire = findPlayerWithRole(players, assignments, ROLE_ID.BIBLIOTHECAIRE)
+  if (!bibliothecaire) return null
+
+  const outsiders = players.filter((player) => (
+    player.id !== bibliothecaire.id
+      && getEffectiveCategory(
+        roleFor(assignments, player.id),
+        player.id === drunkPlayerId,
+      ) === ROLE_CATEGORY.OUTSIDER
+  ))
+  if (outsiders.length === 0) {
+    return { playerId: bibliothecaire.id, roleId: null, seenPlayerIds: [] }
+  }
+
+  const selectedOutsider = pickRandom(outsiders, random)
+  return {
+    playerId: bibliothecaire.id,
+    roleId: roleFor(assignments, selectedOutsider.id) as BibliothecaireInformation['roleId'],
+    seenPlayerIds: buildVisiblePlayerPair(selectedOutsider, bibliothecaire.id, players, random),
+  }
+}
 
 function buildVisiblePlayerPair(
   selectedPlayer: AssignablePlayer,

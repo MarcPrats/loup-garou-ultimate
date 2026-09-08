@@ -39,8 +39,8 @@ export const cluePlayerSchema = z.object({
 
 export const specialInformationSchema = z.object({
   type: specialInformationTypeSchema,
-  roleId: roleIdSchema,
-  players: z.tuple([cluePlayerSchema, cluePlayerSchema]),
+  roleId: roleIdSchema.nullable(),
+  players: z.array(cluePlayerSchema).max(2),
 }).strict()
 
 export const privateAssignmentSchema = z.object({
