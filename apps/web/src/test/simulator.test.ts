@@ -170,7 +170,7 @@ describe('simulator route isolation', () => {
     await playerSelect.setValue(secondPlayerOption.element.value)
     await nextTick()
     expect(wrapper.text()).toContain(secondPlayerOption.text())
-    expect(wrapper.get('[data-testid="role-reveal-page"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="role-reveal-page"]').exists()).toBe(true)
     wrapper.unmount()
   })
 })

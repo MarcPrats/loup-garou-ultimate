@@ -113,6 +113,9 @@ function createHandlers(): LobbyGatewayHandlers {
     onLobbyClosed: vi.fn(),
     onSessionEnded: vi.fn(),
     onNotification: vi.fn(),
+    onReconnectRequest: vi.fn(),
+    onReconnectApproved: vi.fn(),
+    onReconnectRejected: vi.fn(),
     onProtocolError: vi.fn(),
   }
 }

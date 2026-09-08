@@ -11,6 +11,7 @@ import AppButton from '../components/ui/AppButton.vue'
 import AppCard from '../components/ui/AppCard.vue'
 import AppSwitch from '../components/ui/AppSwitch.vue'
 import { ROUTE_PATH } from '../constants/app'
+import { appPath } from '../constants/paths'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
