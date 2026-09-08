@@ -44,12 +44,13 @@ const specialInformationPresentation = computed(() => (
     </header>
 
     <div class="app-gm-mobile-role">
-      <img
-        v-if="assignment.rolePresentation"
-        class="app-gm-role-image"
-        :src="assignment.rolePresentation.imagePath"
-        :alt="assignment.rolePresentation.name"
-      >
+      <span v-if="assignment.rolePresentation" class="app-gm-role-image-frame">
+        <img
+          class="app-gm-role-image"
+          :src="assignment.rolePresentation.imagePath"
+          :alt="assignment.rolePresentation.name"
+        >
+      </span>
       <div>
         <span class="app-gm-mobile-label">Rôle</span>
         <strong>{{ roleName }}</strong>

@@ -58,7 +58,9 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
             <td><div class="app-gm-player-name">{{ assignment.player.name }}</div></td>
             <td>
               <div class="app-gm-role-name">
-                <img v-if="assignment.rolePresentation" class="app-gm-role-image" :src="assignment.rolePresentation.imagePath" :alt="assignment.rolePresentation.name">
+                <span v-if="assignment.rolePresentation" class="app-gm-role-image-frame">
+                  <img class="app-gm-role-image" :src="assignment.rolePresentation.imagePath" :alt="assignment.rolePresentation.name">
+                </span>
                 <span>{{ assignment.rolePresentation?.name ?? assignment.role.id }}</span>
               </div>
             </td>

@@ -42,8 +42,6 @@ function continueToPlayerView(): void {
     @keydown.space.prevent="continueToPlayerView"
   >
     <div class="app-role-reveal-stage">
-      <h1 id="role-reveal-page-title">Révéler votre rôle</h1>
-
       <RoleInfoPanel
         :role-id="assignment.role.id"
         power-title="Votre Pouvoir"

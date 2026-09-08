@@ -164,6 +164,13 @@ describe('simulator route isolation', () => {
     expect(wrapper.find('[data-testid=advance-game-phase]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Votre Rôle')
     expect(wrapper.find('.app-gm-view').exists()).toBe(false)
+
+    const secondPlayerOption = playerSelect.findAll('option')[2]
+    if (!secondPlayerOption) throw new Error('Second simulator player option is missing')
+    await playerSelect.setValue(secondPlayerOption.element.value)
+    await nextTick()
+    expect(wrapper.text()).toContain(secondPlayerOption.text())
+    expect(wrapper.get('[data-testid="role-reveal-page"]').exists()).toBe(true)
     wrapper.unmount()
   })
 })

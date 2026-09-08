@@ -336,7 +336,7 @@ generate()
 
         <div
           v-else-if="activePlayerAssignment"
-          key="player"
+          :key="`player-${activeView}`"
           class="app-screen app-game-container mx-auto mt-8 w-full"
         >
           <RoleRevealPage
