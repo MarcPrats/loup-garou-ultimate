@@ -12,7 +12,14 @@ import RulesNightBlock from './RulesNightBlock.vue'
 
 const props = defineProps<{
   dashboard: HostDashboard
+  deadPlayerIds?: readonly string[]
 }>()
+
+const disabledRoleIds = computed(() => new Set(
+  props.dashboard.players
+    .filter((assignment) => props.deadPlayerIds?.includes(assignment.player.id))
+    .map((assignment) => assignment.role.id),
+))
 
 const presentRoleIds = computed(() => props.dashboard.players.map((assignment) => assignment.role.id))
 const firstNightSections = computed(() => filterRulesNightSections(
@@ -36,10 +43,10 @@ const followingNightSections = computed(() => filterRulesNightSections(
 
     <div class="app-gm-night-order-grid">
       <div>
-        <RulesNightBlock title="🌑 Première Nuit" :sections="firstNightSections" />
+        <RulesNightBlock title="🌑 Première Nuit" :sections="firstNightSections" :disabled-role-ids="disabledRoleIds" />
       </div>
       <div>
-        <RulesNightBlock title="🌒 Nuits Suivantes" :sections="followingNightSections" />
+        <RulesNightBlock title="🌒 Nuits Suivantes" :sections="followingNightSections" :disabled-role-ids="disabledRoleIds" />
       </div>
     </div>
   </section>
@@ -70,6 +77,8 @@ const followingNightSections = computed(() => filterRulesNightSections(
 .app-gm-night-order :deep(.night-step-body) { flex: 1; }
 .app-gm-night-order :deep(.night-step-body strong) { display: block; margin-bottom: 3px; font-size: .82rem; }
 .app-gm-night-order :deep(.night-step-body > span) { display: block; color: var(--app-muted); font-size: .72rem; line-height: 1.45; }
+.app-gm-night-order :deep(.night-step-disabled) { opacity: .42; filter: grayscale(.7); }
+.app-gm-night-order :deep(.night-step-disabled-label) { color: #fca5a5 !important; font-size: .68rem !important; font-weight: 700; }
 .app-gm-night-order :deep(.night-step-body .eye) { color: var(--app-blue); }
 .app-gm-night-order :deep(.night-cond) { margin-bottom: 2px; color: var(--app-accent) !important; font-size: .7rem !important; font-weight: 600; }
 

@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<{
   showRulesLink?: boolean
   showHeader?: boolean
   embedded?: boolean
+  deadPlayerIds?: readonly string[]
 }>(), {
   showNightOrder: true,
   showRulesLink: true,
@@ -92,7 +93,11 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
       />
     </div>
 
-    <HostNightOrderPanel v-if="showNightOrder && nightOrderDashboard" :dashboard="nightOrderDashboard" />
+    <HostNightOrderPanel
+      v-if="showNightOrder && nightOrderDashboard"
+      :dashboard="nightOrderDashboard"
+      :dead-player-ids="deadPlayerIds ?? []"
+    />
 
     <a v-if="showRulesLink" :href="appPath(ROUTE_PATH.RULES)" class="app-btn app-btn-secondary app-rules-button" target="_blank" rel="noopener noreferrer">📖 Consulter les Règles</a>
   </div>

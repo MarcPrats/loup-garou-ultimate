@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import type { RulesNightStepData } from '../constants/rules-page'
 
-defineProps<{ step: RulesNightStepData }>()
+defineProps<{
+  step: RulesNightStepData
+  disabled?: boolean
+}>()
 </script>
 
 <template>
-  <div class="night-step">
+  <div class="night-step" :class="{ 'night-step-disabled': disabled }" :aria-disabled="disabled || undefined">
     <img
       v-if="step.imagePath"
       class="night-step-icon"
@@ -15,6 +18,7 @@ defineProps<{ step: RulesNightStepData }>()
     <div v-else class="night-step-emoji">{{ step.emoji ?? '❔' }}</div>
     <div class="night-step-body">
       <strong>{{ step.title }}</strong>
+      <span v-if="disabled" class="night-step-disabled-label">Joueur mort ou exécuté</span>
       <span v-if="step.condition" class="night-cond">{{ step.condition }}</span>
       <span
         v-for="(line, index) in step.lines"

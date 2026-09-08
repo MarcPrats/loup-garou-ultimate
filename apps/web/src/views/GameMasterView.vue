@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import DayVotingPanel from '../features/day-voting/DayVotingPanel.vue'
@@ -13,6 +13,9 @@ import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
 const confirmingLeave = ref(false)
+const deadPlayerIds = computed(() => (
+  lobby.lobby?.players.filter((player) => !player.isHost && !player.alive).map((player) => player.id) ?? []
+))
 
 async function confirmLeave(): Promise<void> {
   confirmingLeave.value = false
@@ -70,6 +73,7 @@ async function confirmLeave(): Promise<void> {
       <HostDashboardPanel
         v-if="lobby.hostDashboard"
         :dashboard="lobby.hostDashboard"
+        :dead-player-ids="deadPlayerIds"
         @copied="lobby.showCopiedNotice"
       />
 
