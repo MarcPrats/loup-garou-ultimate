@@ -1369,6 +1369,25 @@ button:disabled {
   vertical-align: middle;
 }
 
+.app-gm-player-row-disabled > td,
+.app-gm-mobile-card-disabled {
+  opacity: .46;
+  filter: grayscale(.75);
+}
+
+.app-gm-player-row-disabled .app-gm-player-name,
+.app-gm-mobile-card-disabled .app-gm-player-name {
+  text-decoration: line-through;
+}
+
+.app-gm-dead-label {
+  display: inline-block;
+  margin-top: 4px;
+  color: #fca5a5;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
 .app-gm-player-name {
   color: var(--app-text);
   font-weight: 600;

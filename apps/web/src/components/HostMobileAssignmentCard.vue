@@ -17,6 +17,7 @@ type MobileAssignment = HostPlayerAssignment & {
 
 const props = defineProps<{
   assignment: MobileAssignment
+  disabled?: boolean
 }>()
 
 const roleName = computed(() => (
@@ -33,10 +34,11 @@ const specialInformationPresentation = computed(() => (
 </script>
 
 <template>
-  <article class="app-gm-mobile-card">
+  <article class="app-gm-mobile-card" :class="{ 'app-gm-mobile-card-disabled': disabled }" :aria-disabled="disabled || undefined">
     <header class="app-gm-mobile-card-header">
       <div class="app-gm-mobile-player">
         <h3 class="app-gm-player-name">{{ assignment.player.name }}</h3>
+        <span v-if="disabled" class="app-gm-dead-label">☠️ Mort ou exécuté</span>
       </div>
       <span class="app-gm-team-badge" :class="assignment.role.team === TEAM.WEREWOLVES ? 'team-werewolves' : 'team-villagers'">
         {{ teamLabel }}

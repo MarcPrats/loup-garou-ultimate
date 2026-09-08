@@ -17,7 +17,7 @@ const props = defineProps<{
 
 const disabledRoleIds = computed(() => new Set(
   props.dashboard.players
-    .filter((assignment) => props.deadPlayerIds?.includes(assignment.player.id))
+    .filter((assignment) => props.deadPlayerIds?.includes(assignment.player.id) === true)
     .map((assignment) => assignment.role.id),
 ))
 

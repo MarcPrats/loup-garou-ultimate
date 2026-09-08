@@ -509,6 +509,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
           targetPlayerId: command.targetPlayerId,
         })
         broadcastSnapshot(io, result)
+        socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await serviceFor(socket).getHostDashboard(getSessionCommand(socket)))
         return result
       }, onUnexpectedError)
     })
@@ -523,6 +524,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
           targetPlayerId: command.targetPlayerId,
         })
         broadcastSnapshot(io, result)
+        socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await serviceFor(socket).getHostDashboard(getSessionCommand(socket)))
         return result
       }, onUnexpectedError)
     })
@@ -536,6 +538,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
           eventId: command.eventId,
         })
         broadcastSnapshot(io, result)
+        socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await serviceFor(socket).getHostDashboard(getSessionCommand(socket)))
         return result
       }, onUnexpectedError)
     })

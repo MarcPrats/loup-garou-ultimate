@@ -47,7 +47,7 @@ export function getSessionDestination(
     : SESSION_DESTINATION.PLAYER_ROLE
 }
 
-function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
+export function getDeadPlayerIds(lobby: LobbyState): ReadonlySet<string> {
   return new Set(lobby.game?.gameLog
     .filter((event) => event.eventType !== GAME_LOG_EVENT_TYPE.DAY_VOTE)
     .map((event) => event.targetPlayerId) ?? [])

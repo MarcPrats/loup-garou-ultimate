@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<{
 
 const assignments = computed(() => props.dashboard.players.map((assignment) => ({
   ...assignment,
+  isDead: props.deadPlayerIds?.includes(assignment.player.id) === true,
   rolePresentation: getRolePresentation(assignment.role.id),
   bluffPresentation: assignment.bluffRoleId ? getRolePresentation(assignment.bluffRoleId) : null,
   cluePresentation: assignment.specialInformation?.roleId ? getRolePresentation(assignment.specialInformation.roleId) : null,
@@ -55,8 +56,11 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
       <table class="app-gm-table">
         <thead><tr><th>Joueur</th><th>Rôle</th><th>Équipe</th><th>Détails</th></tr></thead>
         <tbody>
-          <tr v-for="assignment in assignments" :key="assignment.player.id">
-            <td><div class="app-gm-player-name">{{ assignment.player.name }}</div></td>
+          <tr v-for="assignment in assignments" :key="assignment.player.id" :class="{ 'app-gm-player-row-disabled': assignment.isDead }" :aria-disabled="assignment.isDead || undefined">
+            <td>
+              <div class="app-gm-player-name">{{ assignment.player.name }}</div>
+              <span v-if="assignment.isDead" class="app-gm-dead-label">☠️ Mort ou exécuté</span>
+            </td>
             <td>
               <div class="app-gm-role-name">
                 <span v-if="assignment.rolePresentation" class="app-gm-role-image-frame">
@@ -90,6 +94,7 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
         v-for="assignment in assignments"
         :key="`mobile-${assignment.player.id}`"
         :assignment="assignment"
+        :disabled="assignment.isDead"
       />
     </div>
 
