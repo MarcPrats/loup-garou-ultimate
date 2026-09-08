@@ -220,7 +220,7 @@ export const ROLE_CATEGORY_LABEL: Record<RoleCategory, string> = {
 
 export const IVROGNE_PRESENTATION = {
   name: 'Ivrogne',
-  imagePath: appAsset('/images/ivrogne-v3.webp'),
+  imagePath: appAsset('/images/ivrogne.webp'),
   fallbackSymbol: '🍺',
   summary: 'Cette personne croit posséder son rôle affiché, mais elle est secrètement Ivrogne.',
 } as const
