@@ -7,6 +7,7 @@ import FeedbackBanner from '../components/FeedbackBanner.vue'
 import GameLogPanel from '../components/GameLogPanel.vue'
 import GamePhasePanel from '../components/GamePhasePanel.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
+import InviteLinkShare from '../components/InviteLinkShare.vue'
 import { AppButton } from '../components/ui'
 import { useLobbyStore } from '../stores/lobby'
 
@@ -31,6 +32,18 @@ async function confirmLeave(): Promise<void> {
         @advance="lobby.advanceGamePhase"
         @rewind="lobby.rewindGamePhase"
       />
+
+      <section v-if="lobby.reconnectRequests.length > 0" class="app-reconnect-requests" aria-live="polite">
+        <h2>Demandes de reconnexion</h2>
+        <p class="app-subtitle">Vérifiez l’identité du joueur avant de transférer sa place.</p>
+        <div v-for="request in lobby.reconnectRequests" :key="request.requestId" class="app-reconnect-request">
+          <strong>{{ request.playerName }}</strong>
+          <div class="app-button-group">
+            <AppButton variant="primary" size="sm" @click="lobby.approveReconnect(request.requestId)">Autoriser</AppButton>
+            <AppButton class="app-btn-back" size="sm" @click="lobby.rejectReconnect(request.requestId)">Refuser</AppButton>
+          </div>
+        </div>
+      </section>
 
       <DayVotingPanel
         v-if="lobby.lobby?.dayVotingEnabled"
@@ -76,6 +89,9 @@ async function confirmLeave(): Promise<void> {
         :message="lobby.error.message"
         variant="error"
       />
+
+      <InviteLinkShare />
+
       <AppButton
         class="app-btn-back app-leave-button"
         @click="confirmingLeave = true"

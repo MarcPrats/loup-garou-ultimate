@@ -41,6 +41,19 @@ export const sessionResumeCommandSchema = z.object({
   sessionToken: sessionTokenSchema,
 }).strict()
 
+export const lobbyReconnectOptionsCommandSchema = z.object({
+  lobbyId: lobbyIdSchema,
+}).strict()
+
+export const lobbyReconnectRequestCommandSchema = z.object({
+  lobbyId: lobbyIdSchema,
+  playerId: playerIdSchema,
+}).strict()
+
+export const hostReconnectDecisionCommandSchema = z.object({
+  requestId: clientRequestIdSchema,
+}).strict()
+
 export const hostKickCommandSchema = z.object({
   playerId: playerIdSchema,
 }).strict()
@@ -54,6 +67,9 @@ export type LobbyEnterCommand = z.infer<typeof lobbyEnterCommandSchema>
 export type LobbyCreateCommand = z.infer<typeof lobbyCreateCommandSchema>
 export type LobbyJoinCommand = z.infer<typeof lobbyJoinCommandSchema>
 export type SessionResumeCommand = z.infer<typeof sessionResumeCommandSchema>
+export type LobbyReconnectOptionsCommand = z.infer<typeof lobbyReconnectOptionsCommandSchema>
+export type LobbyReconnectRequestCommand = z.infer<typeof lobbyReconnectRequestCommandSchema>
+export type HostReconnectDecisionCommand = z.infer<typeof hostReconnectDecisionCommandSchema>
 export type HostKickCommand = z.infer<typeof hostKickCommandSchema>
 export type GamePhaseAdvanceCommand = z.infer<typeof gamePhaseAdvanceCommandSchema>
 export {

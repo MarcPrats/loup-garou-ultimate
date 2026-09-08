@@ -71,6 +71,17 @@ export const notificationEventSchema = z.object({
   message: z.string().min(1).max(300),
 }).strict()
 
+export const reconnectRequestSchema = z.object({
+  requestId: z.string().min(16).max(100),
+  playerId: z.string().min(1).max(128),
+  playerName: z.string().trim().min(1).max(40),
+  requestedAt: timestampSchema,
+}).strict()
+
+export const reconnectRejectedEventSchema = z.object({
+  message: z.string().min(1).max(300),
+}).strict()
+
 export type SystemReadyEvent = z.infer<typeof systemReadyEventSchema>
 export type GameStartedEvent = z.infer<typeof gameStartedEventSchema>
 export type HostDashboard = z.infer<typeof hostDashboardSchema>
@@ -78,3 +89,5 @@ export type GameStartPreview = z.infer<typeof gameStartPreviewSchema>
 export type LobbyClosedEvent = z.infer<typeof lobbyClosedEventSchema>
 export type SessionEndedEvent = z.infer<typeof sessionEndedEventSchema>
 export type NotificationEvent = z.infer<typeof notificationEventSchema>
+export type ReconnectRequest = z.infer<typeof reconnectRequestSchema>
+export type ReconnectRejectedEvent = z.infer<typeof reconnectRejectedEventSchema>

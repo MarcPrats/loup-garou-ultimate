@@ -21,6 +21,8 @@ import {
   dayVotePrivateStatusSchema,
   sessionEndedEventSchema,
   sessionResumeResponseSchema,
+  reconnectRequestSchema,
+  reconnectRejectedEventSchema,
   systemReadyEventSchema,
   type Ack,
   type ClientRequestId,
@@ -42,6 +44,8 @@ import {
   type SessionResumeResponse,
   type SessionToken,
   type SystemReadyEvent,
+  type ReconnectRequest,
+  type ReconnectRejectedEvent,
 } from '@lgu/contracts'
 
 import {
@@ -55,6 +59,8 @@ const ENTER_RECOVERY_WINDOW_MS = 5 * 60 * 1_000
 
 const lobbyEntryAckSchema = createAckSchema(lobbyEntryResponseSchema)
 const sessionResumeAckSchema = createAckSchema(sessionResumeResponseSchema)
+const reconnectOptionsAckSchema = createAckSchema(lobbySnapshotSchema)
+const reconnectAckSchema = createAckSchema(emptyResponseSchema)
 const lobbySnapshotAckSchema = createAckSchema(lobbySnapshotSchema)
 const emptyAckSchema = createAckSchema(emptyResponseSchema)
 const gameStartPreviewAckSchema = createAckSchema(gameStartPreviewSchema)
@@ -73,6 +79,9 @@ export interface LobbyGatewayHandlers {
   readonly onLobbyClosed: (event: LobbyClosedEvent) => void
   readonly onSessionEnded: (event: SessionEndedEvent) => void
   readonly onNotification: (event: NotificationEvent) => void
+  readonly onReconnectRequest: (event: ReconnectRequest) => void
+  readonly onReconnectApproved: (response: LobbyEntryResponse) => void
+  readonly onReconnectRejected: (event: ReconnectRejectedEvent) => void
   readonly onProtocolError: () => void
 }
 
@@ -86,6 +95,10 @@ export interface LobbyGateway {
   createLobby(playerName: string): Promise<Ack<LobbyEntryResponse>>
   joinLobby(lobbyId: string, playerName: string): Promise<Ack<LobbyEntryResponse>>
   resume(sessionToken: SessionToken, lobbyId?: string): Promise<Ack<SessionResumeResponse>>
+  getReconnectOptions(lobbyId: string): Promise<Ack<LobbySnapshot>>
+  requestReconnect(lobbyId: string, playerId: PlayerId): Promise<Ack<EmptyResponse>>
+  approveReconnect(requestId: string): Promise<Ack<EmptyResponse>>
+  rejectReconnect(requestId: string): Promise<Ack<EmptyResponse>>
   leave(): Promise<Ack<EmptyResponse>>
   kick(playerId: PlayerId): Promise<Ack<LobbySnapshot>>
   start(): Promise<Ack<GameStartPreview>>
@@ -207,6 +220,15 @@ export class SocketLobbyGateway implements LobbyGateway {
     const onNotification = (value: unknown) => {
       deliverEvent(notificationEventSchema, value, handlers.onNotification, handlers.onProtocolError)
     }
+    const onReconnectRequest = (value: unknown) => {
+      deliverEvent(reconnectRequestSchema, value, handlers.onReconnectRequest, handlers.onProtocolError)
+    }
+    const onReconnectApproved = (value: unknown) => {
+      deliverEvent(lobbyEntryResponseSchema, value, handlers.onReconnectApproved, handlers.onProtocolError)
+    }
+    const onReconnectRejected = (value: unknown) => {
+      deliverEvent(reconnectRejectedEventSchema, value, handlers.onReconnectRejected, handlers.onProtocolError)
+    }
 
     this.socket.on('connect', onConnect)
     this.socket.on('disconnect', onDisconnect)
@@ -222,6 +244,9 @@ export class SocketLobbyGateway implements LobbyGateway {
     this.socket.on(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
     this.socket.on(SOCKET_EVENT.SESSION_ENDED, onSessionEnded)
     this.socket.on(SOCKET_EVENT.NOTIFICATION, onNotification)
+    this.socket.on(SOCKET_EVENT.HOST_RECONNECT_REQUEST, onReconnectRequest)
+    this.socket.on(SOCKET_EVENT.RECONNECT_APPROVED, onReconnectApproved)
+    this.socket.on(SOCKET_EVENT.RECONNECT_REJECTED, onReconnectRejected)
 
     return () => {
       this.socket.off('connect', onConnect)
@@ -238,6 +263,9 @@ export class SocketLobbyGateway implements LobbyGateway {
       this.socket.off(SOCKET_EVENT.LOBBY_CLOSED, onLobbyClosed)
       this.socket.off(SOCKET_EVENT.SESSION_ENDED, onSessionEnded)
       this.socket.off(SOCKET_EVENT.NOTIFICATION, onNotification)
+      this.socket.off(SOCKET_EVENT.HOST_RECONNECT_REQUEST, onReconnectRequest)
+      this.socket.off(SOCKET_EVENT.RECONNECT_APPROVED, onReconnectApproved)
+      this.socket.off(SOCKET_EVENT.RECONNECT_REJECTED, onReconnectRejected)
     }
   }
 
@@ -309,6 +337,38 @@ export class SocketLobbyGateway implements LobbyGateway {
         { lobbyId, sessionToken },
         callback,
       ),
+    )
+  }
+
+  getReconnectOptions(lobbyId: string): Promise<Ack<LobbySnapshot>> {
+    return this.send(
+      'reconnect options',
+      reconnectOptionsAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.LOBBY_RECONNECT_OPTIONS, { lobbyId }, callback),
+    )
+  }
+
+  requestReconnect(lobbyId: string, playerId: PlayerId): Promise<Ack<EmptyResponse>> {
+    return this.send(
+      'reconnect request',
+      reconnectAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.LOBBY_RECONNECT_REQUEST, { lobbyId, playerId }, callback),
+    )
+  }
+
+  approveReconnect(requestId: string): Promise<Ack<EmptyResponse>> {
+    return this.send(
+      'reconnect approval',
+      reconnectAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.HOST_RECONNECT_APPROVE, { requestId }, callback),
+    )
+  }
+
+  rejectReconnect(requestId: string): Promise<Ack<EmptyResponse>> {
+    return this.send(
+      'reconnect rejection',
+      reconnectAckSchema,
+      (callback) => this.socket.emit(SOCKET_EVENT.HOST_RECONNECT_REJECT, { requestId }, callback),
     )
   }
 

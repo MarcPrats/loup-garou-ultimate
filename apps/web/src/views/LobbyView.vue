@@ -1,53 +1,21 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 
 import type { PublicPlayer } from '@lgu/contracts'
 
 import ConfirmDialog from '../components/ConfirmDialog.vue'
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
+import InviteLinkShare from '../components/InviteLinkShare.vue'
 import AppButton from '../components/ui/AppButton.vue'
 import AppCard from '../components/ui/AppCard.vue'
-import AppInput from '../components/ui/AppInput.vue'
 import AppSwitch from '../components/ui/AppSwitch.vue'
 import { ROUTE_PATH } from '../constants/app'
-import { appPath } from '../constants/paths'
 import { useLobbyStore } from '../stores/lobby'
 
 const lobby = useLobbyStore()
 const pendingKick = ref<PublicPlayer | null>(null)
 const confirmingLeave = ref(false)
-const copying = ref(false)
-const copyError = ref(false)
-const inviteUrl = computed(() => {
-  if (typeof window === 'undefined' || !lobby.lobby?.id) return ''
-  return `${window.location.origin}${appPath(`/lobby/${lobby.lobby.id}`)}`
-})
-
-async function copyInvite(): Promise<void> {
-  copying.value = true
-  copyError.value = false
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(inviteUrl.value)
-    } else {
-      const textarea = document.createElement('textarea')
-      textarea.value = inviteUrl.value
-      textarea.style.position = 'fixed'
-      textarea.style.opacity = '0'
-      document.body.append(textarea)
-      textarea.select()
-      const copied = document.execCommand('copy')
-      textarea.remove()
-      if (!copied) throw new Error('Copy command failed')
-    }
-    lobby.showCopiedNotice()
-  } catch {
-    copyError.value = true
-  } finally {
-    copying.value = false
-  }
-}
 async function confirmKick(): Promise<void> {
   if (!pendingKick.value) return
   const playerId = pendingKick.value.id
@@ -67,14 +35,7 @@ async function confirmLeave(): Promise<void> {
       <header class="app-lobby-header">
         <h2>Lobby</h2>
         <p class="app-lobby-limit-hint">Jusqu'à 12 joueurs peuvent rejoindre le lobby (hors maître du jeu).</p>
-        <div class="app-invitation-container">
-          <p class="app-invitation-label">🔗 Lien d'invitation</p>
-          <div class="app-invitation-group">
-            <AppInput :display-value="inviteUrl" readonly class="app-invitation-link" aria-label="Lien d'invitation" />
-            <AppButton size="sm" class="app-copy-button" :disabled="copying" @click="copyInvite">📋 {{ copying ? 'Copie…' : 'Copier' }}</AppButton>
-          </div>
-          <p v-if="copyError" class="app-copy-error" role="alert">Copie impossible. Sélectionnez le lien et copiez-le manuellement.</p>
-        </div>
+        <InviteLinkShare />
       </header>
 
       <section v-if="lobby.host" class="app-roster-section">

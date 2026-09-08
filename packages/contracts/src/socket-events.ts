@@ -7,6 +7,9 @@ import type {
   LobbyEnterCommand,
   LobbyJoinCommand,
   SessionResumeCommand,
+  LobbyReconnectOptionsCommand,
+  LobbyReconnectRequestCommand,
+  HostReconnectDecisionCommand,
 } from './commands'
 import type {
   DayNominationDecisionCommand,
@@ -26,6 +29,8 @@ import type {
   GameStartPreview,
   HostDashboard,
   NotificationEvent,
+  ReconnectRequest,
+  ReconnectRejectedEvent,
   LobbyClosedEvent,
   SessionEndedEvent,
   SystemReadyEvent,
@@ -49,6 +54,9 @@ export interface ServerToClientEvents {
   [SOCKET_EVENT.LOBBY_CLOSED]: (event: LobbyClosedEvent) => void
   [SOCKET_EVENT.SESSION_ENDED]: (event: SessionEndedEvent) => void
   [SOCKET_EVENT.NOTIFICATION]: (event: NotificationEvent) => void
+  [SOCKET_EVENT.HOST_RECONNECT_REQUEST]: (event: ReconnectRequest) => void
+  [SOCKET_EVENT.RECONNECT_APPROVED]: (response: LobbyEntryResponse) => void
+  [SOCKET_EVENT.RECONNECT_REJECTED]: (event: ReconnectRejectedEvent) => void
 }
 
 export interface ClientToServerEvents {
@@ -71,6 +79,22 @@ export interface ClientToServerEvents {
   [SOCKET_EVENT.SESSION_RESUME]: (
     command: SessionResumeCommand,
     callback: AckCallback<SessionResumeResponse>,
+  ) => void
+  [SOCKET_EVENT.LOBBY_RECONNECT_OPTIONS]: (
+    command: LobbyReconnectOptionsCommand,
+    callback: AckCallback<LobbySnapshot>,
+  ) => void
+  [SOCKET_EVENT.LOBBY_RECONNECT_REQUEST]: (
+    command: LobbyReconnectRequestCommand,
+    callback: AckCallback<EmptyResponse>,
+  ) => void
+  [SOCKET_EVENT.HOST_RECONNECT_APPROVE]: (
+    command: HostReconnectDecisionCommand,
+    callback: AckCallback<EmptyResponse>,
+  ) => void
+  [SOCKET_EVENT.HOST_RECONNECT_REJECT]: (
+    command: HostReconnectDecisionCommand,
+    callback: AckCallback<EmptyResponse>,
   ) => void
   [SOCKET_EVENT.PLAYER_LEAVE]: (
     command: EmptyCommand,

@@ -115,6 +115,9 @@ export const ERROR_CODE = {
   STALE_REVISION: 'stale-revision',
   INVALID_GAME_EVENT: 'invalid-game-event',
   GAME_EVENT_NOT_FOUND: 'game-event-not-found',
+  RECONNECT_NOT_AVAILABLE: 'reconnect-not-available',
+  RECONNECT_REQUEST_NOT_FOUND: 'reconnect-request-not-found',
+  RECONNECT_REQUEST_PENDING: 'reconnect-request-pending',
   PLAYER_ALREADY_DEAD: 'player-already-dead',
 } as const
 export type ErrorCode = ValueOf<typeof ERROR_CODE>
@@ -126,6 +129,13 @@ export const SOCKET_EVENT = {
   LOBBY_JOIN: 'lobby:join',
   LOBBY_LIST: 'lobby:list',
   SESSION_RESUME: 'session:resume',
+  LOBBY_RECONNECT_OPTIONS: 'lobby:reconnect-options',
+  LOBBY_RECONNECT_REQUEST: 'lobby:reconnect-request',
+  HOST_RECONNECT_REQUEST: 'host:reconnect-request',
+  HOST_RECONNECT_APPROVE: 'host:reconnect-approve',
+  HOST_RECONNECT_REJECT: 'host:reconnect-reject',
+  RECONNECT_APPROVED: 'reconnect:approved',
+  RECONNECT_REJECTED: 'reconnect:rejected',
   PLAYER_LEAVE: 'player:leave',
   HOST_KICK: 'host:kick',
   GAME_START: 'game:start',

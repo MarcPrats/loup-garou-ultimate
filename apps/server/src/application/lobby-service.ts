@@ -355,6 +355,13 @@ export class LobbyService {
     return lobby ? toLobbySnapshot(lobby) : null
   }
 
+  async getReconnectOptions(): Promise<LobbySnapshot> {
+    const lobby = await this.dependencies.repository.read()
+    if (!lobby) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Cette partie n’existe plus.')
+    assertGameInProgress(lobby)
+    return toLobbySnapshot(lobby)
+  }
+
   enter(command: EnterLobbyCommand): Promise<LobbyEntryResponse> {
     assertConnectionId(command.connectionId)
     const parsedName = playerNameSchema.safeParse(command.playerName)
@@ -482,6 +489,38 @@ export class LobbyService {
           response: toEntryResponse(lobby, player),
           replacedConnectionId,
           publicStateChanged: publicStateChanged || hostChanged,
+        },
+      }
+    })
+  }
+
+  reconnect(playerId: PlayerId, connectionId: ConnectionId): Promise<ResumeResult> {
+    assertConnectionId(connectionId)
+    return this.dependencies.repository.mutate<ResumeResult>((lobby) => {
+      if (!lobby) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Cette partie n’existe plus.')
+      assertGameInProgress(lobby)
+      const player = lobby.players.find((candidate) => candidate.id === playerId && !candidate.isHost)
+      if (!player || player.sessionRevoked) {
+        throw new LobbyError(ERROR_CODE.PLAYER_NOT_FOUND, 'Ce joueur n’existe plus dans la partie.')
+      }
+      if (lobby.players.some((candidate) => candidate.connected && candidate.connectionId === connectionId)) {
+        throw new LobbyError(ERROR_CODE.INVALID_PAYLOAD, 'Cette connexion possède déjà une session active.')
+      }
+      const now = this.dependencies.clock.now()
+      const replacedConnectionId = player.connected && player.connectionId !== connectionId
+        ? player.connectionId
+        : null
+      player.connectionId = connectionId
+      player.connected = true
+      player.lastSeenAt = now
+      player.disconnectedAt = null
+      touchLobby(lobby, now)
+      return {
+        lobby,
+        result: {
+          response: toEntryResponse(lobby, player),
+          replacedConnectionId,
+          publicStateChanged: true,
         },
       }
     })

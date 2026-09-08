@@ -3045,3 +3045,50 @@ button:disabled {
     transform: none;
   }
 }
+
+.app-reconnect-requests {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0;
+  padding: 18px;
+  border: 1px solid rgb(245 166 35 / 42%);
+  border-radius: 18px;
+  background: rgb(15 23 42 / 82%);
+}
+
+.app-reconnect-requests h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.app-reconnect-request {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 6%);
+}
+
+@media (max-width: 640px) {
+  .app-reconnect-request {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+.app-invitation-group .app-copy-button {
+  width: auto;
+  min-width: 0;
+  flex: 0 0 auto;
+  min-height: 36px;
+  padding: 8px 14px;
+  font-size: .88rem;
+}
+
+@media (max-width: 600px) {
+  .app-invitation-group .app-copy-button {
+    align-self: center;
+  }
+}

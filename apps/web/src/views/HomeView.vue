@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import type { LobbySnapshot } from '@lgu/contracts'
@@ -22,6 +22,7 @@ const route = useRoute()
 const router = useRouter()
 const enteringName = ref(route.name === ROUTE_NAME.LOBBIES || typeof route.params.lobbyId === 'string')
 const playerName = ref('')
+const selectedReconnectPlayerId = ref('')
 const normalizedName = computed(() => playerName.value.trim())
 const lobbyPlayerCount = (lobby: LobbySnapshot): number => (
   lobby.players.filter((player) => !player.isHost).length
@@ -35,8 +36,12 @@ const inviteLobbyId = computed(() => {
   return null
 })
 const inviteMode = computed(() => Boolean(inviteLobbyId.value))
+const reconnectMode = computed(() => Boolean(inviteMode.value && lobby.reconnectOptions))
+const reconnectPlayers = computed(() => (
+  lobby.reconnectOptions?.players.filter((player) => !player.isHost) ?? []
+))
 const canSubmit = computed(() => (
-  normalizedName.value.length > 0
+  (reconnectMode.value ? selectedReconnectPlayerId.value.length > 0 : normalizedName.value.length > 0)
   && lobby.initialized
   && !lobby.hasStoredSession
   && !submitting.value
@@ -62,7 +67,11 @@ async function joinInviteLobby(): Promise<void> {
   if (!inviteLobbyId.value || !canSubmit.value) return
   joiningLobbyId.value = inviteLobbyId.value
   try {
-    await lobby.joinLobby(inviteLobbyId.value, normalizedName.value)
+    if (reconnectMode.value) {
+      await lobby.requestReconnect(inviteLobbyId.value, selectedReconnectPlayerId.value)
+    } else {
+      await lobby.joinLobby(inviteLobbyId.value, normalizedName.value)
+    }
   } finally {
     joiningLobbyId.value = null
   }
@@ -89,6 +98,7 @@ onMounted(async () => {
     if (inviteMode.value) {
       // A lobby link wins over a previously persisted session.
       if (lobby.hasStoredSession) await lobby.startNewSession()
+      await lobby.loadReconnectOptions(inviteLobbyId.value!)
       return
     }
     await lobby.listLobbies()
@@ -97,6 +107,12 @@ onMounted(async () => {
     preparingInvite.value = false
   }
 })
+
+watch(reconnectPlayers, (players) => {
+  if (!players.some((player) => player.id === selectedReconnectPlayerId.value)) {
+    selectedReconnectPlayerId.value = players[0]?.id ?? ''
+  }
+}, { immediate: true })
 
 onUnmounted(() => {
   if (lobbyRefreshTimer) clearInterval(lobbyRefreshTimer)
@@ -107,23 +123,34 @@ onUnmounted(() => {
   <main class="app-page app-home-page">
     <section v-if="enteringName && inviteMode" class="app-screen app-home-container app-lobby app-lobby-invite-only">
       <h2>Rejoindre la partie</h2>
-      <p class="app-subtitle">Entrez votre nom pour rejoindre le lobby invité.</p>
+      <p class="app-subtitle">
+        {{ reconnectMode ? 'Sélectionnez votre joueur pour demander la reconnexion.' : 'Entrez votre nom pour rejoindre le lobby invité.' }}
+      </p>
       <p class="app-lobby-invite-hint">Lobby : <strong>{{ inviteLobbyId }}</strong></p>
 
       <form class="app-lobby-create-form" @submit.prevent="submit">
-        <label for="player-name-input">Votre nom</label>
-        <AppInput
-          id="player-name-input"
-          v-model="playerName"
-          maxlength="20"
-          autocomplete="off"
-          placeholder="Votre nom..."
-          class="app-text-input"
-          autofocus
-        />
+        <template v-if="reconnectMode">
+          <label for="reconnect-player-select">Votre joueur</label>
+          <select id="reconnect-player-select" v-model="selectedReconnectPlayerId" class="app-text-input" :disabled="lobby.reconnectPending">
+            <option v-for="player in reconnectPlayers" :key="player.id" :value="player.id">{{ player.name }}</option>
+          </select>
+          <p v-if="lobby.reconnectPending" class="app-subtitle" role="status">Demande envoyée au maître du jeu. En attente de validation…</p>
+        </template>
+        <template v-else>
+          <label for="player-name-input">Votre nom</label>
+          <AppInput
+            id="player-name-input"
+            v-model="playerName"
+            maxlength="20"
+            autocomplete="off"
+            placeholder="Votre nom..."
+            class="app-text-input"
+            autofocus
+          />
+        </template>
         <FeedbackBanner v-if="lobby.error" :message="lobby.error.message" variant="error" />
-        <AppButton type="submit" variant="primary" :disabled="!canSubmit || joiningLobbyId !== null" :loading="joiningLobbyId !== null">
-          {{ joiningLobbyId ? 'Connexion…' : 'Rejoindre la partie' }}
+        <AppButton type="submit" variant="primary" :disabled="!canSubmit || joiningLobbyId !== null || lobby.reconnectPending" :loading="joiningLobbyId !== null">
+          {{ reconnectMode ? 'Demander la reconnexion' : (joiningLobbyId ? 'Connexion…' : 'Rejoindre la partie') }}
         </AppButton>
       </form>
       <AppButton class="app-btn-back" @click="router.push({ name: ROUTE_NAME.HOME })">

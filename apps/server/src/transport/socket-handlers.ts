@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { type ZodType } from 'zod'
 
 import { ROLE_ID } from '@lgu/game-core'
@@ -28,6 +29,11 @@ import {
   lobbyEnterCommandSchema,
   lobbyJoinCommandSchema,
   lobbyListResponseSchema,
+  lobbyReconnectOptionsCommandSchema,
+  lobbyReconnectRequestCommandSchema,
+  hostReconnectDecisionCommandSchema,
+  reconnectRequestSchema,
+  reconnectRejectedEventSchema,
   sessionEndedEventSchema,
   sessionResumeCommandSchema,
   systemReadyEventSchema,
@@ -64,6 +70,13 @@ interface CachedEnterRequest {
   readonly pending: Promise<LobbyEntryResponse>
   response: LobbyEntryResponse | null
   expiresAt: number
+}
+
+interface PendingReconnectRequest {
+  readonly requestId: string
+  readonly lobbyId: LobbyId
+  readonly playerId: string
+  readonly requesterConnectionId: string
 }
 
 export interface SocketHandlerOptions {
@@ -176,6 +189,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
   const registry = source instanceof LobbyRegistry ? source : new LobbyRegistry(() => source)
   if (!(source instanceof LobbyRegistry)) registry.register(LOBBY_ID.MAIN, source)
   const enterRequests = new Map<ClientRequestId, CachedEnterRequest>()
+  const reconnectRequests = new Map<string, PendingReconnectRequest>()
 
   const serviceFor = (socket: GameSocket): LobbyService => {
     const service = registry.get(getLobbyId(socket))
@@ -263,6 +277,75 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         return result.response
       }, onUnexpectedError)
     })
+
+    socket.on(SOCKET_EVENT.LOBBY_RECONNECT_OPTIONS, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async () => {
+        assertUnboundSocket(socket)
+        const command = parseCommand(lobbyReconnectOptionsCommandSchema, rawCommand)
+        const service = registry.get(command.lobbyId)
+        if (!service) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Cette partie n’existe plus.')
+        return service.getReconnectOptions()
+      }, onUnexpectedError)
+    })
+
+    socket.on(SOCKET_EVENT.LOBBY_RECONNECT_REQUEST, (rawCommand, callback) => {
+      dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
+        assertUnboundSocket(socket)
+        const command = parseCommand(lobbyReconnectRequestCommandSchema, rawCommand)
+        const service = registry.get(command.lobbyId)
+        if (!service) throw new LobbyError(ERROR_CODE.LOBBY_NOT_FOUND, 'Cette partie n’existe plus.')
+        const options = await service.getReconnectOptions()
+        const target = options.players.find((player) => player.id === command.playerId && !player.isHost)
+        if (!target) throw new LobbyError(ERROR_CODE.PLAYER_NOT_FOUND, 'Ce joueur n’existe plus dans la partie.')
+        if ([...reconnectRequests.values()].some((request) => request.requesterConnectionId === socket.id)) {
+          throw new LobbyError(ERROR_CODE.RECONNECT_REQUEST_PENDING, 'Une demande de reconnexion est déjà en attente.')
+        }
+        const requestId = randomUUID()
+        reconnectRequests.set(requestId, {
+          requestId,
+          lobbyId: command.lobbyId,
+          playerId: target.id,
+          requesterConnectionId: socket.id,
+        })
+        io.to(command.lobbyId).emit(SOCKET_EVENT.HOST_RECONNECT_REQUEST, reconnectRequestSchema.parse({
+          requestId,
+          playerId: target.id,
+          playerName: target.name,
+          requestedAt: Date.now(),
+        }))
+        return {}
+      }, onUnexpectedError)
+    })
+
+    const decideReconnect = (approve: boolean) => (rawCommand: unknown, callback: AckCallback<EmptyResponse>) => {
+      dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
+        const command = parseCommand(hostReconnectDecisionCommandSchema, rawCommand)
+        const pending = reconnectRequests.get(command.requestId)
+        if (!pending) throw new LobbyError(ERROR_CODE.RECONNECT_REQUEST_NOT_FOUND, 'Cette demande n’existe plus.')
+        if (pending.lobbyId !== getLobbyId(socket)) throw new LobbyError(ERROR_CODE.RECONNECT_REQUEST_NOT_FOUND, 'Cette demande n’existe plus.')
+        const service = serviceFor(socket)
+        await service.getHostDashboard(getSessionCommand(socket))
+        const requester = io.sockets.sockets.get(pending.requesterConnectionId)
+        reconnectRequests.delete(command.requestId)
+        if (!requester) throw new LobbyError(ERROR_CODE.RECONNECT_REQUEST_NOT_FOUND, 'Le demandeur n’est plus connecté.')
+        if (!approve) {
+          requester.emit(SOCKET_EVENT.RECONNECT_REJECTED, reconnectRejectedEventSchema.parse({ message: 'Le maître du jeu a refusé la reconnexion.' }))
+          return {}
+        }
+        const result = await service.reconnect(pending.playerId, requester.id)
+        bindSession(requester, result.response.session)
+        await requester.join(pending.lobbyId)
+        if (result.replacedConnectionId) io.in(result.replacedConnectionId).disconnectSockets(true)
+        requester.emit(SOCKET_EVENT.RECONNECT_APPROVED, result.response)
+        await emitResumedPrivateView(requester, service, result.response.destination)
+        await emitDayVotePrivateStatus(requester, service)
+        broadcastSnapshot(io, result.response.lobby)
+        return {}
+      }, onUnexpectedError)
+    }
+
+    socket.on(SOCKET_EVENT.HOST_RECONNECT_APPROVE, decideReconnect(true))
+    socket.on(SOCKET_EVENT.HOST_RECONNECT_REJECT, decideReconnect(false))
 
     socket.on(SOCKET_EVENT.PLAYER_LEAVE, (rawCommand, callback) => {
       dispatchAcknowledged(callback, async (): Promise<EmptyResponse> => {
@@ -466,6 +549,9 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
     })
 
     socket.on('disconnect', () => {
+      for (const [requestId, request] of reconnectRequests.entries()) {
+        if (request.requesterConnectionId === socket.id) reconnectRequests.delete(requestId)
+      }
       const lobbyId = socket.data.lobbyId
       if (!lobbyId) return
       const service = registry.get(lobbyId)

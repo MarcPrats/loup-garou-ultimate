@@ -23,6 +23,8 @@ import {
   type LobbySnapshot,
   type SessionCredentials,
   type SessionDestination,
+  type ReconnectRequest,
+  type ReconnectRejectedEvent,
 } from '@lgu/contracts'
 
 import {
@@ -40,7 +42,7 @@ import {
   type SessionStorage,
 } from '../services/session-storage'
 
-const MESSAGE = {
+  const MESSAGE = {
   CONNECTION_FAILED: 'Connexion au serveur impossible. Réessayez dans un instant.',
   COMMAND_TIMEOUT: 'Le serveur met trop de temps à répondre. Réessayez.',
   GAME_STARTED: 'La partie commence !',
@@ -48,6 +50,7 @@ const MESSAGE = {
   LINK_COPIED: 'Lien d’invitation copié.',
   PROTOCOL_ERROR: 'Le serveur a envoyé une réponse invalide. Reconnexion en cours.',
   LOBBY_UNAVAILABLE: 'Cette partie n’est plus disponible. Choisissez une autre lobby.',
+  RECONNECT_REJECTED: 'Le maître du jeu a refusé cette reconnexion. Choisissez un autre joueur.',
 } as const
 
 const TERMINAL_SESSION_ERRORS = new Set<ErrorCode>([
@@ -85,6 +88,9 @@ export function createLobbyStoreDefinition(
     const hostDashboard = ref<HostDashboard | null>(null)
     const startPreview = ref<GameStartPreview | null>(null)
     const pendingHostDashboard = ref<HostDashboard | null>(null)
+    const reconnectOptions = ref<LobbySnapshot | null>(null)
+    const reconnectPending = ref(false)
+    const reconnectRequests = ref<ReconnectRequest[]>([])
     const error = ref<PublicError | null>(null)
     const notice = ref<LobbyNotice | null>(null)
     const restoringSession = ref(credentials.value !== null)
@@ -232,6 +238,9 @@ export function createLobbyStoreDefinition(
       destination.value = null
       privateAssignment.value = null
       hostDashboard.value = null
+      reconnectOptions.value = null
+      reconnectPending.value = false
+      reconnectRequests.value = []
       startPreview.value = null
       pendingHostDashboard.value = null
       restoringSession.value = false
@@ -378,6 +387,25 @@ export function createLobbyStoreDefinition(
           if (realtimeSuspended) return
           showNotice(event.level, event.message)
         },
+        onReconnectRequest: (event) => {
+          if (realtimeSuspended || !currentPlayer.value?.isHost) return
+          if (!reconnectRequests.value.some((request) => request.requestId === event.requestId)) {
+            reconnectRequests.value = [...reconnectRequests.value, event]
+          }
+        },
+        onReconnectApproved: (response) => {
+          if (realtimeSuspended) return
+          reconnectPending.value = false
+          saveSession(response.session, response.lobby, response.destination)
+        },
+        onReconnectRejected: (event: ReconnectRejectedEvent) => {
+          if (realtimeSuspended) return
+          reconnectPending.value = false
+          error.value = {
+            code: ERROR_CODE.RECONNECT_NOT_AVAILABLE,
+            message: event.message,
+          }
+        },
         onProtocolError: () => {
           if (realtimeSuspended) return
           error.value = {
@@ -469,6 +497,65 @@ export function createLobbyStoreDefinition(
         setCommandError(caught)
         return false
       }
+    }
+
+    async function loadReconnectOptions(lobbyId: string): Promise<boolean> {
+      clearError()
+      try {
+        const response = await getGateway().getReconnectOptions(lobbyId)
+        if (!response.ok) {
+          // A room link can also be opened before the game starts. In that case
+          // reconnect is simply unavailable and the normal join form should be
+          // shown without displaying an error notification.
+          if (response.error.code !== ERROR_CODE.GAME_NOT_STARTED) {
+            handleAckError(response.error)
+          }
+          return false
+        }
+        reconnectOptions.value = response.data
+        return true
+      } catch (caught) {
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function requestReconnect(lobbyId: string, playerId: PlayerId): Promise<boolean> {
+      clearError()
+      reconnectPending.value = true
+      try {
+        const response = await getGateway().requestReconnect(lobbyId, playerId)
+        if (!response.ok) {
+          reconnectPending.value = false
+          handleAckError(response.error)
+          return false
+        }
+        return true
+      } catch (caught) {
+        reconnectPending.value = false
+        setCommandError(caught)
+        return false
+      }
+    }
+
+    async function approveReconnect(requestId: string): Promise<boolean> {
+      const response = await getGateway().approveReconnect(requestId)
+      if (!response.ok) {
+        handleAckError(response.error)
+        return false
+      }
+      reconnectRequests.value = reconnectRequests.value.filter((request) => request.requestId !== requestId)
+      return true
+    }
+
+    async function rejectReconnect(requestId: string): Promise<boolean> {
+      const response = await getGateway().rejectReconnect(requestId)
+      if (!response.ok) {
+        handleAckError(response.error)
+        return false
+      }
+      reconnectRequests.value = reconnectRequests.value.filter((request) => request.requestId !== requestId)
+      return true
     }
 
     async function enter(playerName: string): Promise<boolean> {
@@ -1024,6 +1111,9 @@ export function createLobbyStoreDefinition(
       destination,
       privateAssignment,
       hostDashboard,
+      reconnectOptions,
+      reconnectPending,
+      reconnectRequests,
       startPreview,
       error,
       notice,
@@ -1048,6 +1138,10 @@ export function createLobbyStoreDefinition(
       listLobbies,
       createLobby,
       joinLobby,
+      loadReconnectOptions,
+      requestReconnect,
+      approveReconnect,
+      rejectReconnect,
       leave,
       kick,
       setDayVotingEnabled,
