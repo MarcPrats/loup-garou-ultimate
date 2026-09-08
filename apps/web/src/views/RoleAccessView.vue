@@ -13,6 +13,7 @@ import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import RoleRevealPage from '../components/RoleRevealPage.vue'
 import { AppButton } from '../components/ui'
 import { fetchRoleAccess } from '../services/role-access'
+import { hasRoleBeenRevealed, markRoleAsRevealed } from '../services/role-reveal-storage'
 
 const route = useRoute()
 const response = ref<RoleAccessResponse | null>(null)
@@ -29,6 +30,19 @@ const token = computed(() => {
     return ''
   }
 })
+
+watch(
+  () => response.value?.view === ROLE_ACCESS_VIEW.PLAYER ? token.value : null,
+  (accessToken) => {
+    roleRevealComplete.value = hasRoleBeenRevealed(accessToken)
+  },
+  { immediate: true },
+)
+
+function completeRoleReveal(): void {
+  roleRevealComplete.value = true
+  markRoleAsRevealed(token.value)
+}
 
 async function load(): Promise<void> {
   controller?.abort()
@@ -97,7 +111,7 @@ onBeforeUnmount(() => controller?.abort())
         <RoleRevealPage
           v-if="!roleRevealComplete"
           :assignment="response.assignment"
-          @continue="roleRevealComplete = true"
+          @continue="completeRoleReveal"
         />
         <template v-else>
           <div class="mb-5 flex justify-end">

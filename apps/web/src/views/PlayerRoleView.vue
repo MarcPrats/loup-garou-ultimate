@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
 import { ROLE_ID } from '@lgu/game-core'
 
@@ -15,10 +15,24 @@ import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
 import RoleRevealPage from '../components/RoleRevealPage.vue'
 import { AppButton } from '../components/ui'
 import { useLobbyStore } from '../stores/lobby'
+import { hasRoleBeenRevealed, markRoleAsRevealed } from '../services/role-reveal-storage'
 
 const lobby = useLobbyStore()
 const confirmingLeave = ref(false)
 const roleRevealComplete = ref(false)
+
+watch(
+  () => lobby.credentials?.sessionToken,
+  (sessionToken) => {
+    roleRevealComplete.value = hasRoleBeenRevealed(sessionToken)
+  },
+  { immediate: true },
+)
+
+function completeRoleReveal(): void {
+  roleRevealComplete.value = true
+  markRoleAsRevealed(lobby.credentials?.sessionToken)
+}
 
 async function confirmLeave(): Promise<void> {
   confirmingLeave.value = false
@@ -30,7 +44,7 @@ async function confirmLeave(): Promise<void> {
   <RoleRevealPage
     v-if="lobby.privateAssignment && !roleRevealComplete"
     :assignment="lobby.privateAssignment"
-    @continue="roleRevealComplete = true"
+    @continue="completeRoleReveal"
   />
 
   <main v-else class="app-page">
@@ -42,7 +56,7 @@ async function confirmLeave(): Promise<void> {
       >
         <p class="app-ghost-status-kicker">👻 Vous êtes un fantôme</p>
         <p class="app-ghost-status-message">
-          💬 Vous avez toujours le droit de parler et vous disposez encore d’un dernier vote pour le reste de la partie.
+          💬 Vous n'avez plus votre pouvoir mais vous avez toujours le droit de parler et vous disposez encore d’un dernier vote pour le reste de la partie.
         </p>
       </section>
 
