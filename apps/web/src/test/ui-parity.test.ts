@@ -57,7 +57,7 @@ describe('V3 UI parity', () => {
 
   it('restores the complete player role, bluff and clue content after reveal', async () => {
     const wrapper = mount(PlayerAssignmentPanel, { props: { assignment } })
-    expect(wrapper.get('[data-testid="role-reveal-card"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="role-reveal-card"]').exists()).toBe(true)
     await wrapper.get('[data-testid="role-reveal-card"]').trigger('click')
     expect(wrapper.find('.app-role-flip-shell-revealed').exists()).toBe(true)
     expect(wrapper.find('.app-role-sparkles').exists()).toBe(true)
@@ -187,7 +187,7 @@ describe('shared bluff role view', () => {
   })
 })
 
-  it('resolves the canonical werewolf roles used by the reference catalogue', () => {
-    expect(getRolePresentation('infect-loup')).toBeTruthy()
-    expect(getRolePresentation('grand-loup')).toBeTruthy()
-  })
+it('resolves the canonical werewolf roles used by the reference catalogue', () => {
+  expect(getRolePresentation('infect-loup')).toBeTruthy()
+  expect(getRolePresentation('grand-loup')).toBeTruthy()
+})
