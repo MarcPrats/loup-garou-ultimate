@@ -40,6 +40,7 @@ export const AVAILABLE_OUTSIDER_IDS = [
 export const BLUFF_INFORMATION_TYPE = {
   RENARD: 'renard',
   PETITE_FILLE: 'petite-fille',
+  BIBLIOTHECAIRE: 'bibliothecaire',
 } as const
 
 export function isSupportedPlayerCount(

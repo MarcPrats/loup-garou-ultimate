@@ -50,7 +50,7 @@ export function buildBibliothecaireInformation(
   }
 }
 
-function buildVisiblePlayerPair(
+export function buildVisiblePlayerPair(
   selectedPlayer: AssignablePlayer,
   excludedPlayerId: PlayerId,
   players: readonly AssignablePlayer[],

@@ -1,13 +1,17 @@
 import { BLUFF_INFORMATION_TYPE } from './constants'
 import { roleFor, type AssignmentMap } from './player-assignments'
 import { pickRandom, shuffle, type RandomSource } from './random'
+import { buildVisiblePlayerPair } from './special-information'
 import {
+  ROLE_CATEGORY,
   ROLE_DEFINITIONS,
   ROLE_ID,
+  getEffectiveCategory,
   isNonUltimateWerewolfRole,
   isTrueVillagerRole,
   isVillageTeamRole,
   type NonUltimateWerewolfRoleId,
+  type OutsiderRoleId,
   type TrueVillagerRoleId,
   type VillageTeamRoleId,
 } from './roles'
@@ -137,6 +141,32 @@ function selectPetiteFilleBluffInformation(
   }
 }
 
+function selectBibliothecaireBluffInformation(
+  werewolfPlayerId: PlayerId,
+  players: readonly AssignablePlayer[],
+  assignments: AssignmentMap,
+  drunkPlayerId: PlayerId | null,
+  random: RandomSource,
+): {
+  readonly roleId: OutsiderRoleId | null
+  readonly seenPlayerIds: readonly PlayerId[]
+} {
+  const outsiders = players.filter((player) => (
+    player.id !== werewolfPlayerId
+      && getEffectiveCategory(
+        roleFor(assignments, player.id),
+        player.id === drunkPlayerId,
+      ) === ROLE_CATEGORY.OUTSIDER
+  ))
+  if (outsiders.length === 0) return { roleId: null, seenPlayerIds: [] }
+
+  const selectedOutsider = pickRandom(outsiders, random)
+  return {
+    roleId: roleFor(assignments, selectedOutsider.id) as OutsiderRoleId,
+    seenPlayerIds: buildVisiblePlayerPair(selectedOutsider, werewolfPlayerId, players, random),
+  }
+}
+
 export function buildBluffSpecialInformation(
   werewolfPlayers: readonly AssignablePlayer[],
   bluffRoleByPlayerId: ReadonlyMap<PlayerId, VillageTeamRoleId>,
@@ -151,6 +181,7 @@ export function buildBluffSpecialInformation(
     const bluffRoleId = bluffRoleByPlayerId.get(werewolf.id)
     const hasSpecialInformation = bluffRoleId === ROLE_ID.RENARD
       || bluffRoleId === ROLE_ID.PETITE_FILLE
+      || bluffRoleId === ROLE_ID.BIBLIOTHECAIRE
 
     if (!hasSpecialInformation) continue
 
@@ -168,6 +199,22 @@ export function buildBluffSpecialInformation(
         playerId: werewolf.id,
         type: BLUFF_INFORMATION_TYPE.RENARD,
         ...renardInformation,
+      })
+      continue
+    }
+
+    if (bluffRoleId === ROLE_ID.BIBLIOTHECAIRE) {
+      const bibliothecaireInformation = selectBibliothecaireBluffInformation(
+        werewolf.id,
+        players,
+        assignments,
+        drunkPlayerId,
+        random,
+      )
+      information.push({
+        playerId: werewolf.id,
+        type: BLUFF_INFORMATION_TYPE.BIBLIOTHECAIRE,
+        ...bibliothecaireInformation,
       })
       continue
     }

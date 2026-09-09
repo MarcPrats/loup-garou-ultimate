@@ -56,6 +56,12 @@ export type BluffSpecialInformation =
       readonly roleId: TrueVillagerRoleId
       readonly seenPlayerIds: readonly [PlayerId, PlayerId]
     }
+  | {
+      readonly playerId: PlayerId
+      readonly type: typeof BLUFF_INFORMATION_TYPE.BIBLIOTHECAIRE
+      readonly roleId: OutsiderRoleId | null
+      readonly seenPlayerIds: readonly PlayerId[]
+    }
 
 export interface AssignmentResult {
   readonly assignments: readonly PlayerAssignment[]

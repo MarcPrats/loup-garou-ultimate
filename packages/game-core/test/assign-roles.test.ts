@@ -322,6 +322,41 @@ describe('assignRoles', () => {
     expect(checked).toBeGreaterThan(0)
   })
 
+  it('gives a werewolf bluffing as Bibliothécaire an outsider clue or no info', () => {
+    let checked = 0
+
+    for (const playerCount of SUPPORTED_PLAYER_COUNTS) {
+      for (let seed = 1; seed <= 1000; seed += 1) {
+        const result = assignWithSeed(playerCount, seed)
+
+        for (const information of result.bluffSpecialInformation) {
+          if (information.type !== 'bibliothecaire') continue
+          checked += 1
+
+          const bluffer = assignmentFor(result, information.playerId)
+          expect(isWerewolfRole(bluffer.roleId)).toBe(true)
+          expect(information.seenPlayerIds).not.toContain(information.playerId)
+
+          if (information.roleId === null) {
+            expect(information.seenPlayerIds).toHaveLength(0)
+            continue
+          }
+
+          const pointedOutsider = result.assignments.find((assignment) => (
+            information.seenPlayerIds.includes(assignment.playerId)
+              && getEffectiveCategory(
+                assignment.roleId,
+                assignment.playerId === result.drunkPlayerId,
+              ) === ROLE_CATEGORY.OUTSIDER
+          ))
+          expect(pointedOutsider).toBeDefined()
+        }
+      }
+    }
+
+    expect(checked).toBeGreaterThan(0)
+  })
+
   it('allows any Villageois or Marginal, including Voyante, as the decoy', () => {
     const observedRoleIds = new Set<string>()
     let checked = 0
