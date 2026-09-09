@@ -32,6 +32,11 @@ const assignments = computed(() => props.dashboard.players.map((assignment) => (
   rolePresentation: getRolePresentation(assignment.role.id),
   bluffPresentation: assignment.bluffRoleId ? getRolePresentation(assignment.bluffRoleId) : null,
   cluePresentation: assignment.specialInformation?.roleId ? getRolePresentation(assignment.specialInformation.roleId) : null,
+  clueRoleName: assignment.specialInformation?.players.some((player) => player.isDrunk)
+    ? 'Ivrogne'
+    : assignment.specialInformation?.roleId
+      ? getRolePresentation(assignment.specialInformation.roleId)?.name ?? assignment.specialInformation.roleId
+      : null,
 })))
 const nightOrderDashboard = computed<HostDashboard | null>(() => (
   'roleAccessToken' in props.dashboard ? props.dashboard : null
@@ -73,7 +78,7 @@ const nightOrderDashboard = computed<HostDashboard | null>(() => (
               <span v-if="assignment.isDrunk" class="app-drunk-badge">🍺 Bourré</span>
               <div v-if="assignment.specialInformation" class="app-gm-detail-card clue">
                 <strong>{{ getSpecialInformationPresentation(assignment.specialInformation.type).label }}</strong><br>
-                {{ getSpecialInformationPresentation(assignment.specialInformation.type).targetLabel }}: {{ assignment.cluePresentation?.name ?? (assignment.specialInformation.roleId ?? 'Pas d’info') }}<br>
+                {{ getSpecialInformationPresentation(assignment.specialInformation.type).targetLabel }}: {{ assignment.clueRoleName ?? (assignment.specialInformation.roleId ?? 'Pas d’info') }}<br>
                 <span v-if="assignment.specialInformation.players.length > 0">Joueurs: {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
               </div>
               <div v-if="assignment.bluffPresentation" class="app-gm-detail-card bluff"><strong>🎭 Rôle Bluff</strong><br>{{ assignment.bluffPresentation.name }}</div>

@@ -35,11 +35,14 @@ const cluePresentation = computed(() => props.assignment.specialInformation
 const clueTitle = computed(() => cluePresentation.value
   ? `${cluePresentation.value.label}${clueIsBluff.value ? ' (Bluff)' : ''}`
   : '')
-const clueRole = computed(() => props.assignment.specialInformation
-  ? props.assignment.specialInformation.roleId
-    ? getRolePresentation(props.assignment.specialInformation.roleId)
+const clueRoleName = computed(() => {
+  const information = props.assignment.specialInformation
+  if (!information) return null
+  if (information.players.some((player) => player.isDrunk)) return 'Ivrogne'
+  return information.roleId
+    ? getRolePresentation(information.roleId)?.name ?? information.roleId
     : null
-  : null)
+})
 </script>
 
 <template>
@@ -67,7 +70,7 @@ const clueRole = computed(() => props.assignment.specialInformation
         <div v-if="showClueKnowledgeSection" class="app-section-header"><span class="app-section-icon">🎭</span><h4>Ce que vous devriez savoir</h4></div>
         <p class="app-section-text">
           <strong>{{ clueTitle }}</strong><br>
-          {{ cluePresentation?.targetLabel }} : {{ clueRole?.name ?? (assignment.specialInformation.roleId ?? 'Pas d’info') }}<br>
+          {{ cluePresentation?.targetLabel }} : {{ clueRoleName ?? (assignment.specialInformation.roleId ?? 'Pas d’info') }}<br>
           <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
         </p>
       </section>

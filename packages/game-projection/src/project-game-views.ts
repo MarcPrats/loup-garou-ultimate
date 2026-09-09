@@ -123,7 +123,8 @@ function toSpecialInformation(
     roleId: information.roleId,
     players: information.seenPlayerIds.map((playerId) => {
       const player = requirePlayer(state, playerId)
-      return { id: player.id, name: player.name }
+      const assignment = state.assignment.assignments.find((candidate) => candidate.playerId === playerId)
+      return { id: player.id, name: player.name, isDrunk: assignment?.isDrunk === true }
     }),
   }
 }

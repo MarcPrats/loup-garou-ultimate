@@ -37,10 +37,14 @@ export const cluePlayerSchema = z.object({
   name: playerNameSchema,
 }).strict()
 
+const specialInformationPlayerSchema = cluePlayerSchema.extend({
+  isDrunk: z.boolean().optional(),
+}).strict()
+
 export const specialInformationSchema = z.object({
   type: specialInformationTypeSchema,
   roleId: roleIdSchema.nullable(),
-  players: z.array(cluePlayerSchema).max(2),
+  players: z.array(specialInformationPlayerSchema).max(2),
 }).strict()
 
 export const privateAssignmentSchema = z.object({

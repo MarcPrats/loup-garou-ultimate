@@ -62,9 +62,9 @@ function selectRenardBluffInformation(
   assignments: AssignmentMap,
   random: RandomSource,
 ): {
-  readonly roleId: NonUltimateWerewolfRoleId
-  readonly seenPlayerIds: readonly [PlayerId, PlayerId]
-} | null {
+  readonly roleId: NonUltimateWerewolfRoleId | null
+  readonly seenPlayerIds: readonly PlayerId[]
+} {
   const candidates = werewolfPlayers.filter((player) =>
     player.id !== werewolfPlayerId
       && isNonUltimateWerewolfRole(roleFor(assignments, player.id)),
@@ -72,7 +72,7 @@ function selectRenardBluffInformation(
   const selectedWerewolf = candidates.length > 0
     ? pickRandom(candidates, random)
     : null
-  if (!selectedWerewolf) return null
+  if (!selectedWerewolf) return { roleId: null, seenPlayerIds: [] }
 
   const secondCandidates = players.filter(
     (player) =>
@@ -82,7 +82,7 @@ function selectRenardBluffInformation(
   const secondPlayer = secondCandidates.length > 0
     ? pickRandom(secondCandidates, random)
     : null
-  if (!secondPlayer) return null
+  if (!secondPlayer) return { roleId: null, seenPlayerIds: [] }
 
   const visiblePlayers = shuffle(
     [selectedWerewolf.id, secondPlayer.id],
@@ -90,7 +90,7 @@ function selectRenardBluffInformation(
   )
   const first = visiblePlayers[0]
   const second = visiblePlayers[1]
-  if (!first || !second) return null
+  if (!first || !second) return { roleId: null, seenPlayerIds: [] }
 
   return {
     roleId: roleFor(assignments, selectedWerewolf.id) as NonUltimateWerewolfRoleId,
@@ -105,9 +105,9 @@ function selectPetiteFilleBluffInformation(
   drunkPlayerId: PlayerId | null,
   random: RandomSource,
 ): {
-  readonly roleId: TrueVillagerRoleId
-  readonly seenPlayerIds: readonly [PlayerId, PlayerId]
-} | null {
+  readonly roleId: TrueVillagerRoleId | null
+  readonly seenPlayerIds: readonly PlayerId[]
+} {
   const candidates = players.filter((player) => {
     const roleId = roleFor(assignments, player.id)
     return player.id !== drunkPlayerId && isTrueVillagerRole(roleId)
@@ -115,7 +115,7 @@ function selectPetiteFilleBluffInformation(
   const selectedVillager = candidates.length > 0
     ? pickRandom(candidates, random)
     : null
-  if (!selectedVillager) return null
+  if (!selectedVillager) return { roleId: null, seenPlayerIds: [] }
 
   const secondCandidates = players.filter(
     (player) =>
@@ -125,7 +125,7 @@ function selectPetiteFilleBluffInformation(
   const secondPlayer = secondCandidates.length > 0
     ? pickRandom(secondCandidates, random)
     : null
-  if (!secondPlayer) return null
+  if (!secondPlayer) return { roleId: null, seenPlayerIds: [] }
 
   const visiblePlayers = shuffle(
     [selectedVillager.id, secondPlayer.id],
@@ -133,7 +133,7 @@ function selectPetiteFilleBluffInformation(
   )
   const first = visiblePlayers[0]
   const second = visiblePlayers[1]
-  if (!first || !second) return null
+  if (!first || !second) return { roleId: null, seenPlayerIds: [] }
 
   return {
     roleId: roleFor(assignments, selectedVillager.id) as TrueVillagerRoleId,
@@ -193,8 +193,6 @@ export function buildBluffSpecialInformation(
         assignments,
         random,
       )
-      if (!renardInformation) continue
-
       information.push({
         playerId: werewolf.id,
         type: BLUFF_INFORMATION_TYPE.RENARD,
@@ -226,8 +224,6 @@ export function buildBluffSpecialInformation(
       drunkPlayerId,
       random,
     )
-    if (!petiteFilleInformation) continue
-
     information.push({
       playerId: werewolf.id,
       type: BLUFF_INFORMATION_TYPE.PETITE_FILLE,

@@ -14,7 +14,9 @@ const props = defineProps<{
 }>()
 
 const roleName = computed(() => (
-  props.information.roleId
+  props.information.players.some((player) => player.isDrunk)
+    ? 'Ivrogne'
+    : props.information.roleId
     ? getRolePresentation(props.information.roleId)?.name ?? props.information.roleId
     : null
 ))

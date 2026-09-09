@@ -273,6 +273,11 @@ describe('assignRoles', () => {
           expect(isWerewolfRole(bluffer.roleId)).toBe(true)
           expect(information.seenPlayerIds).not.toContain(information.playerId)
 
+          if (information.roleId === null) {
+            expect(information.seenPlayerIds).toHaveLength(0)
+            continue
+          }
+
           const pointedWerewolf = result.assignments.find(
             (assignment) =>
               assignment.roleId === information.roleId
@@ -304,6 +309,11 @@ describe('assignRoles', () => {
           const bluffer = assignmentFor(result, information.playerId)
           expect(isWerewolfRole(bluffer.roleId)).toBe(true)
           expect(information.seenPlayerIds).not.toContain(information.playerId)
+
+          if (information.roleId === null) {
+            expect(information.seenPlayerIds).toHaveLength(0)
+            continue
+          }
 
           const pointedVillager = result.assignments.find(
             (assignment) =>

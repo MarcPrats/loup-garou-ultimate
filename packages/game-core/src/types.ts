@@ -47,14 +47,14 @@ export type BluffSpecialInformation =
   | {
       readonly playerId: PlayerId
       readonly type: typeof BLUFF_INFORMATION_TYPE.RENARD
-      readonly roleId: NonUltimateWerewolfRoleId
-      readonly seenPlayerIds: readonly [PlayerId, PlayerId]
+      readonly roleId: NonUltimateWerewolfRoleId | null
+      readonly seenPlayerIds: readonly PlayerId[]
     }
   | {
       readonly playerId: PlayerId
       readonly type: typeof BLUFF_INFORMATION_TYPE.PETITE_FILLE
-      readonly roleId: TrueVillagerRoleId
-      readonly seenPlayerIds: readonly [PlayerId, PlayerId]
+      readonly roleId: TrueVillagerRoleId | null
+      readonly seenPlayerIds: readonly PlayerId[]
     }
   | {
       readonly playerId: PlayerId

@@ -6,6 +6,7 @@ import {
   type HostPlayerAssignment,
 } from '@lgu/contracts'
 
+import { getRolePresentation } from '../constants/role-presentation'
 import type { RolePresentation } from '../constants/role-presentation'
 import { getSpecialInformationPresentation } from '../constants/special-information'
 
@@ -22,6 +23,14 @@ const props = defineProps<{
 const roleName = computed(() => (
   props.assignment.rolePresentation?.name ?? props.assignment.role.id
 ))
+const clueRoleName = computed(() => {
+  const information = props.assignment.specialInformation
+  if (!information) return null
+  if (information.players.some((player) => player.isDrunk)) return 'Ivrogne'
+  return information.roleId
+    ? getRolePresentation(information.roleId)?.name ?? information.roleId
+    : null
+})
 const teamLabel = computed(() => (
   props.assignment.role.team === TEAM.WEREWOLVES ? '🐺 Loup-Garou' : '👥 Villageois'
 ))
@@ -68,7 +77,7 @@ const specialInformationPresentation = computed(() => (
     <div class="app-gm-mobile-details">
       <div v-if="assignment.specialInformation" class="app-gm-detail-card clue">
         <strong>{{ specialInformationPresentation?.label }}</strong>
-        <span>{{ specialInformationPresentation?.targetLabel }} : {{ assignment.cluePresentation?.name ?? assignment.specialInformation.roleId ?? 'Pas d’info' }}</span>
+        <span>{{ specialInformationPresentation?.targetLabel }} : {{ clueRoleName ?? assignment.specialInformation.roleId ?? 'Pas d’info' }}</span>
         <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
       </div>
     </div>
