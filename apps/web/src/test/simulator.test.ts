@@ -65,8 +65,15 @@ describe('simulator engine', () => {
         (entry) => !entry.isDrunk
           && entry.role.category === ROLE_CATEGORY.VILLAGER,
       ).length
+      const loupBlancBonus = assignments.some(
+        (entry) => entry.role.id === ROLE_ID.LOUP_BLANC,
+      ) ? 2 : 0
 
-      expect({ villagers, outsiders, werewolves }).toEqual(composition)
+      expect({ villagers, outsiders, werewolves }).toEqual({
+        ...composition,
+        villagers: composition.villagers - loupBlancBonus,
+        outsiders: composition.outsiders + loupBlancBonus,
+      })
     }
   })
 

@@ -1,5 +1,5 @@
 import { assignBluffRoles, buildBluffSpecialInformation } from './bluffs'
-import { getGameComposition } from './constants'
+import { AVAILABLE_OUTSIDER_IDS, OUTSIDER_ID, getGameComposition } from './constants'
 import {
   buildRolePool,
   selectDrunkPlayerId,
@@ -9,9 +9,11 @@ import {
 import {
   createAssignmentMap,
   getWerewolfPlayers,
+  type AssignmentMap,
   toPlayerAssignments,
 } from './player-assignments'
-import type { RandomSource } from './random'
+import { shuffle, type RandomSource } from './random'
+import { ROLE_CATEGORY, ROLE_ID, getRoleDefinition } from './roles'
 import {
   buildPetiteFilleInformation,
   buildBibliothecaireInformation,
@@ -19,6 +21,43 @@ import {
   selectVoyanteDecoyPlayerId,
 } from './special-information'
 import type { AssignablePlayer, AssignmentResult } from './types'
+
+export function applyLoupBlancPower(
+  players: readonly AssignablePlayer[],
+  assignments: AssignmentMap,
+  selectedOutsiders: readonly string[],
+  baseDrunkPlayerId: string | null,
+  random: RandomSource,
+): string | null {
+  const loupBlanc = players.find((player) => assignments.get(player.id) === ROLE_ID.LOUP_BLANC)
+  if (!loupBlanc) return baseDrunkPlayerId
+
+  const eligibleVillagers = players.filter((player) => {
+    const roleId = assignments.get(player.id)
+    return player.id !== loupBlanc.id
+      && player.id !== baseDrunkPlayerId
+      && roleId !== undefined
+      && getRoleDefinition(roleId).category === ROLE_CATEGORY.VILLAGER
+  })
+  const availableOutsiders = AVAILABLE_OUTSIDER_IDS.filter((roleId) => !selectedOutsiders.includes(roleId))
+  if (eligibleVillagers.length < 2 || availableOutsiders.length < 2) {
+    throw new Error('Loup Blanc requires two eligible villagers and two distinct outsider roles')
+  }
+
+  const selectedPlayers = shuffle(eligibleVillagers, random).slice(0, 2)
+  const replacementRoles = shuffle(availableOutsiders, random).slice(0, 2)
+  let drunkPlayerId = baseDrunkPlayerId
+  selectedPlayers.forEach((player, index) => {
+    const replacementRole = replacementRoles[index]
+    if (!replacementRole) throw new Error('Loup Blanc replacement role is missing')
+    if (replacementRole === OUTSIDER_ID.DRUNK) {
+      drunkPlayerId = player.id
+      return
+    }
+    assignments.set(player.id, replacementRole)
+  })
+  return drunkPlayerId
+}
 
 export function assignRoles(
   players: readonly AssignablePlayer[],
@@ -36,10 +75,17 @@ export function assignRoles(
     random,
   )
   const assignments = createAssignmentMap(players, rolePool, random)
-  const drunkPlayerId = selectDrunkPlayerId(
+  const baseDrunkPlayerId = selectDrunkPlayerId(
     players,
     assignments,
     selectedOutsiders,
+    random,
+  )
+  const drunkPlayerId = applyLoupBlancPower(
+    players,
+    assignments,
+    selectedOutsiders,
+    baseDrunkPlayerId,
     random,
   )
   const renardInformation = buildRenardInformation(

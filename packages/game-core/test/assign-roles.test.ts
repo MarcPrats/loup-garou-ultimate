@@ -72,14 +72,16 @@ describe('assignRoles', () => {
           (assignment) => isWerewolfRole(assignment.roleId),
         )
         const assignedOutsiders = assignedOutsiderRoles.length + Number(Boolean(result.drunkPlayerId))
+        const loupBlancIncluded = result.assignments.some((assignment) => assignment.roleId === ROLE_ID.LOUP_BLANC)
+        const loupBlancBonus = loupBlancIncluded ? 2 : 0
 
         expect(result.assignments).toHaveLength(playerCount)
         expect(new Set(result.assignments.map((assignment) => assignment.playerId)).size).toBe(
           playerCount,
         )
         expect(assignedWerewolves).toHaveLength(werewolfCount)
-        expect(assignedOutsiders).toBe(outsiderCount)
-        expect(playerCount - assignedWerewolves.length - assignedOutsiders).toBe(villagerCount)
+        expect(assignedOutsiders).toBe(outsiderCount + loupBlancBonus)
+        expect(playerCount - assignedWerewolves.length - assignedOutsiders).toBe(villagerCount - loupBlancBonus)
       }
     },
   )
@@ -113,8 +115,10 @@ describe('assignRoles', () => {
         )
         const drunkPresent = Boolean(result.drunkPlayerId)
         const outsiderCount = assignedOutsiderRoles.length + Number(drunkPresent)
+        const loupBlancIncluded = result.assignments.some((assignment) => assignment.roleId === ROLE_ID.LOUP_BLANC)
 
-        expect(outsiderCount).toBe(composition.outsiders)
+        expect(outsiderCount).toBe(composition.outsiders + (loupBlancIncluded ? 2 : 0))
+        if (loupBlancIncluded) continue
 
         if (composition.outsiders === 1) {
           const selectedOutsider = drunkPresent
@@ -131,6 +135,30 @@ describe('assignRoles', () => {
         expect(observedSingleOutsiders).toEqual(new Set(AVAILABLE_OUTSIDER_IDS))
       }
     }
+  })
+
+  it('replaces two true Villagers with two distinct outsiders when Loup Blanc is included', () => {
+    let checked = 0
+    for (const playerCount of SUPPORTED_PLAYER_COUNTS) {
+      const composition = GAME_COMPOSITION_BY_PLAYER_COUNT[playerCount]
+      for (let seed = 1; seed <= 2000; seed += 1) {
+        const result = assignWithSeed(playerCount, seed)
+        if (!result.assignments.some((assignment) => assignment.roleId === ROLE_ID.LOUP_BLANC)) continue
+        checked += 1
+
+        const outsiderAssignments = result.assignments.filter((assignment) => (
+          getEffectiveCategory(assignment.roleId, assignment.playerId === result.drunkPlayerId)
+          === ROLE_CATEGORY.OUTSIDER
+        ))
+        expect(outsiderAssignments).toHaveLength(composition.outsiders + 2)
+        expect(new Set(outsiderAssignments.map((assignment) => assignment.roleId)).size).toBeGreaterThanOrEqual(2)
+        expect(result.assignments.filter((assignment) => (
+          getEffectiveCategory(assignment.roleId, assignment.playerId === result.drunkPlayerId)
+          === ROLE_CATEGORY.VILLAGER
+        ))).toHaveLength(composition.villagers - 2)
+      }
+    }
+    expect(checked).toBeGreaterThan(0)
   })
 
   it('restricts Petite Fille information to an effective Villageois', () => {
@@ -167,7 +195,12 @@ describe('assignRoles', () => {
       if (!info) continue
       checked += 1
 
-      expect([ROLE_ID.INFECT_WEREWOLF, ROLE_ID.GRAND_WEREWOLF, ROLE_ID.LOUP_VOYANT]).toContain(info.roleId)
+      expect([
+        ROLE_ID.INFECT_WEREWOLF,
+        ROLE_ID.GRAND_WEREWOLF,
+        ROLE_ID.LOUP_VOYANT,
+        ROLE_ID.LOUP_BLANC,
+      ]).toContain(info.roleId)
       expect(info.roleId).not.toBe(ROLE_ID.ULTIMATE_WEREWOLF)
       expect(info.seenPlayerIds).not.toContain(info.playerId)
       expect(

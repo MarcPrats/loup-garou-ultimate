@@ -85,6 +85,10 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
     info: "Utilisez vos informations pour aider les Loups Garous sans révéler trop clairement votre véritable rôle.",
   },
+  "loup-blanc": {
+    power: "Lorsque vous êtes inclus dans la partie, deux rôles de Villageois sont remplacés aléatoirement par deux rôles de Marginal distincts.",
+    info: "Votre pouvoir a déjà été appliqué, vous pouvez donc jouer de manière à attirer l'attention et distraire le village du Loup Garou Ultime.",
+  },
   "chasseur": {
     power: "Une fois par partie, pendant la journée, choisissez publiquement une personne. Si c'est le Loup Garou Ultime, elle meurt.",
     info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
@@ -169,6 +173,10 @@ const PRESENTATION_DETAILS: Record<
   },
   [ROLE_ID.LOUP_VOYANT]: {
     imagePath: appAsset('/images/loup_voyant.webp'),
+    fallbackSymbol: '🐺',
+  },
+  [ROLE_ID.LOUP_BLANC]: {
+    imagePath: appAsset('/images/loup_blanc.webp'),
     fallbackSymbol: '🐺',
   },
   [ROLE_ID.CHASSEUR]: {

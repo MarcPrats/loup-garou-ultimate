@@ -103,6 +103,16 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     available: true,
   },
   {
+    id: 'loup-blanc',
+    name: 'Loup Blanc',
+    category: 'loup-garou',
+    categoryLabel: 'Loup Garou',
+    imagePath: appAsset('/images/loup_blanc.webp'),
+    emoji: '🐺',
+    summary: 'Lorsque le Loup Blanc est inclus, deux rôles de Villageois sont remplacés aléatoirement par deux rôles de Marginal distincts.',
+    available: true,
+  },
+  {
     id: 'grand-loup',
     name: 'Grand Loup Garou',
     category: 'loup-garou',
@@ -110,15 +120,6 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     imagePath: appAsset('/images/grandloup.webp'),
     summary: 'Si 5 personnes ou plus sont en vie et que le Loup Garou Ultime meurt, vous devenez le Loup Garou Ultime.',
     available: true,
-  },
-  {
-    id: 'baron',
-    name: 'Baron',
-    category: 'loup-garou',
-    categoryLabel: 'Loup Garou',
-    emoji: '⚖️',
-    summary: 'Deux marginaux supplémentaires ont été ajoutés au jeu.',
-    available: false,
   },
   {
     id: 'petite-fille',

@@ -112,6 +112,7 @@ export function buildPetiteFilleInformation(
       && player.id !== drunkPlayerId
       && isTrueVillagerRole(roleId)
   })
+  if (candidates.length === 0) return null
   const selectedVillager = pickRandom(candidates, random)
 
   return {

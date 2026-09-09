@@ -58,6 +58,5 @@ import { RULES_DISTRIBUTION } from '../constants/rules-page'
       </article>
     </div>
 
-    <p class="footnote"><span aria-hidden="true">💡</span> Note : avec le Baron en jeu, ajoutez 2 Marginaux au compte (retirez 2 Villageois en conséquence).</p>
   </section>
 </template>

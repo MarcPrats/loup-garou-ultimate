@@ -12,8 +12,8 @@ import {
 
 describe('role definitions', () => {
   it('contains one unique definition for each game role', () => {
-    expect(ROLE_DEFINITIONS).toHaveLength(20)
-    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(20)
+    expect(ROLE_DEFINITIONS).toHaveLength(21)
+    expect(new Set(ROLE_DEFINITIONS.map((role) => role.id)).size).toBe(21)
   })
 
   it('separates team and role category', () => {
@@ -28,6 +28,10 @@ describe('role definitions', () => {
     expect(getRoleDefinition(ROLE_ID.ULTIMATE_WEREWOLF)).toMatchObject({
       team: TEAM.WEREWOLVES,
       category: ROLE_CATEGORY.ULTIMATE_WEREWOLF,
+    })
+    expect(getRoleDefinition(ROLE_ID.LOUP_BLANC)).toMatchObject({
+      team: TEAM.WEREWOLVES,
+      category: ROLE_CATEGORY.WEREWOLF,
     })
   })
 
