@@ -81,7 +81,7 @@ export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
     power: "Lors de la première nuit, le Maître du Jeu vous montrera un rôle de Marginal puis pointera deux personnes (ou zéro s'il n'y en a aucun). L'une de ces deux personnes est le Marginal précédemment montré.",
     info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations",
   },
-  "loup-blanc": {
+  "loup-voyant": {
     power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
     info: "Utilisez vos informations pour aider les Loups Garous sans révéler trop clairement votre véritable rôle.",
   },
@@ -167,8 +167,8 @@ const PRESENTATION_DETAILS: Record<
     imagePath: appAsset('/images/bibliothecaire.webp'),
     fallbackSymbol: '📚',
   },
-  [ROLE_ID.LOUP_BLANC]: {
-    imagePath: appAsset('/images/loup_blanc.webp'),
+  [ROLE_ID.LOUP_VOYANT]: {
+    imagePath: appAsset('/images/loup_voyant.webp'),
     fallbackSymbol: '🐺',
   },
   [ROLE_ID.CHASSEUR]: {

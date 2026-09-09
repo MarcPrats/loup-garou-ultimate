@@ -18,7 +18,7 @@ export const ROLE_ID = {
   ULTIMATE_WEREWOLF: 'loup-garou-ultime',
   INFECT_WEREWOLF: 'infect-loup',
   GRAND_WEREWOLF: 'grand-loup',
-  LOUP_BLANC: 'loup-blanc',
+  LOUP_VOYANT: 'loup-voyant',
   PETITE_FILLE: 'petite-fille',
   RENARD: 'renard',
   MONTREUR_DOURS: 'montreur-dours',
@@ -48,7 +48,7 @@ export const ROLE_DEFINITIONS = [
   { id: ROLE_ID.ULTIMATE_WEREWOLF, name: 'Loup Garou Ultime', team: TEAM.WEREWOLVES, category: ROLE_CATEGORY.ULTIMATE_WEREWOLF },
   { id: ROLE_ID.INFECT_WEREWOLF, name: 'Infect Loup Garou', team: TEAM.WEREWOLVES, category: ROLE_CATEGORY.WEREWOLF },
   { id: ROLE_ID.GRAND_WEREWOLF, name: 'Grand Loup Garou', team: TEAM.WEREWOLVES, category: ROLE_CATEGORY.WEREWOLF },
-  { id: ROLE_ID.LOUP_BLANC, name: 'Loup Blanc', team: TEAM.WEREWOLVES, category: ROLE_CATEGORY.WEREWOLF },
+  { id: ROLE_ID.LOUP_VOYANT, name: 'Loup Voyant', team: TEAM.WEREWOLVES, category: ROLE_CATEGORY.WEREWOLF },
   { id: ROLE_ID.PETITE_FILLE, name: 'Petite Fille', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.RENARD, name: 'Renard', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
   { id: ROLE_ID.MONTREUR_DOURS, name: 'Montreur d’ours', team: TEAM.VILLAGERS, category: ROLE_CATEGORY.VILLAGER },
@@ -72,7 +72,7 @@ export type WerewolfRoleId = Extract<RoleId,
   | typeof ROLE_ID.ULTIMATE_WEREWOLF
   | typeof ROLE_ID.INFECT_WEREWOLF
   | typeof ROLE_ID.GRAND_WEREWOLF
-  | typeof ROLE_ID.LOUP_BLANC>
+  | typeof ROLE_ID.LOUP_VOYANT>
 export type NonUltimateWerewolfRoleId = Exclude<WerewolfRoleId, typeof ROLE_ID.ULTIMATE_WEREWOLF>
 export type VillageTeamRoleId = Exclude<RoleId, WerewolfRoleId>
 export type TrueVillagerRoleId = Extract<

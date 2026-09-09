@@ -63,7 +63,7 @@ async function confirmLeave(): Promise<void> {
       <PlayerAssignmentPanel
         v-if="lobby.privateAssignment"
         :assignment="lobby.privateAssignment"
-        :dashboard="lobby.privateAssignment.role.id === ROLE_ID.LOUP_BLANC ? lobby.hostDashboard : null"
+        :dashboard="lobby.privateAssignment.role.id === ROLE_ID.LOUP_VOYANT ? lobby.hostDashboard : null"
         :show-rules-link="false"
         :reveal-role="false"
       />

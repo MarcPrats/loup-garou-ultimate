@@ -220,17 +220,17 @@ export function projectHostDashboard(
   return projectDashboardForGrant(state, hostGrant)
 }
 
-export function projectLoupBlancDashboard(
+export function projectLoupVoyantDashboard(
   state: GameProjectionState,
   playerId: string,
 ): HostDashboard {
   const assignment = requireAssignment(state.assignment, playerId)
-  if (assignment.roleId !== ROLE_ID.LOUP_BLANC) {
-    throw new Error('Dashboard requested by a player without Loup Blanc access')
+  if (assignment.roleId !== ROLE_ID.LOUP_VOYANT) {
+    throw new Error('Dashboard requested by a player without Loup Voyant access')
   }
   const grant = requireGrant(state, playerId)
   if (grant.view !== ROLE_ACCESS_VIEW.PLAYER) {
-    throw new Error('Loup Blanc has an invalid role access grant')
+    throw new Error('Loup Voyant has an invalid role access grant')
   }
   return projectDashboardForGrant(state, grant)
 }

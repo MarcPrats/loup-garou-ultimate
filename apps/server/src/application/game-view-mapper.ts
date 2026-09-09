@@ -8,7 +8,7 @@ import type {
 import {
   projectHostDashboard,
   projectGameStartPreview,
-  projectLoupBlancDashboard,
+  projectLoupVoyantDashboard,
   projectPrivateAssignment,
   projectRoleAccessResponse,
   type GameProjectionState,
@@ -51,11 +51,11 @@ export function toGameStartPreview(
   })
 }
 
-export function toLoupBlancDashboard(
+export function toLoupVoyantDashboard(
   lobby: LobbyState,
   playerId: PlayerId,
 ): HostDashboard {
-  return projectLoupBlancDashboard(toProjectionState(lobby), playerId)
+  return projectLoupVoyantDashboard(toProjectionState(lobby), playerId)
 }
 
 export function toRoleAccessResponse(
