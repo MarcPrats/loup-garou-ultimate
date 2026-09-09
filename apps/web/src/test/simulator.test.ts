@@ -70,23 +70,23 @@ describe('simulator engine', () => {
     }
   })
 
-  it('gives the Loup Blanc the same dashboard projection as the real player view', () => {
-    let generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, 'loup-blanc-dashboard')
+  it('gives the Loup Voyant the same dashboard projection as the real player view', () => {
+    let generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, 'loup-voyant-dashboard')
     for (let attempt = 0; attempt < 100; attempt += 1) {
-      const loupBlanc = generated.hostDashboard.players.some(
-        (entry) => entry.role.id === ROLE_ID.LOUP_BLANC,
+      const loupVoyant = generated.hostDashboard.players.some(
+        (entry) => entry.role.id === ROLE_ID.LOUP_VOYANT,
       )
-      if (loupBlanc) break
-      generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, `loup-blanc-dashboard-${attempt}`)
+      if (loupVoyant) break
+      generated = scenario(PLAYER_COUNT_LIMIT.MINIMUM, `loup-voyant-dashboard-${attempt}`)
     }
 
-    const loupBlancAssignment = generated.hostDashboard.players.find(
-      (entry) => entry.role.id === ROLE_ID.LOUP_BLANC,
+    const loupVoyantAssignment = generated.hostDashboard.players.find(
+      (entry) => entry.role.id === ROLE_ID.LOUP_VOYANT,
     )
-    expect(loupBlancAssignment).toBeDefined()
-    expect(generated.loupBlancDashboards).toHaveLength(1)
-    expect(generated.loupBlancDashboards[0]?.playerId).toBe(loupBlancAssignment?.player.id)
-    expect(generated.loupBlancDashboards[0]?.dashboard.players).toEqual(
+    expect(loupVoyantAssignment).toBeDefined()
+    expect(generated.loupVoyantDashboards).toHaveLength(1)
+    expect(generated.loupVoyantDashboards[0]?.playerId).toBe(loupVoyantAssignment?.player.id)
+    expect(generated.loupVoyantDashboards[0]?.dashboard.players).toEqual(
       generated.hostDashboard.players,
     )
   })

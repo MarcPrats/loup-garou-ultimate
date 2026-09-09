@@ -219,7 +219,7 @@ export function createLobbyStoreDefinition(
       updatingGameLog.value = false
       if (pendingHostDashboard.value) {
         const canViewDashboard = currentPlayer.value?.isHost
-          || privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
+          || privateAssignment.value?.role.id === ROLE_ID.LOUP_VOYANT
         if (canViewDashboard) {
           hostDashboard.value = pendingHostDashboard.value
           pendingHostDashboard.value = null
@@ -360,13 +360,13 @@ export function createLobbyStoreDefinition(
         },
         onHostDashboard: (dashboard) => {
           if (realtimeSuspended) return
-          const isLoupBlanc = privateAssignment.value?.role.id === ROLE_ID.LOUP_BLANC
-          if (!currentPlayer.value?.isHost && !isLoupBlanc) {
+          const isLoupVoyant = privateAssignment.value?.role.id === ROLE_ID.LOUP_VOYANT
+          if (!currentPlayer.value?.isHost && !isLoupVoyant) {
             pendingHostDashboard.value = dashboard
             return
           }
           hostDashboard.value = dashboard
-          if (!isLoupBlanc) destination.value = SESSION_DESTINATION.GAME_MASTER
+          if (!isLoupVoyant) destination.value = SESSION_DESTINATION.GAME_MASTER
           cancelPrivateViewRecovery()
         },
         onStartPreview: (preview) => {

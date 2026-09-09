@@ -62,7 +62,7 @@ const activePlayer = computed(() => (
   ) ?? null
 ))
 const activePlayerDashboard = computed(() => (
-  scenario.value?.loupBlancDashboards.find(
+  scenario.value?.loupVoyantDashboards.find(
     (entry) => entry.playerId === activeView.value,
   )?.dashboard ?? null
 ))

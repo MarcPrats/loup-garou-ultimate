@@ -18,7 +18,7 @@ import {
 } from '@lgu/game-core'
 import {
   projectHostDashboard,
-  projectLoupBlancDashboard,
+  projectLoupVoyantDashboard,
   projectPrivateAssignment,
   type GameProjectionState,
 } from '@lgu/game-projection'
@@ -127,13 +127,13 @@ export function createSimulatorScenario(
     })),
   }
 
-  const loupBlancDashboards = assignablePlayers
+  const loupVoyantDashboards = assignablePlayers
     .filter((player) => assignment.assignments.some(
-      (candidate) => candidate.playerId === player.id && candidate.roleId === ROLE_ID.LOUP_BLANC,
+      (candidate) => candidate.playerId === player.id && candidate.roleId === ROLE_ID.LOUP_VOYANT,
     ))
     .map((player) => ({
       playerId: player.id,
-      dashboard: projectLoupBlancDashboard(displayState, player.id),
+      dashboard: projectLoupVoyantDashboard(displayState, player.id),
     }))
 
   return simulatorScenarioSchema.parse({
@@ -162,7 +162,7 @@ export function createSimulatorScenario(
     privateAssignments: assignablePlayers.map((player) => (
       projectPrivateAssignment(displayState, player.id)
     )),
-    loupBlancDashboards,
+    loupVoyantDashboards,
     hostDashboard: projectHostDashboard(displayState),
   })
 }

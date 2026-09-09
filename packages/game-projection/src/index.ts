@@ -3,7 +3,7 @@ export {
   projectHostDashboard,
   projectPrivateAssignment,
   projectRoleAccessResponse,
-  projectLoupBlancDashboard,
+  projectLoupVoyantDashboard,
 } from './project-game-views'
 export type {
   GameProjectionState,

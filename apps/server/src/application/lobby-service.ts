@@ -64,7 +64,7 @@ import { createGameAssignment, createStoredGameState } from './game-state'
 import {
   toHostDashboard,
   toGameStartPreview,
-  toLoupBlancDashboard,
+  toLoupVoyantDashboard,
   toPrivateAssignment,
   toRoleAccessResponse,
 } from './game-view-mapper'
@@ -105,7 +105,7 @@ export interface StartGameResult {
   readonly lobby: LobbySnapshot
   readonly startedAt: number
   readonly privateAssignments: readonly PrivateAssignmentDelivery[]
-  readonly loupBlancDashboards: readonly HostDashboardDelivery[]
+  readonly loupVoyantDashboards: readonly HostDashboardDelivery[]
   readonly hostDashboard: HostDashboardDelivery
 }
 
@@ -827,19 +827,19 @@ export class LobbyService {
         throw new Error('Started host has no connection')
       }
 
-      const loupBlancDashboards = lobby.players
+      const loupVoyantDashboards = lobby.players
         .filter((player) => !player.isHost)
         .flatMap((player): HostDashboardDelivery[] => {
           const assignment = lobby.game?.assignment.assignments.find(
             (candidate) => candidate.playerId === player.id,
           )
-          if (assignment?.roleId !== ROLE_ID.LOUP_BLANC) return []
+          if (assignment?.roleId !== ROLE_ID.LOUP_VOYANT) return []
           if (!player.connectionId) {
-            throw new Error(`Loup Blanc has no connection: ${player.id}`)
+            throw new Error(`Loup Voyant has no connection: ${player.id}`)
           }
           return [{
             connectionId: player.connectionId,
-            dashboard: toLoupBlancDashboard(lobby, player.id),
+            dashboard: toLoupVoyantDashboard(lobby, player.id),
           }]
         })
 
@@ -849,7 +849,7 @@ export class LobbyService {
           lobby: toLobbySnapshot(lobby),
           startedAt,
           privateAssignments,
-          loupBlancDashboards,
+          loupVoyantDashboards,
           hostDashboard: {
             connectionId: host.connectionId,
             dashboard: toHostDashboard(lobby),
@@ -1252,7 +1252,7 @@ export class LobbyService {
     return toPrivateAssignment(lobby, player.id)
   }
 
-  async getLoupBlancDashboard(command: SessionCommand): Promise<HostDashboard> {
+  async getLoupVoyantDashboard(command: SessionCommand): Promise<HostDashboard> {
     assertConnectionId(command.connectionId)
     const lobby = await this.dependencies.repository.read()
     if (!lobby) {
@@ -1266,7 +1266,7 @@ export class LobbyService {
         'Le maître du jeu ne possède pas ce rôle joueur.',
       )
     }
-    return toLoupBlancDashboard(lobby, player.id)
+    return toLoupVoyantDashboard(lobby, player.id)
   }
 
   async getHostDashboard(command: SessionCommand): Promise<HostDashboard> {

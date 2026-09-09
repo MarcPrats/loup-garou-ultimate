@@ -159,7 +159,7 @@ function broadcastSnapshot(io: GameSocketServer, lobby: LobbySnapshot | null): v
 function emitStartedGame(io: GameSocketServer, lobbyId: LobbyId, result: Awaited<ReturnType<LobbyService['confirmStart']>>): void {
   io.to(lobbyId).emit(SOCKET_EVENT.GAME_STARTED, gameStartedEventSchema.parse({ lobbyRevision: result.lobby.revision, startedAt: result.startedAt }))
   for (const delivery of result.privateAssignments) io.to(delivery.connectionId).emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, delivery.assignment)
-  for (const delivery of result.loupBlancDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
+  for (const delivery of result.loupVoyantDashboards) io.to(delivery.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, delivery.dashboard)
   io.to(result.hostDashboard.connectionId).emit(SOCKET_EVENT.HOST_DASHBOARD, result.hostDashboard.dashboard)
 }
 
@@ -174,8 +174,8 @@ async function emitResumedPrivateView(socket: GameSocket, service: LobbyService,
   if (destination === SESSION_DESTINATION.PLAYER_ROLE) {
     const assignment = await service.getPrivateAssignment(getSessionCommand(socket))
     socket.emit(SOCKET_EVENT.PRIVATE_ASSIGNMENT, assignment)
-    if (assignment.role.id === ROLE_ID.LOUP_BLANC) {
-      socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getLoupBlancDashboard(getSessionCommand(socket)))
+    if (assignment.role.id === ROLE_ID.LOUP_VOYANT) {
+      socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getLoupVoyantDashboard(getSessionCommand(socket)))
     }
   } else if (destination === SESSION_DESTINATION.GAME_MASTER) {
     socket.emit(SOCKET_EVENT.HOST_DASHBOARD, await service.getHostDashboard(getSessionCommand(socket)))
