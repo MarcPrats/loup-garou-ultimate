@@ -2993,16 +2993,27 @@ button:disabled {
   font-size: .85rem;
 }
 
-.app-role-reveal-stage .app-role-card-front .app-role-revealed-image {
-  display: block;
+.app-role-reveal-stage .app-role-revealed-image-frame {
   width: min(100%, 260px);
-  max-width: 100%;
   aspect-ratio: 1;
-  margin: 0 auto;
-  object-fit: contain;
-  border: 0;
+  overflow: hidden;
   border-radius: 22px;
   box-shadow: 0 0 34px rgb(230 160 68 / 32%);
+}
+
+.app-role-reveal-stage .app-role-card-front .app-role-revealed-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  object-position: center;
+  border: 0;
+  transform: scale(1.06);
+}
+
+.app-role-reveal-stage .app-role-card-front {
+  overflow: hidden;
 }
 
 .app-role-reveal-stage .app-role-card-front .app-role-info {

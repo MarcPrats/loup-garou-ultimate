@@ -57,7 +57,9 @@ function reveal(): void {
           <span class="app-role-card-back-sparkle-line" aria-hidden="true">✦ · ✧ · ✦</span>
         </button>
         <div class="app-role-card app-role-card-face app-role-card-front" :aria-hidden="!revealed">
-          <img class="app-role-revealed-image" :src="role.imagePath" :alt="role.name">
+          <div class="app-role-revealed-image-frame">
+            <img class="app-role-revealed-image" :src="role.imagePath" :alt="role.name">
+          </div>
           <div class="app-role-info">
             <h4>{{ role.name }}</h4>
             <p class="app-role-category">{{ ROLE_CATEGORY_LABEL[role.category] }}</p>
