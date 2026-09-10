@@ -3103,3 +3103,67 @@ button:disabled {
     align-self: center;
   }
 }
+
+.app-private-dashboard {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+  .app-private-dashboard .app-gm-mobile-cards {
+    display: grid;
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .app-private-dashboard .app-gm-mobile-card {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .app-private-dashboard .app-gm-mobile-card-header {
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .app-private-dashboard .app-gm-mobile-role {
+    justify-content: center;
+  }
+
+  .app-private-dashboard .app-gm-mobile-details {
+    justify-items: center;
+  }
+
+  .app-private-dashboard .app-gm-detail-card {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+  }
+}
+
+.app-private-dashboard-section {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.app-private-dashboard-section .app-private-dashboard {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+@media (max-width: 700px) {
+  .app-private-dashboard-section .app-gm-mobile-cards,
+  .app-private-dashboard-section .app-gm-mobile-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}

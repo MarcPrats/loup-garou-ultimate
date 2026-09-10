@@ -134,6 +134,7 @@ onBeforeUnmount(() => controller?.abort())
         </div>
         <HostDashboardPanel
           :dashboard="response.dashboard"
+          embedded
         />
       </div>
     </div>

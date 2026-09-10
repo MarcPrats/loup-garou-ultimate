@@ -78,7 +78,7 @@ const clueRoleName = computed(() => {
 
     <div
       v-if="dashboard"
-      class="mt-8 border-t border-white/10 pt-8"
+      class="app-private-dashboard-section mt-8 border-t border-white/10 pt-8"
     >
       <HostDashboardPanel
         :dashboard="dashboard"
