@@ -353,7 +353,7 @@ generate()
           >
             <p class="app-ghost-status-kicker">👻 Vous êtes un fantôme</p>
             <p class="app-ghost-status-message">
-              💬 Vous avez toujours le droit de parler et vous disposez encore d’un dernier vote pour le reste de la partie.
+              💬 Vous n'avez plus votre pouvoir mais vous gardez le droit de parler et disposez encore d’un dernier vote pour le reste de la partie.
             </p>
           </section>
 

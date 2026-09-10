@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 
           <article class="rules-practical-card rules-practical-card-ghost">
             <h3><span class="rules-emoji">👻</span> Après une élimination</h3>
-            <p><span class="rules-emoji">🕯️</span> Une personne éliminée devient un fantôme. Elle peut <b>continuer à parler</b> et conserve <b>un seul vote</b> pour le reste de la partie. Elle <b>ne peut plus nominer ni être nominée</b>.</p>
+            <p><span class="rules-emoji">🕯️</span> Une personne éliminée devient un fantôme. Elle <b>perd son pouvoir</b> mais peut <b>continuer à parler</b> et conserve <b>un seul vote</b> pour le reste de la partie. Elle <b>ne peut plus nominer ni être nominée</b>.</p>
           </article>
 
           <article class="rules-practical-card rules-practical-card-victory">
