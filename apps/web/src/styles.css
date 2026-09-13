@@ -1642,7 +1642,6 @@ button:disabled {
   font-family: var(--font-display);
 }
 
-.app-screen h1,
 .app-home-shell h1 {
   margin-bottom: 28px;
   font-size: clamp(2rem, 4vw, 2.8rem);
@@ -3221,8 +3220,13 @@ textarea {
   color: var(--lgu-color-text-primary);
 }
 
-.app-screen h1,
 .app-home-shell h1 {
+  margin: 0 0 8px;
+  font-size: 4.2rem;
+  background: linear-gradient(135deg, var(--app-accent), var(--app-blue));
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
   text-shadow: none;
 }
 
