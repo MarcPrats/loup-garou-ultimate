@@ -8,7 +8,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
         <p class="app-role-text">Chaque nuit (sauf la première), choisissez une personne.<br>Elle
-            meurt.<br>Note: Vous pouvez choisir de vous tuer vous-même et un autre Loup Garou
+            meurt.<br><strong>Note :</strong> Vous pouvez choisir de vous tuer vous-même et un autre
+            Loup Garou
             jouera
             votre rôle.</p>
     </RoleDetailSection>

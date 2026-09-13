@@ -7,11 +7,13 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Chaque nuit, choisissez une personne.<br>Cette personne est
+        <p class="app-role-text"><strong>Chaque nuit, choisissez une personne.</strong><br>Cette
+            personne est
             empoisonnée et ne bénéficie plus de son pouvoir jusqu'au début de la prochaine nuit.</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
-        <p class="app-role-text">L'Infect Loup Garou prend connaissance d'un rôle de villageois qui
+        <p class="app-role-text"><strong>L'Infect Loup Garou prend connaissance d'un rôle de
+                villageois</strong> qui
             n'est pas présent dans la partie.<br>Le poison annule ou altère les pouvoirs des
             villageois.<br>De bonnes cibles pour l'empoisonnement sont
             <RoleMentionLink role-id="cupidon" label="Cupidon" team="villager"

@@ -866,11 +866,12 @@ button:disabled {
 
 .app-description-section {
   margin: 1rem;
-  padding: 20px;
+  padding: 1.25rem 1.35rem 1.35rem;
+  border: 1px solid rgb(255 255 255 / 8%);
   border-left: 4px solid var(--app-accent);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgb(255 255 255 / 3%);
-  transition: all .3s ease;
+  transition: transform .25s ease, background .25s ease, border-color .25s ease;
 }
 
 .app-description-section:hover {
@@ -891,9 +892,9 @@ button:disabled {
 .app-section-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+  gap: .7rem;
+  margin-bottom: 1rem;
+  padding-bottom: .75rem;
   border-bottom: 1px solid rgb(255 255 255 / 10%);
   text-align: left;
 }
@@ -901,9 +902,9 @@ button:disabled {
 .app-section-header h4 {
   margin: 0;
   color: var(--app-text);
-  font-size: 1.1rem;
-  font-weight: 600;
-  letter-spacing: .05em;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: .08em;
   text-transform: uppercase;
 }
 
@@ -921,7 +922,15 @@ button:disabled {
 
 .app-role-text {
   margin: 0;
-  color: inherit;
+  color: var(--app-text);
+  font-size: 1rem;
+  line-height: 1.8;
+  text-align: left;
+}
+
+.app-role-text strong {
+  color: var(--app-text);
+  font-weight: 800;
 }
 
 .app-role-paragraphs {

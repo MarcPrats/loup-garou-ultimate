@@ -6,10 +6,12 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Si le village vous élimine, le village perd la partie.</p>
+        <p class="app-role-text"><strong>Si le village vous élimine, le village perd la
+                partie.</strong></p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
-        <p class="app-role-text">Votre personnage peut vous protéger de fausses accusations en
+        <p class="app-role-text"><strong>Votre personnage peut vous protéger de fausses
+                accusations</strong> en
             révélant votre rôle.<br>Donc n'hésitez pas à l'énoncer pour vous protéger.</p>
     </RoleDetailSection>
 </template>

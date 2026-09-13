@@ -18,7 +18,7 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
                 :current-role-id="currentRoleId" /> pendant une nuit.<br>N'hésitez pas à vous faire
             passer pour une proie du
             <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
-                :current-role-id="currentRoleId" /> (en prétendant d'avoir de précieuses
+                :current-role-id="currentRoleId" /> (en prétendant avoir de précieuses
             informations) afin qu'il s'en prenne à vous la nuit.
         </p>
     </RoleDetailSection>

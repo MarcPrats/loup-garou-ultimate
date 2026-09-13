@@ -6,10 +6,13 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Pendant la journée, si une personne vous désigne pour une exécution
-            et que cette personne est un villageois (à part si c'est un marginal), alors elle est
-            immédiatement exécutée.<br>Ce pouvoir n'est utilisé qu'une seule fois.<br>ATTENTION : ne
-            dites rien lorsque c'est le cas.<br>Le Maître du Jeu interviendra à ce moment précis.
+        <p class="app-role-text"><strong>Pendant la journée, si une personne vous désigne pour une
+                exécution</strong>
+            et que cette personne est un villageois (sauf si c'est un marginal), alors elle est
+            immédiatement exécutée.<br><strong>Ce pouvoir n'est utilisé qu'une seule
+                fois.</strong><br><strong>Note: Pas besoin de l'énoncer lorsque c'est le
+                cas.</strong><br>Le Maître du Jeu interviendra à ce
+            moment précis.
         </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
