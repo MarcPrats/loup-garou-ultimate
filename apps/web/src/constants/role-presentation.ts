@@ -19,100 +19,6 @@ export interface RolePresentation {
   readonly category: RoleCategory
   readonly imagePath: string
   readonly fallbackSymbol: string
-  readonly power: string
-  readonly info: string
-}
-
-export interface RoleContent {
-  readonly power: string
-  readonly info: string
-}
-
-export const ROLE_CONTENT: Readonly<Record<string, RoleContent | undefined>> = {
-  "loup-garou-ultime": {
-    power: "Chaque nuit (sauf la première), choisissez une personne. Elle meurt. Note : Vous pouvez choisir de vous tuer vous-même et un autre Loup Garou jouera votre rôle.",
-    info: "Le Loup Garou Ultime prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci. Ciblez les personnages qui acquièrent de l'information (Voyante, Enfant sauvage, Cupidon) et évitez de mordre l'Ancien.",
-  },
-  "infect-loup": {
-    power: "Chaque nuit, choisissez une personne. Cette personne est empoisonnée et ne bénéficie plus de son pouvoir jusqu'au début de la prochaine nuit.",
-    info: "Le Loup Garou Infect prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie. Le poison annule ou altère les pouvoirs des villageois. De bonnes cibles pour l'empoisonnement sont Cupidon, la Voyante, l'Ancien ou le Chevalier dont les pouvoirs vous gêneront amplement.",
-  },
-  "grand-loup": {
-    power: "S'il y a toujours plus de 5 personnes en vie et que le Loup Garou Ultime meurt, vous devenez le Loup Garou Ultime.",
-    info: "Le Grand Loup Garou prend connaissance d'un rôle de villageois qui n'est pas présent dans la partie afin de pouvoir se faire passer pour celui-ci.",
-  },
-  "petite-fille": {
-    power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de villageois puis pointera deux personnes. L'une de ces deux personnes est le villageois montré.",
-    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
-  },
-  "renard": {
-    power: "Lors de la première nuit, le maître du jeu vous montrera un rôle de Loup Garou (sauf celui du Loup Garou Ultime) puis pointera deux personnes. L'une de ces deux personnes est le Loup Garou précédemment montré.",
-    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
-  },
-  "montreur-dours": {
-    power: "Lors de la première nuit, vous découvrez combien de Loup Garous sont placés côte à côte.",
-    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations.",
-  },
-  "cupidon": {
-    power: "Chaque nuit, parmi les deux personnes vivantes qui vous entourent, vous apprenez combien de Loup Garous vous entourent (0, 1 ou 2).",
-    info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure.",
-  },
-  "voyante": {
-    power: "Chaque nuit, choisissez deux personnes. Si au moins l'une d'elles est le Loup Garou Ultime, vous aurez l'information. ATTENTION : l'une des personnes est un leurre et vous apparaîtra comme le Loup Garou Ultime !",
-    info: "Votre pouvoir s'applique chaque nuit et vous serez probablement une cible pour le Loup Garou Ultime. Votre discrétion peut être un atout pour ne pas tenter sa morsure.",
-  },
-  "chevalier": {
-    power: "Chaque nuit (sauf la première), choisissez une autre personne que vous : elle est protégée du Loup Garou Ultime le temps d'une nuit.",
-    info: "Votre pouvoir peut être précieux pour des personnages acquérant régulièrement des informations ou ayant un pouvoir unique. Cupidon, la voyante ou le chasseur sont de bons exemples. Essayez vite de les identifier afin de les protéger.",
-  },
-  "capitaine": {
-    power: "Si le Capitaine est vivant et qu'il ne reste que trois personnes à la fin d'une journée sans exécution, le Village gagne. Si le Loup Garou Ultime cible le Capitaine pendant la nuit, le Maître du Jeu peut, s'il le souhaite, choisir secrètement une autre personne vivante : celle-ci meurt à sa place.",
-    info: "Votre pouvoir est entièrement passif : vous ne vous réveillez pas la nuit et le Maître du Jeu sera responsable de l'exécution de votre pouvoir. Essayez de survivre jusqu'à ce que trois personnes restent en vie. Rappel : les Loups Garous gagnent lorsqu'il ne reste plus que deux personnes en vie.",
-  },
-  "recluse": {
-    power: "Lorsque vous êtes concerné(e) par une information, le Maître du Jeu peut, s'il le souhaite, vous faire apparaître comme un Loup Garou, même après votre mort.",
-    info: "Votre pouvoir est entièrement contrôlé par le Maître du Jeu. Vous êtes une fausse piste pour les pouvoirs d'information : mentir sur votre rôle peut vous faire passer pour un véritable Loup Garou. Dites plutôt la vérité et, si votre présence gêne les déductions du Village, vous pouvez demander à être exécutée.",
-  },
-  "enfant-de-choeur": {
-    power: "À votre mort, le Maître du Jeu choisit une personne qui devient bourrée pour le reste de la partie.",
-    info: "Essayez de garder votre rôle secret. Votre mort pénaliserait le village car le Maître du Jeu choisira probablement un Villageois. Essayez de vous faire passer pour un personnage gênant pour le Loup Garou Ultime tel que l'Ancien ou l'Ange.",
-  },
-  "bibliothecaire": {
-    power: "Lors de la première nuit, le Maître du Jeu vous montrera un rôle de Marginal puis pointera deux personnes (ou zéro s'il n'y en a aucun). L'une de ces deux personnes est le Marginal précédemment montré.",
-    info: "Votre pouvoir ne s'applique que lors de la première nuit. N'hésitez pas à partager au plus vite vos informations",
-  },
-  "loup-voyant": {
-    power: "Vous avez accès aux informations du Maître du Jeu. De même, vous pouvez être perçu comme Villageois ou Marginal par les pouvoirs d'information, même après votre mort.",
-    info: "Utilisez vos informations pour aider les Loups Garous sans révéler trop clairement votre véritable rôle.",
-  },
-  "loup-blanc": {
-    power: "Lorsque vous êtes inclus dans la partie, deux rôles de Villageois sont remplacés aléatoirement par deux rôles de Marginal distincts.",
-    info: "Votre pouvoir a déjà été appliqué, vous pouvez donc jouer de manière à attirer l'attention et distraire le village du Loup Garou Ultime.",
-  },
-  "chasseur": {
-    power: "Une fois par partie, pendant la journée, choisissez publiquement une personne. Si c'est le Loup Garou Ultime, elle meurt.",
-    info: "Votre pouvoir ne se réalise qu'une seule fois donc essayez de l'utiliser avant de mourir. Même si vous vous trompez, votre cible ne mourra pas et vous saurez que ce n'est pas le Loup Garou Ultime.",
-  },
-  "flutiste": {
-    power: "Pendant la journée, si une personne vous désigne pour une exécution et que cette personne est un villageois (à part si c'est un marginal), alors elle est immédiatement exécutée. Ce pouvoir n'est utilisé qu'une seule fois. ATTENTION : ne dites rien lorsque c'est le cas. Le Maître du Jeu interviendra à ce moment précis.",
-    info: "Ce pouvoir vous permet de vous protéger des mauvaises accusations, donc n'hésitez pas à l'énoncer si on vous accuse à tort.",
-  },
-  "sorciere": {
-    power: "Si vous mourez la nuit, vous choisissez une personne et découvrez son identité.",
-    info: "Votre pouvoir se déclenche à votre mort. N'hésitez pas à vous faire passer pour un personnage en possession d'informations afin d'attirer la morsure du loup garou. Si vous vous faites éliminer par le village, votre pouvoir ne se déclenchera pas.",
-  },
-  "ancien": {
-    power: "Le Loup Garou Ultime ne peut pas vous tuer.",
-    info: "Votre pouvoir vous permet d'annuler la morsure du Loup Garou Ultime pendant une nuit. N'hésitez pas à vous faire passer pour une proie du Loup Garou Ultime (en prétendant d'avoir de précieuses informations) afin qu'il s'en prenne à vous la nuit.",
-  },
-  "enfant-sauvage": {
-    power: "Si une personne est exécutée par le village durant la journée, vous découvrez son identité la nuit.",
-    info: "Votre pouvoir se déclenche uniquement après l'exécution du jour, donc n'hésitez pas à déclencher des exécutions pour innocenter/accuser quelqu'un.",
-  },
-  "ange": {
-    power: "Si le village vous élimine, le village perd la partie.",
-    info: "Votre personnage peut vous protéger de fausses accusations en révélant votre rôle. Donc n'hésitez à l'énoncer pour vous protéger.",
-  },
 }
 
 const PRESENTATION_DETAILS: Record<
@@ -213,8 +119,6 @@ export const ROLE_PRESENTATION_BY_ID = Object.fromEntries(
       name: role.name,
       category: role.category,
       ...PRESENTATION_DETAILS[role.id],
-      power: ROLE_CONTENT[role.id]?.power ?? '',
-      info: ROLE_CONTENT[role.id]?.info ?? '',
     },
   ]),
 ) as Record<RoleId, RolePresentation>
@@ -239,8 +143,6 @@ const IVROGNE_ROLE_PRESENTATION: RolePresentation = {
   category: ROLE_CATEGORY.OUTSIDER,
   imagePath: IVROGNE_PRESENTATION.imagePath,
   fallbackSymbol: IVROGNE_PRESENTATION.fallbackSymbol,
-  power: "Vous ne savez pas que vous êtes l'Ivrogne. Vous croyez être un Villageois, mais ce n'est pas le cas.",
-  info: "Conseil: Pensez à consommer de l'alcool avec modération. L'abus d'alcool est dangereux pour la santé.",
 }
 
 export function getRolePresentation(roleId: string): RolePresentation | null {

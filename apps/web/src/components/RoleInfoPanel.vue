@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import type { RoleId } from '@lgu/contracts'
 
@@ -8,6 +8,10 @@ import {
   getRolePresentation,
 } from '../constants/role-presentation'
 import { appAsset } from '../constants/paths'
+import {
+  FALLBACK_ROLE_DETAIL_COMPONENT,
+  ROLE_DETAIL_COMPONENTS,
+} from './role-detail-components'
 
 const props = withDefaults(defineProps<{
   roleId: RoleId
@@ -23,6 +27,9 @@ const props = withDefaults(defineProps<{
 const role = getRolePresentation(props.roleId)
 const roleCardBackImage = appAsset('/images/role-card-back.webp')
 const revealed = ref(!props.revealable)
+const roleDetailComponent = computed(() => (
+  role ? ROLE_DETAIL_COMPONENTS[role.id] ?? FALLBACK_ROLE_DETAIL_COMPONENT : FALLBACK_ROLE_DETAIL_COMPONENT
+))
 
 const emit = defineEmits<{
   revealed: []
@@ -85,15 +92,12 @@ function reveal(): void {
       </div>
     </div>
 
-    <template v-if="!compact && (!revealable || revealed)">
-      <section class="app-description-section app-power-section">
-        <div class="app-section-header"><span class="app-section-icon">⚡</span><h4>{{ powerTitle }}</h4></div>
-        <p class="app-section-text">{{ role.power }}</p>
-      </section>
-      <section class="app-description-section app-info-section">
-        <div class="app-section-header"><span class="app-section-icon">💡</span><h4>{{ infoTitle }}</h4></div>
-        <p class="app-section-text">{{ role.info }}</p>
-      </section>
-    </template>
+    <component
+      v-if="!compact && (!revealable || revealed)"
+      :is="roleDetailComponent"
+      :power-title="powerTitle"
+      :info-title="infoTitle"
+      :current-role-id="role.id"
+    />
   </div>
 </template>

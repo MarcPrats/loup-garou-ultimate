@@ -66,3 +66,5 @@ apps/web/.vite/
 playwright-report/
 test-results/
 blob-report/
+
+ref.patch

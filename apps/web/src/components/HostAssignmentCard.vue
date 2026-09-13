@@ -106,7 +106,7 @@ const bluffName = computed(() => (
       <RoleInfoPanel
         v-if="assignment.bluffRoleId"
         :role-id="assignment.bluffRoleId"
-        title="Couverture du loup-garou"
+        title="Couverture du Loup Garou"
         power-title="Pouvoir"
         info-title="Infos"
         compact

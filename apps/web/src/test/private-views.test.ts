@@ -21,6 +21,7 @@ import {
   ROLE_PRESENTATION_BY_ID,
   getRolePresentation,
 } from '../constants/role-presentation'
+import { ROLE_DETAIL_COMPONENTS } from '../components/role-detail-components'
 
 const ACCESS_TOKEN = 'role_00000000000000000000000000000000001'
 
@@ -54,8 +55,7 @@ describe('role presentation catalogue', () => {
       const presentation = getRolePresentation(role.id)
       expect(presentation?.name).toBe(role.name)
       expect(presentation?.imagePath).toMatch(/^\/.+\.webp$/)
-      expect(presentation?.power.length).toBeGreaterThan(0)
-      expect(presentation?.info.length).toBeGreaterThan(0)
+      expect(ROLE_DETAIL_COMPONENTS[role.id]).toBeDefined()
     }
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.PETITE_FILLE].imagePath).toBe('/images/petite-fille.webp')
     expect(ROLE_PRESENTATION_BY_ID[ROLE_ID.MONTREUR_DOURS].imagePath).toBe('/images/montreur-dours.webp')
