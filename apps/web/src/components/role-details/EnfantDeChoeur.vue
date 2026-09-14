@@ -8,7 +8,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
         <p class="app-role-text">À votre mort, le Maître du Jeu choisit une personne qui devient
-            bourrée pour le reste de la partie.</p>
+            <strong>bourrée</strong> pour le reste de la partie.
+        </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Essayez de garder votre rôle secret.<br>Votre mort pénaliserait le

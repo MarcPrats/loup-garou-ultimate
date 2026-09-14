@@ -59,7 +59,7 @@ const MESSAGE = {
   LEFT: 'Vous avez quitté la partie.',
   KICKED: 'Vous avez été expulsé de la partie.',
   EXPIRED: 'Votre session a expiré.',
-  HOST_LEFT: 'Le maître du jeu a quitté la partie.',
+  HOST_LEFT: 'Le Maître du Jeu a quitté la partie.',
   LOBBY_EXPIRED: 'La partie a expiré.',
 } as const
 
@@ -329,7 +329,7 @@ export function registerSocketHandlers(io: GameSocketServer, source: LobbyServic
         reconnectRequests.delete(command.requestId)
         if (!requester) throw new LobbyError(ERROR_CODE.RECONNECT_REQUEST_NOT_FOUND, 'Le demandeur n’est plus connecté.')
         if (!approve) {
-          requester.emit(SOCKET_EVENT.RECONNECT_REJECTED, reconnectRejectedEventSchema.parse({ message: 'Le maître du jeu a refusé la reconnexion.' }))
+          requester.emit(SOCKET_EVENT.RECONNECT_REJECTED, reconnectRejectedEventSchema.parse({ message: 'Le Maître du Jeu a refusé la reconnexion.' }))
           return {}
         }
         const result = await service.reconnect(pending.playerId, requester.id)

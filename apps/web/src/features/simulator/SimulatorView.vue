@@ -285,7 +285,7 @@ generate()
                 v-model="selectedPlayerId"
                 class="app-simulator-player-select"
               >
-                <option value="">Vue d’un joueur…</option>
+                <option value="">Vue d’un joueur</option>
                 <option
                   v-for="player in playerOptions"
                   :key="player.id"

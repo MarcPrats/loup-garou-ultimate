@@ -42,7 +42,7 @@ import {
   type SessionStorage,
 } from '../services/session-storage'
 
-  const MESSAGE = {
+const MESSAGE = {
   CONNECTION_FAILED: 'Connexion au serveur impossible. Réessayez dans un instant.',
   COMMAND_TIMEOUT: 'Le serveur met trop de temps à répondre. Réessayez.',
   GAME_STARTED: 'La partie commence !',
@@ -50,7 +50,7 @@ import {
   LINK_COPIED: 'Lien d’invitation copié.',
   PROTOCOL_ERROR: 'Le serveur a envoyé une réponse invalide. Reconnexion en cours.',
   LOBBY_UNAVAILABLE: 'Cette partie n’est plus disponible. Choisissez une autre lobby.',
-  RECONNECT_REJECTED: 'Le maître du jeu a refusé cette reconnexion. Choisissez un autre joueur.',
+  RECONNECT_REJECTED: 'Le Maître du Jeu a refusé cette reconnexion. Choisissez un autre joueur.',
 } as const
 
 const TERMINAL_SESSION_ERRORS = new Set<ErrorCode>([

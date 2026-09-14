@@ -16,7 +16,7 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text"><strong>Le Grand Loup Garou prend connaissance d'un rôle de
-                villageois</strong> qui n'est pas présent dans la partie afin de pouvoir se faire
+                Villageois</strong> qui n'est pas présent dans la partie afin de pouvoir se faire
             passer pour celui-ci.</p>
     </RoleDetailSection>
 </template>

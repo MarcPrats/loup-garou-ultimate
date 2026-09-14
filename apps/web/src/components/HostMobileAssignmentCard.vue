@@ -47,38 +47,42 @@ const specialInformationPresentation = computed(() => (
       <div class="app-gm-mobile-player">
         <h3 class="app-gm-player-name">{{ assignment.player.name }}</h3>
       </div>
-      <span class="app-gm-team-badge" :class="assignment.role.team === TEAM.WEREWOLVES ? 'team-werewolves' : 'team-villagers'">
+      <span class="app-gm-team-badge"
+        :class="assignment.role.team === TEAM.WEREWOLVES ? 'team-werewolves' : 'team-villagers'">
         {{ teamLabel }}
       </span>
     </header>
 
-    <div class="app-gm-mobile-role">
-      <span v-if="assignment.rolePresentation" class="app-gm-role-image-frame">
-        <img
-          class="app-gm-role-image"
-          :src="assignment.rolePresentation.imagePath"
-          :alt="assignment.rolePresentation.name"
-        >
-      </span>
-      <div>
-        <span class="app-gm-mobile-label">Rôle</span>
-        <strong>{{ roleName }}</strong>
+    <div class="app-gm-mobile-card-content">
+      <div class="app-gm-mobile-role">
+        <span v-if="assignment.rolePresentation" class="app-gm-role-image-frame">
+          <img class="app-gm-role-image" :src="assignment.rolePresentation.imagePath"
+            :alt="assignment.rolePresentation.name">
+        </span>
+        <div>
+          <span class="app-gm-mobile-label">Rôle</span>
+          <strong>{{ roleName }}</strong>
+        </div>
       </div>
-    </div>
 
-    <div class="app-gm-mobile-badges">
-      <span v-if="assignment.isDrunk" class="app-drunk-badge">🍺 Bourré</span>
-      <span v-if="assignment.isVoyanteDecoy" class="app-gm-detail-card decoy">🔮 Leurre Voyante</span>
-      <span v-if="assignment.bluffPresentation" class="app-gm-detail-card bluff">
-        🎭 Rôle Bluff : {{ assignment.bluffPresentation.name }}
-      </span>
-    </div>
+      <div v-if="assignment.isDrunk || assignment.isVoyanteDecoy || assignment.bluffPresentation"
+        class="app-gm-mobile-badges">
+        <span v-if="assignment.isDrunk" class="app-drunk-badge">🍺 Bourré</span>
+        <span v-if="assignment.isVoyanteDecoy" class="app-gm-detail-card decoy">🔮 Leurre
+          Voyante</span>
+        <span v-if="assignment.bluffPresentation" class="app-gm-detail-card bluff">
+          🎭 Rôle Bluff : {{ assignment.bluffPresentation.name }}
+        </span>
+      </div>
 
-    <div class="app-gm-mobile-details">
-      <div v-if="assignment.specialInformation" class="app-gm-detail-card clue">
-        <strong>{{ specialInformationPresentation?.label }}</strong>
-        <span>{{ specialInformationPresentation?.targetLabel }} : {{ clueRoleName ?? assignment.specialInformation.roleId ?? 'Pas d’info' }}</span>
-        <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{ assignment.specialInformation.players.map((player) => player.name).join(', ') }}</span>
+      <div v-if="assignment.specialInformation" class="app-gm-mobile-details">
+        <div v-if="assignment.specialInformation" class="app-gm-detail-card clue">
+          <strong>{{ specialInformationPresentation?.label }}</strong>
+          <span>{{ specialInformationPresentation?.targetLabel }} : {{ clueRoleName ??
+            assignment.specialInformation.roleId ?? 'Pas d’info' }}</span>
+          <span v-if="assignment.specialInformation.players.length > 0">Joueurs : {{
+            assignment.specialInformation.players.map((player) => player.name).join(', ')}}</span>
+        </div>
       </div>
     </div>
   </article>

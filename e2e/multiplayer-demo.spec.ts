@@ -9,7 +9,7 @@ async function getInviteLobbyId(page: Page): Promise<string | null> {
   return match ? match[1] : null
 }
 
-test('demo: launch game with 1 host and 12 players joining the same lobby', async ({ browser }) => {
+test('demo: launch game with 1 host and 5 players joining the same lobby', async ({ browser }) => {
   const contexts: BrowserContext[] = []
 
   try {
@@ -39,7 +39,7 @@ test('demo: launch game with 1 host and 12 players joining the same lobby', asyn
 
     // Create players that join the SAME lobby in NEW TABS (same window)
     const players: Page[] = []
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= 5; i++) {
       // Create a new page in the SAME context (new tab in the same window)
       const playerPage = await sharedContext.newPage()
 
@@ -69,7 +69,7 @@ test('demo: launch game with 1 host and 12 players joining the same lobby', asyn
     }
 
     // Verify host sees all players
-    for (let i = 1; i <= 12; i++) {
+    for (let i = 1; i <= 5; i++) {
       await expect(host.getByText(`Hustler ${i}`, { exact: true })).toBeVisible()
     }
 

@@ -7,6 +7,7 @@ import { ROLE_ID } from '@lgu/game-core'
 
 import HostDashboardPanel from '../components/HostDashboardPanel.vue'
 import PlayerAssignmentPanel from '../components/PlayerAssignmentPanel.vue'
+import RoleMentionLink from '../components/RoleMentionLink.vue'
 import RoleInfoPanel from '../components/RoleInfoPanel.vue'
 import { PUBLIC_LINK, ROUTE_NAME } from '../constants/app'
 import { RULES_ROLE_CATALOG } from '../constants/rules-page'
@@ -184,6 +185,16 @@ describe('shared bluff role view', () => {
     expect(wrapper.text()).toContain('Votre Pouvoir')
     expect(wrapper.text()).toContain('Autres Infos')
     expect(wrapper.text()).toContain('Loup-garou')
+  })
+})
+
+describe('role detail links', () => {
+  it('uses the application base path when linking to a role detail page', () => {
+    const wrapper = mount(RoleMentionLink, {
+      props: { roleId: 'voyante', label: 'Voyante' },
+    })
+
+    expect(wrapper.get('a').attributes('href')).toBe('/rules/role/voyante')
   })
 })
 

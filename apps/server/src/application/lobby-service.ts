@@ -272,7 +272,7 @@ function findGameTarget(
   if (!target || target.isHost) {
     throw new LobbyError(
       ERROR_CODE.INVALID_GAME_EVENT,
-      'Le maître du jeu ne peut pas être enregistré comme victime.',
+      'Le Maître du Jeu ne peut pas être enregistré comme victime.',
     )
   }
   const isAssigned = lobby.game?.assignment.assignments.some(
@@ -291,7 +291,7 @@ function assertHost(player: LobbyPlayerState): void {
   if (!player.isHost) {
     throw new LobbyError(
       ERROR_CODE.NOT_GAME_MASTER,
-      'Seul le maître du jeu peut effectuer cette action.',
+      'Seul le Maître du Jeu peut effectuer cette action.',
     )
   }
 }
@@ -348,7 +348,7 @@ function toEntryResponse(
 }
 
 export class LobbyService {
-  constructor(private readonly dependencies: LobbyServiceDependencies) {}
+  constructor(private readonly dependencies: LobbyServiceDependencies) { }
 
   async getLobbySnapshot(): Promise<LobbySnapshot | null> {
     const lobby = await this.dependencies.repository.read()
@@ -669,7 +669,7 @@ export class LobbyService {
       if (target.isHost) {
         throw new LobbyError(
           ERROR_CODE.NOT_GAME_MASTER,
-          'Le maître du jeu ne peut pas être expulsé.',
+          'Le Maître du Jeu ne peut pas être expulsé.',
         )
       }
 
@@ -805,7 +805,7 @@ export class LobbyService {
         this.dependencies.roleAccessTokenGenerator,
         startedAt,
         lobby.gameStartPreview?.assignment
-          ?? createGameAssignment(lobby, this.dependencies.assignmentGenerator),
+        ?? createGameAssignment(lobby, this.dependencies.assignmentGenerator),
       )
       lobby.gameStartPreview = null
       lobby.phase = LOBBY_PHASE.STARTED
@@ -886,7 +886,7 @@ export class LobbyService {
       assertDayPhase(lobby)
       assertDayVotingEnabled(lobby)
       const player = authenticateConnectedSession(lobby, command)
-      if (player.isHost) throw new LobbyError(ERROR_CODE.NOT_GAME_MASTER, 'Le maître du jeu ne peut pas nominer.')
+      if (player.isHost) throw new LobbyError(ERROR_CODE.NOT_GAME_MASTER, 'Le Maître du Jeu ne peut pas nominer.')
       const game = lobby.game!
       if (game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_PENDING || game.dayVoting.status === DAY_VOTE_STATUS.NOMINATION_VALIDATED || game.dayVoting.status === DAY_VOTE_STATUS.ACTIVE) {
         throw new LobbyError(ERROR_CODE.INVALID_GAME_EVENT, 'Une nomination est déjà en cours.')
@@ -1246,7 +1246,7 @@ export class LobbyService {
     if (player.isHost) {
       throw new LobbyError(
         ERROR_CODE.PLAYER_NOT_FOUND,
-        'Le maître du jeu ne possède pas de rôle joueur.',
+        'Le Maître du Jeu ne possède pas de rôle joueur.',
       )
     }
     return toPrivateAssignment(lobby, player.id)
@@ -1263,7 +1263,7 @@ export class LobbyService {
     if (player.isHost) {
       throw new LobbyError(
         ERROR_CODE.PLAYER_NOT_FOUND,
-        'Le maître du jeu ne possède pas ce rôle joueur.',
+        'Le Maître du Jeu ne possède pas ce rôle joueur.',
       )
     }
     return toLoupVoyantDashboard(lobby, player.id)
@@ -1393,7 +1393,7 @@ export class LobbyService {
         (player) => !player.connected
           && player.disconnectedAt !== null
           && now - player.disconnectedAt
-            >= LOBBY_TIME_LIMIT.DISCONNECTED_SESSION_GRACE_MS,
+          >= LOBBY_TIME_LIMIT.DISCONNECTED_SESSION_GRACE_MS,
       )
       if (removedPlayers.length === 0) {
         return {

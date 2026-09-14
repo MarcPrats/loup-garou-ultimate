@@ -7,14 +7,16 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Chaque nuit (sauf la première), choisissez une personne.<br>Elle
-            meurt.<br><strong>Note :</strong> Vous pouvez choisir de vous tuer vous-même et un autre
+        <p class="app-role-text">Chaque nuit (sauf la première), choisissez une
+            personne.<br><strong>
+                Elle meurt</strong>.<br><strong>Note :</strong> Vous pouvez choisir de vous tuer
+            vous-même et un autre
             Loup Garou
             jouera
             votre rôle.</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
-        <p class="app-role-text">Le Loup Garou Ultime prend connaissance d'un rôle de villageois qui
+        <p class="app-role-text">Le Loup Garou Ultime prend connaissance d'un rôle de Villageois qui
             n'est pas présent dans la partie afin de pouvoir se faire passer pour
             celui-ci.<br>Ciblez
             les personnages qui acquièrent de l'information (

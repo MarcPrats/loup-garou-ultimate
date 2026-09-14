@@ -7,8 +7,9 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Chaque nuit, parmi les deux personnes vivantes qui vous entourent,
-            vous apprenez combien de Loup Garous vous entourent (0, 1 ou 2).</p>
+        <p class="app-role-text">Chaque nuit, parmi les <strong> deux personnes vivantes qui vous
+                entourent</strong>,
+            vous apprenez combien de Loup Garous sont présents (0, 1 ou 2).</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Votre pouvoir s'applique chaque nuit et vous serez probablement une
