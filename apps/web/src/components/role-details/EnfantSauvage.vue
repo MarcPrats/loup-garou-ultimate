@@ -6,7 +6,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Si une personne est exécutée par le village durant la journée, vous
+        <p class="app-role-text">Si une personne est <strong>exécutée par le village durant la
+                journée</strong>, vous
             découvrez son identité la nuit.</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">

@@ -12,7 +12,7 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text"><strong>Note:</strong> pensez à consommer de l'alcool avec
-            modération.L'abus
+            modération. L'abus
             d'alcool est dangereux pour la santé.</p>
     </RoleDetailSection>
 </template>

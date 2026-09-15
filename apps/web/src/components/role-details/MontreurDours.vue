@@ -6,11 +6,12 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Lors de la première nuit, vous découvrez combien de Loup Garous
-            sont placés côte à côte.</p>
+        <p class="app-role-text">Lors de la <strong>première nuit</strong>, vous découvrez combien
+            de Loup Garous
+            sont <strong>placés côte à côte</strong>.</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Votre pouvoir ne s'applique que lors de la première
-            nuit.<br>N'hésitez pas à partager au plus vite vos informations.</p>
+            nuit. N'hésitez pas à partager au <strong>plus vite</strong> vos informations.</p>
     </RoleDetailSection>
 </template>

@@ -7,7 +7,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Chaque nuit (sauf la première), choisissez une autre personne que
+        <p class="app-role-text">Chaque nuit (sauf la première), choisissez une <strong>autre
+                personne</strong> que
             vous : elle est protégée de la morsure du
             <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
                 :current-role-id="currentRoleId" /> le temps d'une nuit.

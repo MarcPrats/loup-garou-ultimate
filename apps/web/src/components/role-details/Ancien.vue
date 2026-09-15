@@ -14,11 +14,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Votre pouvoir vous permet d'annuler la morsure du
-            <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
-                :current-role-id="currentRoleId" /> pendant une nuit.<br>N'hésitez pas à vous faire
-            passer pour une proie du
-            <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
-                :current-role-id="currentRoleId" /> (en prétendant avoir de précieuses
+            Loup Garou Ultime pendant une nuit.<br>N'hésitez pas à vous faire
+            passer pour une proie de ce dernier (en prétendant avoir de précieuses
             informations) afin qu'il s'en prenne à vous la nuit.
         </p>
     </RoleDetailSection>

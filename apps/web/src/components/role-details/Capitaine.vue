@@ -7,18 +7,21 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
 
 <template>
     <RoleDetailSection :title="powerTitle" icon="⚡">
-        <p class="app-role-text">Si le Capitaine est vivant et qu'il ne reste que trois personnes à
-            la fin d'une journée sans exécution, le Village gagne.<br>Si le
+        <p class="app-role-text">Si le Capitaine est vivant et qu'il ne reste que <strong>trois
+                personnes à
+                la fin d'une journée sans exécution</strong>, le Village
+            <strong>gagne</strong>.<br>Si le
             <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
                 :current-role-id="currentRoleId" /> cible le Capitaine pendant la nuit, le Maître du
-            Jeu peut, s'il le souhaite, choisir secrètement une autre personne vivante : celle-ci
-            meurt à sa place.
+            Jeu peut, <strong>s'il le souhaite</strong>, choisir secrètement une autre personne
+            vivante: celle-ci <strong>meurt à sa place.</strong>
         </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Votre pouvoir est entièrement passif : vous ne vous réveillez pas
             la nuit et le Maître du Jeu sera responsable de l'exécution de votre pouvoir.<br>Essayez
-            de survivre jusqu'à ce que trois personnes restent en vie.<br>Rappel : les Loups Garous
+            de survivre jusqu'à ce que trois personnes restent en vie.<br><strong>Rappel:</strong>
+            les Loups Garous
             gagnent lorsqu'il ne reste plus que deux personnes en vie.</p>
     </RoleDetailSection>
 </template>

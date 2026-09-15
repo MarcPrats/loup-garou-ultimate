@@ -12,8 +12,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             deux personnes est le Marginal précédemment montré.</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
-        <p class="app-role-text"><strong>Votre pouvoir ne s'applique que lors de la première
-                nuit.</strong><br>N'hésitez
-            pas à partager au plus vite vos informations.</p>
+        <p class="app-role-text">Votre pouvoir ne s'applique que lors de la première
+            nuit. N'hésitez
+            pas à partager au <strong>plus vite</strong> vos informations.</p>
     </RoleDetailSection>
 </template>

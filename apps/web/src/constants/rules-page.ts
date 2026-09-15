@@ -181,7 +181,7 @@ export const RULES_ROLE_CATALOG: readonly RulesRoleCatalogEntry[] = [
     category: 'villageois',
     categoryLabel: 'Villageois',
     imagePath: appAsset('/images/enfant.webp'),
-    summary: "Chaque nuit (sauf la première), vous apprenez quel personnage a été exécuté aujourd'hui.",
+    summary: "Chaque nuit (sauf la première), vous apprenez quel personne a été exécutée aujourd'hui.",
     available: true,
   },
   {
