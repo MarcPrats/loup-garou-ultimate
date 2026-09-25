@@ -14,7 +14,7 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text">Votre pouvoir vous permet d'annuler la morsure du
-            Loup Garou Ultime pendant une nuit.<br>N'hésitez pas à vous faire
+            Loup Garou Ultime toutes les nuits.<br>N'hésitez pas à vous faire
             passer pour une proie de ce dernier (en prétendant avoir de précieuses
             informations) afin qu'il s'en prenne à vous la nuit.
         </p>

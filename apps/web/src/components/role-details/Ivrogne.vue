@@ -8,7 +8,8 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     <RoleDetailSection :title="powerTitle" icon="⚡">
         <p class="app-role-text"><strong>Vous ne savez pas que vous êtes l'Ivrogne.</strong><br>Vous
             croyez être un
-            Villageois, mais ce n'est pas le cas.</p>
+            Villageois, mais ce n'est pas le cas. Le Maître du Jeu vous fera croire que votre
+            pouvoir de Villageois fonctionne (ou pas).</p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
         <p class="app-role-text"><strong>Note:</strong> pensez à consommer de l'alcool avec
