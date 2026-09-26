@@ -1,9 +1,8 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 
-import { ROLE_CATEGORY, ROLE_ID } from '@lgu/contracts'
+import { ROLE_CATEGORY } from '@lgu/contracts'
 
-import RoleInfoPanel from '../components/RoleInfoPanel.vue'
 import { ROLE_DETAIL_COMPONENTS } from '../components/role-detail-components'
 import { getRolePresentation } from '../constants/role-presentation'
 
@@ -22,10 +21,12 @@ describe('role intoxication details', () => {
             })
 
             expect(role).not.toBeNull()
+            const expectsSection = roleId !== 'ivrogne'
+                && (role?.category === ROLE_CATEGORY.VILLAGER || role?.category === ROLE_CATEGORY.OUTSIDER)
             expect(wrapper.find('.app-role-intoxication-section').exists()).toBe(
-                role?.category === ROLE_CATEGORY.VILLAGER || role?.category === ROLE_CATEGORY.OUTSIDER,
+                expectsSection,
             )
-            if (role?.category === ROLE_CATEGORY.VILLAGER || role?.category === ROLE_CATEGORY.OUTSIDER) {
+            if (expectsSection) {
                 expect(wrapper.find('.app-role-intoxication-section').text()).toContain(
                     "À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si c'est le cas alors",
                 )
@@ -33,18 +34,17 @@ describe('role intoxication details', () => {
         },
     )
 
-    it('keeps the shared explanation alongside the Voyante-specific effect', () => {
-        const wrapper = mount(RoleInfoPanel, {
+    it('explains that intoxication can alter the Voyante information result', () => {
+        const wrapper = mount(ROLE_DETAIL_COMPONENTS.voyante, {
             props: {
-                roleId: ROLE_ID.VOYANTE,
                 powerTitle: 'Votre Pouvoir',
                 infoTitle: 'Autres Infos',
+                currentRoleId: 'voyante',
             },
         })
 
-        expect(wrapper.text()).toContain('ces deux états ont le même effet')
         expect(wrapper.find('.app-role-intoxication-section').text()).toContain(
-            'les informations sur les Loups Garous peuvent être modifiées par le Maître du Jeu',
+            "l'information donnée par le Maître du Jeu peut être fausse",
         )
     })
 })
