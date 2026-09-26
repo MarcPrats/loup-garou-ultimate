@@ -11,8 +11,12 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             d'elles est le
             <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
                 :current-role-id="currentRoleId" />, vous aurez
-            l'information.<br><strong>ATTENTION:</strong> l'une
-            des personnes en jeu est un leurre et vous apparaîtra comme le Loup Garou Ultime !
+            l'information.<br>
+            <strong>ATTENTION: l'une
+                des personnes de la partie a été désignée par le Maître du Jeu comme un leurre. Si
+                vous la
+                choisissez, elle vous apparaîtra comme le Loup Garou Ultime
+                !</strong>
         </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
@@ -21,5 +25,10 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             pour ne
             pas tenter sa morsure.
         </p>
+    </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors l'information donnée par le Maître du Jeu peut être fausse.</p>
     </RoleDetailSection>
 </template>

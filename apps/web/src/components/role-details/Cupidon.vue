@@ -20,4 +20,10 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             tenter sa morsure.
         </p>
     </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors
+            l'information que vous recevez peut être fausse.</p>
+    </RoleDetailSection>
 </template>

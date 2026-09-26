@@ -24,4 +24,9 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
                 :current-role-id="currentRoleId" />.
         </p>
     </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors votre pouvoir ne fonctionne pas si c'est le Loup Garou Ultime.</p>
+    </RoleDetailSection>
 </template>

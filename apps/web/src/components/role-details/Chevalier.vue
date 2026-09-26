@@ -26,4 +26,11 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             identifier afin de les protéger.
         </p>
     </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors
+            la personne que vous choisissez n'est pas protégée cette nuit par votre pouvoir et peut
+            être mordue.</p>
+    </RoleDetailSection>
 </template>

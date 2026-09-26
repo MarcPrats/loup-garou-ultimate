@@ -24,4 +24,11 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             les Loups Garous
             gagnent lorsqu'il ne reste plus que deux personnes en vie.</p>
     </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors
+            votre condition de victoire passive est annulée. La redirection éventuelle de la morsure
+            du Loup Garou Ultime ne s'applique pas non plus.</p>
+    </RoleDetailSection>
 </template>

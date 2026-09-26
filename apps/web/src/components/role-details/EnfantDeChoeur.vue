@@ -9,7 +9,7 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
     <RoleDetailSection :title="powerTitle" icon="⚡">
         <p class="app-role-text">À votre mort, le Maître du Jeu choisit une personne qui devient
             <strong>bourrée</strong> pour le reste de la partie.
-            Lorsqu'une personne est bourrée, son pouvoir est altéré ou annulé par le Mâitre du Jeu.
+            Lorsqu'une personne est bourrée, son pouvoir est altéré ou annulé par le Maître du Jeu.
         </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">
@@ -24,5 +24,12 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             <RoleMentionLink role-id="ange" label="Ange" team="villager"
                 :current-role-id="currentRoleId" />.
         </p>
+    </RoleDetailSection>
+    <RoleDetailSection class="app-role-intoxication-section"
+        title="Attention à l'ivresse ou à l'empoisonnement" icon="⚠️">
+        <p class="app-role-text">À tout moment du jeu, vous pouvez être ivre ou empoisonné(e), si
+            c'est le cas alors
+            votre pouvoir est annulé: à votre mort, le Maître du Jeu ne désigne pas de personne qui
+            deviendra ivre à cause de votre rôle.</p>
     </RoleDetailSection>
 </template>
