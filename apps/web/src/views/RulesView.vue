@@ -197,7 +197,7 @@ onBeforeUnmount(() => {
           <article class="rules-practical-card rules-practical-card-day">
             <h3><span class="rules-emoji">☀️</span> Pendant la journée</h3>
             <ul>
-              <li><span class="rules-emoji">🗳️</span> Tout joueur <b>vivant</b> peut nominer un autre joueur vivant pour une exécution.</li>
+              <li><span class="rules-emoji">🗳️</span> Tout joueur <b>vivant</b> peut nominer un joueur vivant (dont lui-même) pour une exécution.</li>
               <li><span class="rules-emoji">⚖️</span> Si <b>au moins la moitié des joueurs vivants</b> votent contre une personne nominée, son exécution est validée, <b>mais elle n’est pas réalisée immédiatement.</b></li>
               <li><span class="rules-emoji">📝</span> D’<b>autres</b> nominations peuvent être proposées au cours de la même journée. Un joueur ne peut nominer qu’<b>une seule fois</b> durant la journée.</li>
               <li><span class="rules-emoji">🚫</span> Une personne ne peut <b>être nominée qu’une seule fois</b> durant la journée.</li>
