@@ -161,7 +161,7 @@ describe('assignRoles', () => {
     expect(checked).toBeGreaterThan(0)
   })
 
-  it('restricts Petite Fille information to an effective Villageois', () => {
+  it('restricts Petite Fille information to an effective Villageois or Loup Voyant', () => {
     let checked = 0
     for (const playerCount of SUPPORTED_PLAYER_COUNTS.filter(
       (count) => GAME_COMPOSITION_BY_PLAYER_COUNT[count].outsiders > 0,
@@ -179,8 +179,12 @@ describe('assignRoles', () => {
         )
         expect(target).toBeDefined()
         expect(target?.playerId).not.toBe(result.drunkPlayerId)
-        expect(getEffectiveCategory(info.roleId, false)).toBe(ROLE_CATEGORY.VILLAGER)
-        expect(getRoleDefinition(info.roleId).category).toBe(ROLE_CATEGORY.VILLAGER)
+        if (info.roleId === ROLE_ID.LOUP_VOYANT) {
+          expect(info.roleId).toBe(ROLE_ID.LOUP_VOYANT)
+        } else {
+          expect(getEffectiveCategory(info.roleId, false)).toBe(ROLE_CATEGORY.VILLAGER)
+          expect(getRoleDefinition(info.roleId).category).toBe(ROLE_CATEGORY.VILLAGER)
+        }
         expect(info.seenPlayerIds).not.toContain(info.playerId)
       }
     }
@@ -200,6 +204,7 @@ describe('assignRoles', () => {
         ROLE_ID.GRAND_WEREWOLF,
         ROLE_ID.LOUP_VOYANT,
         ROLE_ID.LOUP_BLANC,
+        ROLE_ID.RECLUSE,
       ]).toContain(info.roleId)
       expect(info.roleId).not.toBe(ROLE_ID.ULTIMATE_WEREWOLF)
       expect(info.seenPlayerIds).not.toContain(info.playerId)
@@ -237,7 +242,11 @@ describe('assignRoles', () => {
             const seenAssignment = result.assignments.find((assignment) => assignment.playerId === playerId)
             return Boolean(
               seenAssignment
-                && (seenAssignment.isDrunk || getRoleDefinition(seenAssignment.roleId).category === ROLE_CATEGORY.OUTSIDER),
+                && (
+                  info.roleId === ROLE_ID.LOUP_VOYANT
+                    ? seenAssignment.roleId === ROLE_ID.LOUP_VOYANT
+                    : seenAssignment.isDrunk || getRoleDefinition(seenAssignment.roleId).category === ROLE_CATEGORY.OUTSIDER
+                ),
             )
           })
           expect(seenOutsider).toBe(true)

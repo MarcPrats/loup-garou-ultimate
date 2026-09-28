@@ -1,6 +1,9 @@
 import { BLUFF_INFORMATION_TYPE } from './constants'
 import type {
   NonUltimateWerewolfRoleId,
+  BibliothecaireVisibleRoleId,
+  PetiteFilleVisibleRoleId,
+  RenardVisibleRoleId,
   RoleId,
   TrueVillagerRoleId,
   OutsiderRoleId,
@@ -22,19 +25,19 @@ export interface PlayerAssignment {
 
 export interface RenardInformation {
   readonly playerId: PlayerId
-  readonly roleId: NonUltimateWerewolfRoleId
+  readonly roleId: RenardVisibleRoleId
   readonly seenPlayerIds: readonly [PlayerId, PlayerId]
 }
 
 export interface PetiteFilleInformation {
   readonly playerId: PlayerId
-  readonly roleId: TrueVillagerRoleId
+  readonly roleId: PetiteFilleVisibleRoleId
   readonly seenPlayerIds: readonly [PlayerId, PlayerId]
 }
 
 export interface BibliothecaireInformation {
   readonly playerId: PlayerId
-  readonly roleId: OutsiderRoleId | null
+  readonly roleId: BibliothecaireVisibleRoleId | null
   readonly seenPlayerIds: readonly PlayerId[]
 }
 

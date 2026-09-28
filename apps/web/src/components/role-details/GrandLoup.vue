@@ -11,6 +11,9 @@ defineProps<{ powerTitle: string; infoTitle: string; currentRoleId: string }>()
             <RoleMentionLink role-id="loup-garou-ultime" label="Loup Garou Ultime" team="werewolf"
                 :current-role-id="currentRoleId" /> <strong>meurt</strong>, vous devenez le
             <strong>Loup Garou Ultime</strong>.
+            <br>
+            Une fois pendant la partie, le Maître du Jeu peut, s'il le souhaite, vous réveiller pour
+            que vous puissiez choisir une personne à dévorer.
         </p>
     </RoleDetailSection>
     <RoleDetailSection :title="infoTitle" icon="💡">

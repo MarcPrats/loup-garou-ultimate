@@ -5,15 +5,14 @@ import {
 } from './player-assignments'
 import { pickRandom, shuffle, type RandomSource } from './random'
 import {
-  ROLE_CATEGORY,
   ROLE_ID,
-  getEffectiveCategory,
-  getRoleDefinition,
-  isNonUltimateWerewolfRole,
-  isTrueVillagerRole,
+  isBibliothecaireVisibleRole,
+  isPetiteFilleVisibleRole,
+  isRenardVisibleRole,
   isVillageTeamRole,
-  type NonUltimateWerewolfRoleId,
-  type TrueVillagerRoleId,
+  type BibliothecaireVisibleRoleId,
+  type PetiteFilleVisibleRoleId,
+  type RenardVisibleRoleId,
 } from './roles'
 import type {
   AssignablePlayer,
@@ -33,10 +32,10 @@ export function buildBibliothecaireInformation(
 
   const outsiders = players.filter((player) => (
     player.id !== bibliothecaire.id
-      && getEffectiveCategory(
+      && isBibliothecaireVisibleRole(
         roleFor(assignments, player.id),
         player.id === drunkPlayerId,
-      ) === ROLE_CATEGORY.OUTSIDER
+      )
   ))
   if (outsiders.length === 0) {
     return { playerId: bibliothecaire.id, roleId: null, seenPlayerIds: [] }
@@ -45,7 +44,7 @@ export function buildBibliothecaireInformation(
   const selectedOutsider = pickRandom(outsiders, random)
   return {
     playerId: bibliothecaire.id,
-    roleId: roleFor(assignments, selectedOutsider.id) as BibliothecaireInformation['roleId'],
+    roleId: roleFor(assignments, selectedOutsider.id) as BibliothecaireVisibleRoleId,
     seenPlayerIds: buildVisiblePlayerPair(selectedOutsider, bibliothecaire.id, players, random),
   }
 }
@@ -77,13 +76,13 @@ export function buildRenardInformation(
   if (!renardPlayer) return null
 
   const candidates = players.filter((player) =>
-    isNonUltimateWerewolfRole(roleFor(assignments, player.id)),
+    isRenardVisibleRole(roleFor(assignments, player.id)),
   )
   const selectedWerewolf = pickRandom(candidates, random)
 
   return {
     playerId: renardPlayer.id,
-    roleId: roleFor(assignments, selectedWerewolf.id) as NonUltimateWerewolfRoleId,
+    roleId: roleFor(assignments, selectedWerewolf.id) as RenardVisibleRoleId,
     seenPlayerIds: buildVisiblePlayerPair(
       selectedWerewolf,
       renardPlayer.id,
@@ -110,14 +109,14 @@ export function buildPetiteFilleInformation(
     const roleId = roleFor(assignments, player.id)
     return player.id !== petiteFillePlayer.id
       && player.id !== drunkPlayerId
-      && isTrueVillagerRole(roleId)
+      && isPetiteFilleVisibleRole(roleId)
   })
   if (candidates.length === 0) return null
   const selectedVillager = pickRandom(candidates, random)
 
   return {
     playerId: petiteFillePlayer.id,
-    roleId: roleFor(assignments, selectedVillager.id) as TrueVillagerRoleId,
+    roleId: roleFor(assignments, selectedVillager.id) as PetiteFilleVisibleRoleId,
     seenPlayerIds: buildVisiblePlayerPair(
       selectedVillager,
       petiteFillePlayer.id,

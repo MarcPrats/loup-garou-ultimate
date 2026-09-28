@@ -77,6 +77,9 @@ export type WerewolfRoleId = Extract<RoleId,
   | typeof ROLE_ID.LOUP_VOYANT
   | typeof ROLE_ID.LOUP_BLANC>
 export type NonUltimateWerewolfRoleId = Exclude<WerewolfRoleId, typeof ROLE_ID.ULTIMATE_WEREWOLF>
+export type RenardVisibleRoleId = NonUltimateWerewolfRoleId | typeof ROLE_ID.RECLUSE
+export type PetiteFilleVisibleRoleId = TrueVillagerRoleId | typeof ROLE_ID.LOUP_VOYANT
+export type BibliothecaireVisibleRoleId = OutsiderRoleId | typeof ROLE_ID.LOUP_VOYANT
 export type VillageTeamRoleId = Exclude<RoleId, WerewolfRoleId>
 export type TrueVillagerRoleId = Extract<
   (typeof ROLE_DEFINITIONS)[number],
@@ -117,8 +120,24 @@ export function isNonUltimateWerewolfRole(roleId: RoleId): roleId is NonUltimate
   return isWerewolfRole(roleId) && roleId !== ROLE_ID.ULTIMATE_WEREWOLF
 }
 
+export function isRenardVisibleRole(roleId: RoleId): roleId is RenardVisibleRoleId {
+  return isNonUltimateWerewolfRole(roleId) || roleId === ROLE_ID.RECLUSE
+}
+
 export function isTrueVillagerRole(roleId: RoleId): roleId is TrueVillagerRoleId {
   return getRoleDefinition(roleId).category === ROLE_CATEGORY.VILLAGER
+}
+
+export function isPetiteFilleVisibleRole(roleId: RoleId): roleId is PetiteFilleVisibleRoleId {
+  return isTrueVillagerRole(roleId) || roleId === ROLE_ID.LOUP_VOYANT
+}
+
+export function isBibliothecaireVisibleRole(
+  roleId: RoleId,
+  isDrunk: boolean,
+): roleId is BibliothecaireVisibleRoleId {
+  return getEffectiveCategory(roleId, isDrunk) === ROLE_CATEGORY.OUTSIDER
+    || roleId === ROLE_ID.LOUP_VOYANT
 }
 
 export function getEffectiveCategory(roleId: RoleId, isDrunk: boolean): RoleCategory {
