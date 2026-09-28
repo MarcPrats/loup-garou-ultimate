@@ -38,7 +38,11 @@ export class LobbyRegistry {
     const snapshots = await Promise.all(
       [...this.lobbies.entries()].map(async ([lobbyId, service]) => {
         const snapshot = await service.getLobbySnapshot()
-        if (!snapshot || snapshot.phase !== 'lobby' || snapshot.players.length >= snapshot.maximumPlayers) return null
+        if (!snapshot || snapshot.phase === 'closed' || snapshot.gameEnded) return null
+        const isJoinableLobby = snapshot.phase === 'lobby'
+          && snapshot.players.length < snapshot.maximumPlayers
+        const isRecoverableGame = snapshot.phase === 'started'
+        if (!isJoinableLobby && !isRecoverableGame) return null
         return { ...snapshot, id: lobbyId }
       }),
     )

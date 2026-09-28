@@ -88,6 +88,7 @@ export function createLobbyStoreDefinition(
     const hostDashboard = ref<HostDashboard | null>(null)
     const startPreview = ref<GameStartPreview | null>(null)
     const pendingHostDashboard = ref<HostDashboard | null>(null)
+    const recoveryLobbyId = ref<string | null>(null)
     const reconnectOptions = ref<LobbySnapshot | null>(null)
     const reconnectPending = ref(false)
     const reconnectRequests = ref<ReconnectRequest[]>([])
@@ -211,6 +212,7 @@ export function createLobbyStoreDefinition(
       }
       credentials.value = session
       dependencies.storage.save(session)
+      recoveryLobbyId.value = null
       lobby.value = nextLobby
       dayVotePrivateStatus.value = null
       destination.value = nextDestination
@@ -230,7 +232,7 @@ export function createLobbyStoreDefinition(
       startKeepAlive()
     }
 
-    function clearSession(): void {
+    function clearSession(preserveRecovery = false): void {
       sessionEpoch += 1
       credentials.value = null
       lobby.value = null
@@ -243,6 +245,7 @@ export function createLobbyStoreDefinition(
       reconnectRequests.value = []
       startPreview.value = null
       pendingHostDashboard.value = null
+      if (!preserveRecovery) recoveryLobbyId.value = null
       restoringSession.value = false
       dependencies.storage.clear()
       stopKeepAlive()
@@ -257,7 +260,10 @@ export function createLobbyStoreDefinition(
       error.value = TERMINAL_SESSION_ERRORS.has(publicError.code)
         ? { ...publicError, message: MESSAGE.LOBBY_UNAVAILABLE }
         : publicError
-      if (TERMINAL_SESSION_ERRORS.has(publicError.code)) clearSession()
+      if (TERMINAL_SESSION_ERRORS.has(publicError.code)) {
+        recoveryLobbyId.value = credentials.value?.lobbyId ?? lobby.value?.id ?? null
+        clearSession(recoveryLobbyId.value !== null)
+      }
     }
 
     async function resumeStoredSession(): Promise<void> {
@@ -501,6 +507,7 @@ export function createLobbyStoreDefinition(
 
     async function loadReconnectOptions(lobbyId: string): Promise<boolean> {
       clearError()
+      reconnectOptions.value = null
       try {
         const response = await getGateway().getReconnectOptions(lobbyId)
         if (!response.ok) {
@@ -1111,6 +1118,7 @@ export function createLobbyStoreDefinition(
       destination,
       privateAssignment,
       hostDashboard,
+      recoveryLobbyId,
       reconnectOptions,
       reconnectPending,
       reconnectRequests,

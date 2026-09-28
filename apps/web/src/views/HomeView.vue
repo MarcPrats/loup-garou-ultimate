@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import type { LobbySnapshot } from '@lgu/contracts'
+import { LOBBY_PHASE, type LobbySnapshot } from '@lgu/contracts'
 
 import FeedbackBanner from '../components/FeedbackBanner.vue'
 import AppButton from '../components/ui/AppButton.vue'
@@ -36,7 +36,11 @@ const inviteLobbyId = computed(() => {
   return null
 })
 const inviteMode = computed(() => Boolean(inviteLobbyId.value))
-const reconnectMode = computed(() => Boolean(inviteMode.value && lobby.reconnectOptions))
+const reconnectMode = computed(() => (
+  inviteMode.value
+  && lobby.reconnectOptions?.id === inviteLobbyId.value
+  && lobby.reconnectOptions.phase === LOBBY_PHASE.STARTED
+))
 const reconnectPlayers = computed(() => (
   lobby.reconnectOptions?.players.filter((player) => !player.isHost) ?? []
 ))
@@ -78,6 +82,13 @@ async function joinInviteLobby(): Promise<void> {
 }
 
 async function joinLobby(availableLobby: LobbySnapshot): Promise<void> {
+  if (availableLobby.phase === LOBBY_PHASE.STARTED) {
+    await router.push({
+      name: ROUTE_NAME.LOBBY,
+      params: { lobbyId: availableLobby.id },
+    })
+    return
+  }
   if (!canSubmit.value) return
   joiningLobbyId.value = availableLobby.id
   try {
@@ -86,6 +97,16 @@ async function joinLobby(availableLobby: LobbySnapshot): Promise<void> {
     joiningLobbyId.value = null
   }
 }
+
+watch(inviteLobbyId, async (lobbyId, previousLobbyId) => {
+  if (!lobbyId || lobbyId === previousLobbyId || !lobby.initialized || lobby.hasStoredSession) return
+  preparingInvite.value = true
+  try {
+    await lobby.loadReconnectOptions(lobbyId)
+  } finally {
+    preparingInvite.value = false
+  }
+})
 
 let lobbyRefreshTimer: ReturnType<typeof setInterval> | null = null
 
@@ -186,7 +207,7 @@ onUnmounted(() => {
       </form>
 
       <div class="app-lobby-list-header">
-        <h3>Parties disponibles</h3>
+        <h3>Parties disponibles et en cours</h3>
         <AppButton size="sm" class="app-btn-back app-btn-compact app-lobby-refresh"
           :disabled="lobby.connectionState !== CONNECTION_STATE.ONLINE" @click="lobby.listLobbies"
           aria-label="Actualiser la liste des lobbies">
@@ -202,20 +223,23 @@ onUnmounted(() => {
         </AppButton>
       </div>
       <p v-if="lobby.availableLobbies.length === 0" class="app-lobby-empty">
-        Aucune partie en attente. Créez la première.
+        Aucune partie active. Créez la première.
       </p>
       <div v-else class="app-lobby-list">
         <article v-for="availableLobby in lobby.availableLobbies" :key="availableLobby.id"
           class="app-lobby-list-card" :class="{ highlighted: availableLobby.id === inviteLobbyId }">
           <div>
-            <strong>{{availableLobby.players.find((player) => player.isHost)?.name ?? 'Partie'
-            }}</strong>
-            <span>{{ lobbyPlayerCount(availableLobby) }} / {{ availableLobby.maximumPlayers }}
-              joueurs</span>
+            <strong>MJ : {{ availableLobby.players.find((player) => player.isHost)?.name ?? 'Inconnu' }}</strong>
+            <span v-if="availableLobby.phase === LOBBY_PHASE.STARTED">
+              Partie en cours · {{ availableLobby.gamePhase?.period === 'night' ? 'Nuit' : 'Jour' }}
+              {{ availableLobby.gamePhase?.number ?? '' }} ·
+              {{ lobbyPlayerCount(availableLobby) }} joueurs
+            </span>
+            <span v-else>{{ lobbyPlayerCount(availableLobby) }} / {{ availableLobby.maximumPlayers }} joueurs</span>
           </div>
           <AppButton variant="primary" :disabled="!canSubmit || joiningLobbyId !== null"
             :loading="joiningLobbyId === availableLobby.id" @click="joinLobby(availableLobby)">
-            {{ joiningLobbyId === availableLobby.id ? 'Connexion…' : 'Rejoindre' }}
+            {{ joiningLobbyId === availableLobby.id ? 'Connexion…' : (availableLobby.phase === LOBBY_PHASE.STARTED ? 'Reconnecter' : 'Rejoindre') }}
           </AppButton>
         </article>
       </div>

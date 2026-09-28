@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 
 import { SESSION_DESTINATION } from '@lgu/contracts'
 import { RouterView, useRoute, useRouter } from 'vue-router'
@@ -23,12 +23,24 @@ function requireLobbyStore(): ReturnType<typeof useLobbyStore> {
   return lobby.value
 }
 
+function resumeAfterMobileWake(): void {
+  if (staticMode || route.meta.simulator || document.visibilityState === 'hidden') return
+  void requireLobbyStore().resumeRealtime()
+}
+
 async function synchronizeRoute(): Promise<void> {
   if (staticMode || route.meta.roleAccess || route.meta.simulator) return
   const store = lobby.value
   if (!store?.initialized) return
   if (!store.hasSession) {
     if (route.meta.public) return
+    if (store.recoveryLobbyId) {
+      await router.replace({
+        name: ROUTE_NAME.LOBBIES,
+        query: { lobby: store.recoveryLobbyId },
+      })
+      return
+    }
     if (route.name !== ROUTE_NAME.HOME && route.name !== ROUTE_NAME.LOBBIES && !(route.name === ROUTE_NAME.LOBBY && route.params.lobbyId)) {
       await router.replace({ name: ROUTE_NAME.HOME })
     }
@@ -59,6 +71,7 @@ watch(
   () => [
     lobby.value?.initialized,
     lobby.value?.hasSession,
+    lobby.value?.recoveryLobbyId,
     lobby.value?.destination,
     route.name,
   ],
@@ -66,7 +79,16 @@ watch(
   { immediate: true },
 )
 
+onMounted(() => {
+  document.addEventListener('visibilitychange', resumeAfterMobileWake)
+  window.addEventListener('online', resumeAfterMobileWake)
+})
+
 onBeforeUnmount(() => lobby.value?.dispose())
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', resumeAfterMobileWake)
+  window.removeEventListener('online', resumeAfterMobileWake)
+})
 </script>
 
 <template>

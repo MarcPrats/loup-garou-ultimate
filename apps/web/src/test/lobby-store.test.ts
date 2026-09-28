@@ -236,6 +236,7 @@ describe('lobby store', () => {
 
     expect(store.hasSession).toBe(false)
     expect(store.lobby).toBeNull()
+    expect(store.recoveryLobbyId).toBe(LOBBY_ID.MAIN)
     expect(storage.clear).toHaveBeenCalledOnce()
     store.dispose()
   })
